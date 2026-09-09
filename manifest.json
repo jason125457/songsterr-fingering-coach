@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Songsterr Fingering Coach",
+  "version": "0.1.0",
+  "description": "Songsterr Fingering Coach - Phase 1 feasibility prototype to extract structured note, string, and fret data.",
+  "host_permissions": [
+    "https://www.songsterr.com/*",
+    "https://*.cloudfront.net/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.songsterr.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

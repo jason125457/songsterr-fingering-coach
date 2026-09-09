@@ -1,0 +1,296 @@
+/**
+ * Songsterr Fingering Coach - Content Script (Phase 1 Feasibility Prototype)
+ * 
+ * Extracts structured tab data (Song, Track, Measures, Beats, Notes with string + fret)
+ * directly from Songsterr's page state and CloudFront CDN, and logs clean JSON to browser console.
+ */
+
+(function () {
+  'use strict';
+
+  const CDN_HOSTS = ['dqsljvtekg760', 'd34shlm8p2ums2', 'd3cqchs6g3b5ew'];
+  const CDN_STAGE_HOST = 'd3d3l6a6rcgkaf';
+  const CDN_LEGACY_HOSTS = ['d3rrfvx08uyjp1', 'dodkcbujl0ebx', 'dj1usja78sinh'];
+
+  // MIDI pitch to Note Name helper (64 = E4, 59 = B3, 55 = G3, 50 = D3, 45 = A2, 40 = E2)
+  const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  function midiToNoteName(midi) {
+    if (typeof midi !== 'number') return '?';
+    const note = NOTE_NAMES[midi % 12];
+    const octave = Math.floor(midi / 12) - 1;
+    return `${note}${octave}`;
+  }
+
+  let lastProcessedKey = '';
+  let lastExtractedData = null;
+
+  /**
+   * Build the CloudFront CDN URL using Songsterr's internal routing logic
+   */
+  function buildPartUrl(songId, revisionId, image, partId, attempt = 0) {
+    if (image && image.endsWith('-stage')) {
+      return `https://${CDN_STAGE_HOST}.cloudfront.net/${songId}/${revisionId}/${image}/${partId}.json`;
+    }
+    if (image) {
+      const host = CDN_HOSTS[attempt % CDN_HOSTS.length];
+      return `https://${host}.cloudfront.net/${songId}/${revisionId}/${image}/${partId}.json`;
+    }
+    const legacyHost = CDN_LEGACY_HOSTS[attempt % CDN_LEGACY_HOSTS.length];
+    return `https://${legacyHost}.cloudfront.net/part/${revisionId}/${partId}`;
+  }
+
+  /**
+   * Parse measure and beat note structure into clean JSON format
+   */
+  function parseMeasures(measures, tuning, maxMeasures = 5) {
+    const result = [];
+    const measuresToProcess = measures.slice(0, maxMeasures);
+
+    measuresToProcess.forEach((measure, mIdx) => {
+      const measureNumber = mIdx + 1;
+      const timeSignature = measure.signature ? `${measure.signature[0]}/${measure.signature[1]}` : '4/4';
+      const marker = measure.marker?.text || null;
+      const notesList = [];
+
+      if (measure.voices) {
+        measure.voices.forEach((voice) => {
+          if (!voice.beats) return;
+          voice.beats.forEach((beat, bIdx) => {
+            const beatNumber = bIdx + 1;
+            const duration = beat.duration 
+              ? `${beat.duration[0]}/${beat.duration[1]}` 
+              : (beat.type ? `1/${beat.type}` : 'unknown');
+
+            if (beat.notes && beat.notes.length > 0) {
+              beat.notes.forEach((note) => {
+                if (note.rest) {
+                  notesList.push({
+                    measureNumber,
+                    beatNumber,
+                    timing: duration,
+                    isRest: true
+                  });
+                } else if (note.fret !== undefined && note.string !== undefined) {
+                  // In Songsterr, string 0 is the highest pitched string (e.g. High E),
+                  // string 5 is the lowest (e.g. Low E).
+                  const stringIndex = note.string; // 0-indexed
+                  const stringNumber = note.string + 1; // 1-indexed (1 = High E, 6 = Low E)
+                  const baseMidi = Array.isArray(tuning) && tuning[stringIndex] !== undefined 
+                    ? tuning[stringIndex] 
+                    : null;
+                  const openStringName = baseMidi !== null ? midiToNoteName(baseMidi) : `Str ${stringNumber}`;
+                  const notePitch = baseMidi !== null ? midiToNoteName(baseMidi + note.fret) : null;
+
+                  notesList.push({
+                    measureNumber,
+                    beatNumber,
+                    timing: duration,
+                    stringIndex: stringIndex,
+                    stringNumber: stringNumber,
+                    openString: openStringName,
+                    fret: note.fret,
+                    pitch: notePitch,
+                    isTie: !!note.tie,
+                    isRest: false
+                  });
+                }
+              });
+            }
+          });
+        });
+      }
+
+      result.push({
+        measureNumber,
+        timeSignature,
+        marker,
+        notesCount: notesList.filter(n => !n.isRest).length,
+        notes: notesList
+      });
+    });
+
+    return result;
+  }
+
+  /**
+   * Main extraction flow
+   */
+  async function extractTabNotes(targetPartId = null) {
+    const stateElement = document.getElementById('state');
+    if (!stateElement) {
+      console.warn('[Songsterr Fingering Coach] No <script id="state"> element found on this page.');
+      return null;
+    }
+
+    let state;
+    try {
+      state = JSON.parse(stateElement.textContent);
+    } catch (err) {
+      console.error('[Songsterr Fingering Coach] Failed to parse page state JSON:', err);
+      return null;
+    }
+
+    const meta = state.meta?.current || state.meta;
+    if (!meta || !meta.songId) {
+      console.warn('[Songsterr Fingering Coach] Meta or songId not found in state.');
+      return null;
+    }
+
+    const songId = meta.songId;
+    const revisionId = meta.revisionId || meta.latestRevisionId;
+    const image = meta.image;
+    const title = meta.title || 'Unknown Title';
+    const artist = meta.artist || 'Unknown Artist';
+    const tracks = meta.tracks || [];
+
+    // Determine which track is currently selected
+    let partId = targetPartId;
+    if (partId === null || partId === undefined) {
+      partId = state.routeContent?.params?.partId ?? 
+               state.route?.params?.partId ?? 
+               state.part?.partId ?? 
+               state.meta?.partId ?? 
+               meta.defaultTrack ?? 
+               0;
+    }
+
+    // Find track details
+    const trackIndex = tracks.findIndex(t => (t.partId ?? -1) === partId);
+    const track = trackIndex !== -1 ? tracks[trackIndex] : (tracks[partId] || tracks[0]);
+    const actualPartId = track?.partId ?? partId;
+
+    const currentKey = `${songId}-${revisionId}-${actualPartId}`;
+    if (targetPartId === null && currentKey === lastProcessedKey) {
+      return lastExtractedData; // Avoid duplicate logging
+    }
+
+    const partUrl = buildPartUrl(songId, revisionId, image, actualPartId);
+
+    console.log(
+      `%c🎸 [Songsterr Fingering Coach] Extracting tab for: "${title}" by ${artist} (Track: ${track?.name || actualPartId})`,
+      'color: #00d26a; font-weight: bold; font-size: 13px;'
+    );
+    console.log(`[Songsterr Fingering Coach] Fetching structured notes from: ${partUrl}`);
+
+    let partData;
+    try {
+      const response = await fetch(partUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} ${response.statusText}`);
+      }
+      partData = await response.json();
+    } catch (fetchErr) {
+      console.error('[Songsterr Fingering Coach] Failed to fetch part JSON from CDN:', fetchErr);
+      return null;
+    }
+
+    if (!partData.measures || !Array.isArray(partData.measures)) {
+      console.warn('[Songsterr Fingering Coach] No measures array in retrieved part JSON.');
+      return null;
+    }
+
+    const tuning = partData.tuning || track?.tuning || [64, 59, 55, 50, 45, 40];
+    const first5Measures = parseMeasures(partData.measures, tuning, 5);
+
+    const extractedOutput = {
+      song: {
+        songId,
+        revisionId,
+        title,
+        artist
+      },
+      track: {
+        partId: actualPartId,
+        name: track?.name || partData.name || 'Unknown Track',
+        instrument: track?.instrument || partData.instrument || 'Guitar',
+        tuningMidi: tuning,
+        tuningNames: tuning.map(midiToNoteName),
+        totalMeasures: partData.measures.length
+      },
+      first5Measures: first5Measures
+    };
+
+    lastProcessedKey = currentKey;
+    lastExtractedData = extractedOutput;
+
+    // Output formatted JSON to Browser Console
+    console.group(`%c🎸 [Songsterr Fingering Coach] Parsed JSON (First 5 Measures): ${title} - ${artist}`, 'color: #3b82f6; font-weight: bold;');
+    console.log(JSON.stringify(extractedOutput, null, 2));
+
+    // Also output a quick readable table of notes
+    const flattenedNotes = [];
+    first5Measures.forEach(m => {
+      m.notes.forEach(n => {
+        if (!n.isRest) {
+          flattenedNotes.push({
+            'Measure': n.measureNumber,
+            'Beat': n.beatNumber,
+            'Timing': n.timing,
+            'String (0=High E)': n.stringIndex,
+            'Fret': n.fret,
+            'Pitch': n.pitch || '-',
+            'Open Str': n.openString,
+            'Tie': n.isTie ? 'Yes' : ''
+          });
+        }
+      });
+    });
+
+    if (flattenedNotes.length > 0) {
+      console.log('%c📋 Notes Summary Table:', 'font-weight: bold; color: #f59e0b;');
+      console.table(flattenedNotes);
+    } else {
+      console.log('ℹ️ Note: The first 5 measures contain rests only for this track.');
+    }
+    console.groupEnd();
+
+    return extractedOutput;
+  }
+
+  // Expose global debug object on window for developer testing
+  window.__SONGSTERR_FINGERING_COACH__ = {
+    extract: () => extractTabNotes(),
+    extractTrack: (partId) => extractTabNotes(partId),
+    getLastExtracted: () => lastExtractedData,
+    getRawState: () => {
+      try {
+        return JSON.parse(document.getElementById('state')?.textContent || '{}');
+      } catch (e) {
+        return null;
+      }
+    }
+  };
+
+  // Run on initial page load with a short delay to ensure DOM is fully ready
+  function init() {
+    if (location.pathname.includes('/a/wsa/')) {
+      setTimeout(() => {
+        extractTabNotes().catch(console.error);
+      }, 500);
+    }
+  }
+
+  // Observe URL / SPA navigation changes
+  let lastUrl = location.href;
+  const urlObserver = new MutationObserver(() => {
+    if (location.href !== lastUrl) {
+      lastUrl = location.href;
+      if (location.pathname.includes('/a/wsa/')) {
+        setTimeout(() => {
+          extractTabNotes().catch(console.error);
+        }, 800);
+      }
+    }
+  });
+  urlObserver.observe(document, { subtree: true, childList: true });
+
+  window.addEventListener('popstate', () => {
+    if (location.pathname.includes('/a/wsa/')) {
+      setTimeout(() => {
+        extractTabNotes().catch(console.error);
+      }, 800);
+    }
+  });
+
+  init();
+})();

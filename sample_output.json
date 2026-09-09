@@ -1,0 +1,1436 @@
+[
+  {
+    "song": {
+      "songId": 19,
+      "revisionId": 8903139,
+      "title": "Enter Sandman",
+      "artist": "Metallica"
+    },
+    "track": {
+      "partId": 3,
+      "name": "James Hetfield | ESP \"So Fucking What\" MX-220 | Clean Guitar",
+      "instrument": "Electric Guitar (clean)",
+      "tuningMidi": [
+        64,
+        59,
+        55,
+        50,
+        45,
+        40
+      ],
+      "tuningNames": [
+        "E4",
+        "B3",
+        "G3",
+        "D3",
+        "A2",
+        "E2"
+      ],
+      "totalMeasures": 174
+    },
+    "first5Measures": [
+      {
+        "measureNumber": 1,
+        "timeSignature": "4/4",
+        "marker": "Intro",
+        "notesCount": 1,
+        "notes": [
+          {
+            "measureNumber": 1,
+            "beatNumber": 1,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 0,
+            "pitch": "E2",
+            "isTie": false,
+            "isRest": false
+          }
+        ]
+      },
+      {
+        "measureNumber": 2,
+        "timeSignature": "4/4",
+        "marker": null,
+        "notesCount": 7,
+        "notes": [
+          {
+            "measureNumber": 2,
+            "beatNumber": 1,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 0,
+            "pitch": "E2",
+            "isTie": true,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 2,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "A2",
+            "fret": 7,
+            "pitch": "E3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 3,
+            "timing": "1/8",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 5,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 4,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 6,
+            "pitch": "A#2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 5,
+            "timing": "1/4",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 5,
+            "pitch": "A2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 6,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "A2",
+            "fret": 7,
+            "pitch": "E3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 7,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 0,
+            "pitch": "E2",
+            "isTie": false,
+            "isRest": false
+          }
+        ]
+      },
+      {
+        "measureNumber": 3,
+        "timeSignature": "4/4",
+        "marker": null,
+        "notesCount": 7,
+        "notes": [
+          {
+            "measureNumber": 3,
+            "beatNumber": 1,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 0,
+            "pitch": "E2",
+            "isTie": true,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 2,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "A2",
+            "fret": 7,
+            "pitch": "E3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 3,
+            "timing": "1/8",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 5,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 4,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 6,
+            "pitch": "A#2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 5,
+            "timing": "1/4",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 5,
+            "pitch": "A2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 6,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "A2",
+            "fret": 7,
+            "pitch": "E3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 7,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 0,
+            "pitch": "E2",
+            "isTie": false,
+            "isRest": false
+          }
+        ]
+      },
+      {
+        "measureNumber": 4,
+        "timeSignature": "4/4",
+        "marker": null,
+        "notesCount": 7,
+        "notes": [
+          {
+            "measureNumber": 4,
+            "beatNumber": 1,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 0,
+            "pitch": "E2",
+            "isTie": true,
+            "isRest": false
+          },
+          {
+            "measureNumber": 4,
+            "beatNumber": 2,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "A2",
+            "fret": 7,
+            "pitch": "E3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 4,
+            "beatNumber": 3,
+            "timing": "1/8",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 5,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 4,
+            "beatNumber": 4,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 6,
+            "pitch": "A#2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 4,
+            "beatNumber": 5,
+            "timing": "1/4",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 5,
+            "pitch": "A2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 4,
+            "beatNumber": 6,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "A2",
+            "fret": 7,
+            "pitch": "E3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 4,
+            "beatNumber": 7,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 0,
+            "pitch": "E2",
+            "isTie": false,
+            "isRest": false
+          }
+        ]
+      },
+      {
+        "measureNumber": 5,
+        "timeSignature": "4/4",
+        "marker": null,
+        "notesCount": 7,
+        "notes": [
+          {
+            "measureNumber": 5,
+            "beatNumber": 1,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 0,
+            "pitch": "E2",
+            "isTie": true,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 2,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "A2",
+            "fret": 7,
+            "pitch": "E3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 3,
+            "timing": "1/8",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 5,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 4,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 6,
+            "pitch": "A#2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 5,
+            "timing": "1/4",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 5,
+            "pitch": "A2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 6,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "A2",
+            "fret": 7,
+            "pitch": "E3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 7,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "E2",
+            "fret": 0,
+            "pitch": "E2",
+            "isTie": false,
+            "isRest": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "song": {
+      "songId": 329,
+      "revisionId": 8744785,
+      "title": "Smoke On The Water",
+      "artist": "Deep Purple"
+    },
+    "track": {
+      "partId": 2,
+      "name": "Ritchie Blackmore | Fender Stratocaster | Rhythm Guitar",
+      "instrument": "Overdriven Guitar",
+      "tuningMidi": [
+        64,
+        59,
+        55,
+        50,
+        45,
+        40
+      ],
+      "tuningNames": [
+        "E4",
+        "B3",
+        "G3",
+        "D3",
+        "A2",
+        "E2"
+      ],
+      "totalMeasures": 177
+    },
+    "first5Measures": [
+      {
+        "measureNumber": 1,
+        "timeSignature": "4/4",
+        "marker": "Intro",
+        "notesCount": 9,
+        "notes": [
+          {
+            "measureNumber": 1,
+            "beatNumber": 1,
+            "timing": "1/4",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 5,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 1,
+            "beatNumber": 1,
+            "timing": "1/4",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "A2",
+            "fret": 5,
+            "pitch": "D3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 1,
+            "beatNumber": 2,
+            "timing": "1/4",
+            "stringIndex": 2,
+            "stringNumber": 3,
+            "openString": "G3",
+            "fret": 3,
+            "pitch": "A#3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 1,
+            "beatNumber": 2,
+            "timing": "1/4",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 3,
+            "pitch": "F3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 1,
+            "beatNumber": 3,
+            "timing": "1/4",
+            "stringIndex": 2,
+            "stringNumber": 3,
+            "openString": "G3",
+            "fret": 5,
+            "pitch": "C4",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 1,
+            "beatNumber": 3,
+            "timing": "1/4",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 5,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 1,
+            "beatNumber": 4,
+            "timing": "1/8",
+            "stringIndex": 2,
+            "stringNumber": 3,
+            "openString": "G3",
+            "fret": 0,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 1,
+            "beatNumber": 5,
+            "timing": "1/8",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 5,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 1,
+            "beatNumber": 5,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "A2",
+            "fret": 5,
+            "pitch": "D3",
+            "isTie": false,
+            "isRest": false
+          }
+        ]
+      },
+      {
+        "measureNumber": 2,
+        "timeSignature": "4/4",
+        "marker": null,
+        "notesCount": 7,
+        "notes": [
+          {
+            "measureNumber": 2,
+            "beatNumber": 1,
+            "timing": "1/8",
+            "isRest": true
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 2,
+            "timing": "1/4",
+            "stringIndex": 2,
+            "stringNumber": 3,
+            "openString": "G3",
+            "fret": 3,
+            "pitch": "A#3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 2,
+            "timing": "1/4",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 3,
+            "pitch": "F3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 3,
+            "timing": "1/8",
+            "stringIndex": 2,
+            "stringNumber": 3,
+            "openString": "G3",
+            "fret": 6,
+            "pitch": "C#4",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 3,
+            "timing": "1/8",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 6,
+            "pitch": "G#3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 4,
+            "timing": "1/4",
+            "stringIndex": 2,
+            "stringNumber": 3,
+            "openString": "G3",
+            "fret": 5,
+            "pitch": "C4",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 4,
+            "timing": "1/4",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 5,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 5,
+            "timing": "1/4",
+            "stringIndex": 2,
+            "stringNumber": 3,
+            "openString": "G3",
+            "fret": 0,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          }
+        ]
+      },
+      {
+        "measureNumber": 3,
+        "timeSignature": "4/4",
+        "marker": null,
+        "notesCount": 9,
+        "notes": [
+          {
+            "measureNumber": 3,
+            "beatNumber": 1,
+            "timing": "1/4",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 5,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 1,
+            "timing": "1/4",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "A2",
+            "fret": 5,
+            "pitch": "D3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 2,
+            "timing": "1/4",
+            "stringIndex": 2,
+            "stringNumber": 3,
+            "openString": "G3",
+            "fret": 3,
+            "pitch": "A#3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 2,
+            "timing": "1/4",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 3,
+            "pitch": "F3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 3,
+            "timing": "1/4",
+            "stringIndex": 2,
+            "stringNumber": 3,
+            "openString": "G3",
+            "fret": 5,
+            "pitch": "C4",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 3,
+            "timing": "1/4",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 5,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 4,
+            "timing": "1/8",
+            "stringIndex": 2,
+            "stringNumber": 3,
+            "openString": "G3",
+            "fret": 0,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 5,
+            "timing": "1/8",
+            "stringIndex": 2,
+            "stringNumber": 3,
+            "openString": "G3",
+            "fret": 3,
+            "pitch": "A#3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 5,
+            "timing": "1/8",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 3,
+            "pitch": "F3",
+            "isTie": false,
+            "isRest": false
+          }
+        ]
+      },
+      {
+        "measureNumber": 4,
+        "timeSignature": "4/4",
+        "marker": null,
+        "notesCount": 4,
+        "notes": [
+          {
+            "measureNumber": 4,
+            "beatNumber": 1,
+            "timing": "1/8",
+            "isRest": true
+          },
+          {
+            "measureNumber": 4,
+            "beatNumber": 2,
+            "timing": "1/8",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 5,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 4,
+            "beatNumber": 2,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "A2",
+            "fret": 5,
+            "pitch": "D3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 4,
+            "beatNumber": 3,
+            "timing": "1/2",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 5,
+            "pitch": "G3",
+            "isTie": true,
+            "isRest": false
+          },
+          {
+            "measureNumber": 4,
+            "beatNumber": 3,
+            "timing": "1/2",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "A2",
+            "fret": 5,
+            "pitch": "D3",
+            "isTie": true,
+            "isRest": false
+          }
+        ]
+      },
+      {
+        "measureNumber": 5,
+        "timeSignature": "4/4",
+        "marker": null,
+        "notesCount": 9,
+        "notes": [
+          {
+            "measureNumber": 5,
+            "beatNumber": 1,
+            "timing": "1/4",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 5,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 1,
+            "timing": "1/4",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "A2",
+            "fret": 5,
+            "pitch": "D3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 2,
+            "timing": "1/4",
+            "stringIndex": 2,
+            "stringNumber": 3,
+            "openString": "G3",
+            "fret": 3,
+            "pitch": "A#3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 2,
+            "timing": "1/4",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 3,
+            "pitch": "F3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 3,
+            "timing": "1/4",
+            "stringIndex": 2,
+            "stringNumber": 3,
+            "openString": "G3",
+            "fret": 5,
+            "pitch": "C4",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 3,
+            "timing": "1/4",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 5,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 4,
+            "timing": "1/8",
+            "stringIndex": 2,
+            "stringNumber": 3,
+            "openString": "G3",
+            "fret": 0,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 5,
+            "timing": "1/8",
+            "stringIndex": 3,
+            "stringNumber": 4,
+            "openString": "D3",
+            "fret": 5,
+            "pitch": "G3",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 5,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "A2",
+            "fret": 5,
+            "pitch": "D3",
+            "isTie": false,
+            "isRest": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "song": {
+      "songId": 14,
+      "revisionId": 8611143,
+      "title": "Come As You Are",
+      "artist": "Nirvana"
+    },
+    "track": {
+      "partId": 5,
+      "name": "Kurt Cobain | Mosrite Gospel | Rhythm Guitar",
+      "instrument": "Electric Guitar (clean)",
+      "tuningMidi": [
+        62,
+        57,
+        53,
+        48,
+        43,
+        38
+      ],
+      "tuningNames": [
+        "D4",
+        "A3",
+        "F3",
+        "C3",
+        "G2",
+        "D2"
+      ],
+      "totalMeasures": 112
+    },
+    "first5Measures": [
+      {
+        "measureNumber": 1,
+        "timeSignature": "2/4",
+        "marker": "Intro",
+        "notesCount": 3,
+        "notes": [
+          {
+            "measureNumber": 1,
+            "beatNumber": 1,
+            "timing": "1/8",
+            "isRest": true
+          },
+          {
+            "measureNumber": 1,
+            "beatNumber": 2,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 0,
+            "pitch": "D2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 1,
+            "beatNumber": 3,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 0,
+            "pitch": "D2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 1,
+            "beatNumber": 4,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 1,
+            "pitch": "D#2",
+            "isTie": false,
+            "isRest": false
+          }
+        ]
+      },
+      {
+        "measureNumber": 2,
+        "timeSignature": "4/4",
+        "marker": null,
+        "notesCount": 7,
+        "notes": [
+          {
+            "measureNumber": 2,
+            "beatNumber": 1,
+            "timing": "1/4",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 2,
+            "pitch": "E2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 2,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "G2",
+            "fret": 0,
+            "pitch": "G2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 3,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 2,
+            "pitch": "E2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 4,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "G2",
+            "fret": 0,
+            "pitch": "G2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 5,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 2,
+            "pitch": "E2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 6,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 2,
+            "pitch": "E2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 2,
+            "beatNumber": 7,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 1,
+            "pitch": "D#2",
+            "isTie": false,
+            "isRest": false
+          }
+        ]
+      },
+      {
+        "measureNumber": 3,
+        "timeSignature": "4/4",
+        "marker": null,
+        "notesCount": 8,
+        "notes": [
+          {
+            "measureNumber": 3,
+            "beatNumber": 1,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 0,
+            "pitch": "D2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 2,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "G2",
+            "fret": 2,
+            "pitch": "A2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 3,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 0,
+            "pitch": "D2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 4,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 0,
+            "pitch": "D2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 5,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 0,
+            "pitch": "D2",
+            "isTie": true,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 6,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "G2",
+            "fret": 2,
+            "pitch": "A2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 7,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 0,
+            "pitch": "D2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 3,
+            "beatNumber": 8,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 1,
+            "pitch": "D#2",
+            "isTie": false,
+            "isRest": false
+          }
+        ]
+      },
+      {
+        "measureNumber": 4,
+        "timeSignature": "4/4",
+        "marker": null,
+        "notesCount": 7,
+        "notes": [
+          {
+            "measureNumber": 4,
+            "beatNumber": 1,
+            "timing": "1/4",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 2,
+            "pitch": "E2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 4,
+            "beatNumber": 2,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "G2",
+            "fret": 0,
+            "pitch": "G2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 4,
+            "beatNumber": 3,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 2,
+            "pitch": "E2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 4,
+            "beatNumber": 4,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "G2",
+            "fret": 0,
+            "pitch": "G2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 4,
+            "beatNumber": 5,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 2,
+            "pitch": "E2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 4,
+            "beatNumber": 6,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 2,
+            "pitch": "E2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 4,
+            "beatNumber": 7,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 1,
+            "pitch": "D#2",
+            "isTie": false,
+            "isRest": false
+          }
+        ]
+      },
+      {
+        "measureNumber": 5,
+        "timeSignature": "4/4",
+        "marker": null,
+        "notesCount": 8,
+        "notes": [
+          {
+            "measureNumber": 5,
+            "beatNumber": 1,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 0,
+            "pitch": "D2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 2,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "G2",
+            "fret": 2,
+            "pitch": "A2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 3,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 0,
+            "pitch": "D2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 4,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 0,
+            "pitch": "D2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 5,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 0,
+            "pitch": "D2",
+            "isTie": true,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 6,
+            "timing": "1/8",
+            "stringIndex": 4,
+            "stringNumber": 5,
+            "openString": "G2",
+            "fret": 2,
+            "pitch": "A2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 7,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 0,
+            "pitch": "D2",
+            "isTie": false,
+            "isRest": false
+          },
+          {
+            "measureNumber": 5,
+            "beatNumber": 8,
+            "timing": "1/8",
+            "stringIndex": 5,
+            "stringNumber": 6,
+            "openString": "D2",
+            "fret": 1,
+            "pitch": "D#2",
+            "isTie": false,
+            "isRest": false
+          }
+        ]
+      }
+    ]
+  }
+]
