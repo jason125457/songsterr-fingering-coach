@@ -1,0 +1,7759 @@
+{
+  "automations": {
+    "tempo": [
+      {
+        "bpm": 120,
+        "linear": false,
+        "measure": 0,
+        "position": 0,
+        "type": 4,
+        "visible": false
+      }
+    ]
+  },
+  "frets": 24,
+  "instrument": "Distortion Guitar",
+  "instrumentId": 30,
+  "measures": [
+    {
+      "signature": [
+        4,
+        4
+      ],
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "hp": true,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0,
+                  "tie": true
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "hp": true,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 12,
+                  "string": 0
+                },
+                {
+                  "fret": 10,
+                  "string": 1
+                },
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "hp": true,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0,
+                  "tie": true
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "hp": true,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 12,
+                  "string": 0
+                },
+                {
+                  "fret": 10,
+                  "string": 1
+                },
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "hp": true,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0,
+                  "tie": true
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "hp": true,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 12,
+                  "string": 0
+                },
+                {
+                  "fret": 10,
+                  "string": 1
+                },
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "hp": true,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0,
+                  "tie": true
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "hp": true,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "dots": 1,
+              "duration": [
+                3,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 12,
+                  "string": 0
+                },
+                {
+                  "fret": 10,
+                  "string": 1
+                },
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 5,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "dots": 1,
+              "duration": [
+                3,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 0
+                }
+              ],
+              "type": 8
+            },
+            {
+              "dots": 1,
+              "duration": [
+                3,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "dots": 1,
+              "duration": [
+                3,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "dots": 1,
+              "duration": [
+                3,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 5,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "dots": 1,
+              "duration": [
+                3,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "dots": 1,
+              "duration": [
+                3,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 5,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 5,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 6,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 5,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 3,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 5,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 5,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 6,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 5,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 3,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "hp": true,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0,
+                  "tie": true
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "hp": true,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 12,
+                  "string": 0
+                },
+                {
+                  "fret": 10,
+                  "string": 1
+                },
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "hp": true,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 0
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 0
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "hp": true,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0,
+                  "tie": true
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 12,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "hp": true,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0,
+                  "tie": true
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "hp": true,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 12,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "hp": true,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 0,
+                  "tie": true
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                16
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 16
+            },
+            {
+              "duration": [
+                1,
+                16
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 1
+                }
+              ],
+              "type": 16,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 9,
+                  "hp": true,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 1
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "dots": 1,
+              "duration": [
+                3,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 12,
+                  "string": 0
+                },
+                {
+                  "fret": 10,
+                  "string": 1
+                },
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 0
+                },
+                {
+                  "fret": 10,
+                  "string": 1
+                },
+                {
+                  "fret": 10,
+                  "string": 2
+                }
+              ],
+              "type": 4
+            },
+            {
+              "dots": 1,
+              "duration": [
+                3,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 10,
+                  "string": 0,
+                  "tie": true
+                },
+                {
+                  "fret": 10,
+                  "string": 1,
+                  "tie": true
+                },
+                {
+                  "fret": 10,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 8,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 7,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 5,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 3
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 3
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 3
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 3
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "dots": 1,
+              "duration": [
+                3,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 0
+                },
+                {
+                  "fret": 1,
+                  "string": 1
+                },
+                {
+                  "fret": 1,
+                  "string": 2
+                },
+                {
+                  "fret": 3,
+                  "string": 3
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 3
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 3
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 3
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 3
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 3
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 3
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 3
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 4
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 3
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 3,
+                  "string": 3
+                }
+              ],
+              "type": 8,
+              "beamStart": true
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 8,
+              "beamStop": true
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 0,
+                  "string": 0
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                4
+              ],
+              "notes": [
+                {
+                  "fret": 1,
+                  "string": 1
+                }
+              ],
+              "type": 4
+            },
+            {
+              "duration": [
+                1,
+                8
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2
+                }
+              ],
+              "type": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "fret": 2,
+                  "string": 2,
+                  "tie": true
+                }
+              ],
+              "type": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "voices": [
+        {
+          "beats": [
+            {
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ],
+              "rest": true,
+              "type": 1
+            }
+          ],
+          "rest": true
+        }
+      ],
+      "rest": true
+    },
+    {
+      "rest": true,
+      "voices": [
+        {
+          "rest": true,
+          "beats": [
+            {
+              "rest": true,
+              "type": 1,
+              "duration": [
+                1,
+                1
+              ],
+              "notes": [
+                {
+                  "rest": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "name": "Lead Guitar",
+  "strings": 6,
+  "tuning": [
+    64,
+    59,
+    55,
+    50,
+    45,
+    40
+  ],
+  "partId": 0,
+  "songId": 6557798,
+  "revisionId": 8562606
+}

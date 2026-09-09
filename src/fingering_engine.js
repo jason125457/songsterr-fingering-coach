@@ -275,25 +275,31 @@
   function calculateTransitionCost(prevCand, currCand, prevBeatNotes, currBeatNotes) {
     let cost = 0;
 
+    // 2. Note consistency & melodic phrasing
+    const prevFretted = prevBeatNotes.map((n, i) => ({ note: n, finger: prevCand.fingerAssignments[i] })).filter(x => !x.note.isRest && x.note.fret > 0);
+    const currFretted = currBeatNotes.map((n, i) => ({ note: n, finger: currCand.fingerAssignments[i] })).filter(x => !x.note.isRest && x.note.fret > 0);
+
     // 1. Position shift cost
     if (currCand.position !== prevCand.position) {
       const shiftDistance = Math.abs(currCand.position - prevCand.position);
-      const prevHasFretted = prevBeatNotes.some(n => !n.isRest && n.fret > 0);
-      const currHasFretted = currBeatNotes.some(n => !n.isRest && n.fret > 0);
+      const prevHasFretted = prevFretted.length > 0;
+      const currHasFretted = currFretted.length > 0;
 
       if (prevHasFretted && currHasFretted) {
         // Direct shift between fretted notes
         cost += WEIGHTS.POSITION_SHIFT_BASE + (shiftDistance * WEIGHTS.POSITION_SHIFT_PER_FRET);
+        // Anchored shift principle:
+        // When shifting to a new position, landing on Finger 1 provides an ergonomic anchor.
+        // Landing on Finger 2, 3, or 4 without Finger 1 anchored incurs an unanchored shift penalty.
+        if (currFretted[0].finger > 1) {
+          cost += (currFretted[0].finger - 1) * 16;
+        }
       } else {
         // Shift across open strings or rests: moderate cost so the hand doesn't drift 1 fret needlessly,
         // but can easily shift if moving to a distant register.
         cost += (WEIGHTS.POSITION_SHIFT_BASE * 0.4) + (shiftDistance * 4);
       }
     }
-
-    // 2. Note consistency & melodic phrasing
-    const prevFretted = prevBeatNotes.map((n, i) => ({ note: n, finger: prevCand.fingerAssignments[i] })).filter(x => !x.note.isRest && x.note.fret > 0);
-    const currFretted = currBeatNotes.map((n, i) => ({ note: n, finger: currCand.fingerAssignments[i] })).filter(x => !x.note.isRest && x.note.fret > 0);
 
     if (prevFretted.length > 0 && currFretted.length > 0) {
       for (const p of prevFretted) {

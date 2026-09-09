@@ -270,6 +270,12 @@ node tests/run_all_tests.js
 - ✅ **Deep Purple - Smoke On The Water**：成功判定四度雙音 Riff 位於 **Position 3**，橫按與雙指分配符合人體工學。
 - ✅ **Nirvana - Come As You Are**：成功判定降全音前奏 Riff 位於 **Position 1**，0品空弦(0) - 1品(1) - 2品(2) 正確對應。
 
+#### 3. Phase 2.5 真實歌曲全曲前 20 小節實測 (`tests/real_song_validation.js`)
+- ✅ **Schoolgirl byebye - 傍晚去太子灣嗎**：
+  - 執行指令：`node tests/real_song_validation.js`
+  - 成功驗證前 20 小節（共 120 拍點）之主吉他（Lead Guitar）指法。
+  - 完整解析 Cmaj7 / Fmaj7 / 主歌開放和弦分解之把位切換、同指跨弦躍遷、高把位三音橫按（Fret 10 mini-barre + Fret 12 pinky）、空弦換把窗口等細膩技巧。
+
 ---
 
 ## 5. Chrome Extension 載入與使用

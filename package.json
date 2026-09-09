@@ -7,6 +7,7 @@
     "test": "node tests/run_all_tests.js",
     "test:synthetic": "node tests/synthetic.test.js",
     "test:fixtures": "node tests/fixtures.test.js",
+    "test:validation": "node tests/real_song_validation.js",
     "test:phase1": "node test_runner.js"
   },
   "keywords": [

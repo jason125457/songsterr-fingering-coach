@@ -147,6 +147,11 @@ function runSyntheticTests() {
 
 
   // Case 5: Obvious Position Shift: 3 → 5 → 10 → 12
+  // Position definition verification:
+  // Position = base fret where Index finger (1) rests.
+  // For frets 10 and 12, shifting to Position 10 (Index on 10, Ring on 12) is the standard
+  // anchored guitar fingering. Position 9 (Index idle on 9, Middle on 10, Pinky on 12)
+  // is unanchored and ergonomically suboptimal. Thus Position 10 is the correct definition.
   console.log('--- Test 5: Obvious Position Shift (3 → 5 → 10 → 12) ---');
   const tab5 = createSyntheticData([
     {
@@ -168,9 +173,11 @@ function runSyntheticTests() {
 
   assert.ok(m5Beats[0].recommendedPosition <= 3, 'First note should be in low position (<= 3)');
   assert.strictEqual(m5Beats[2].isPositionShift, true, 'Moving to fret 10 MUST trigger isPositionShift = true');
-  assert.ok(m5Beats[2].recommendedPosition >= 9 && m5Beats[2].recommendedPosition <= 10, 'Fret 10 should be in high position (9-10)');
+  assert.strictEqual(m5Beats[2].recommendedPosition, 10, 'Fret 10 should be in Position 10 (anchored on Index finger)');
+  assert.strictEqual(m5Beats[2].notes[0].recommendedFinger, 1, 'Fret 10 in Position 10 should be Finger 1');
+  assert.strictEqual(m5Beats[3].notes[0].recommendedFinger, 3, 'Fret 12 in Position 10 should be Finger 3');
   assert.strictEqual(m5Beats[3].isPositionShift, false, 'Fret 12 should stay in high position without shifting again');
-  console.log('✅ Test 5 Passed: Successfully detected and applied necessary position shift (Pos 3 → Pos 10).\n');
+  console.log('✅ Test 5 Passed: Successfully detected and applied necessary position shift (Pos 3 → Pos 10 with natural fingers 1 and 3).\n');
 
   console.log('🎉 ALL 5 SYNTHETIC TESTS PASSED!\n');
 }
