@@ -213,11 +213,11 @@
     lastProcessedKey = currentKey;
     lastExtractedData = extractedOutput;
 
-    // Output formatted JSON to Browser Console
+    // Output formatted JSON to Browser Console (Phase 1 extracted data)
     console.group(`%c🎸 [Songsterr Fingering Coach] Parsed JSON (First 5 Measures): ${title} - ${artist}`, 'color: #3b82f6; font-weight: bold;');
     console.log(JSON.stringify(extractedOutput, null, 2));
 
-    // Also output a quick readable table of notes
+    // Also output a quick readable table of raw notes
     const flattenedNotes = [];
     first5Measures.forEach(m => {
       m.notes.forEach(n => {
@@ -244,14 +244,45 @@
     }
     console.groupEnd();
 
-    return extractedOutput;
+    // Phase 2: Run Left-Hand Fingering Engine
+    let fingeringResult = null;
+    if (typeof TabNormalizer !== 'undefined' && typeof FingeringEngine !== 'undefined') {
+      try {
+        const normalized = TabNormalizer.normalizeFromSampleFixture(extractedOutput);
+        fingeringResult = FingeringEngine.analyzeTab(normalized);
+
+        console.group(`%c🖐️ [Songsterr Fingering Coach] Recommended Left-Hand Fingerings: ${title}`, 'color: #10b981; font-weight: bold;');
+        
+        // Print human-readable debug format
+        if (typeof FingeringFormatter !== 'undefined') {
+          console.log(FingeringFormatter.formatConsoleDebug(fingeringResult));
+          const tableRows = FingeringFormatter.formatBeatsTable(fingeringResult);
+          if (tableRows.length > 0) {
+            console.log('%c📊 Fingering Summary Table:', 'font-weight: bold; color: #06b6d4;');
+            console.table(tableRows);
+          }
+        }
+
+        console.log('%c📦 Structured Fingering JSON:', 'font-weight: bold; color: #8b5cf6;');
+        console.log(JSON.stringify(fingeringResult, null, 2));
+        console.groupEnd();
+      } catch (fErr) {
+        console.error('[Songsterr Fingering Coach] Fingering Engine error:', fErr);
+      }
+    }
+
+    lastFingeringResult = fingeringResult;
+    return { extractedOutput, fingeringResult };
   }
+
+  let lastFingeringResult = null;
 
   // Expose global debug object on window for developer testing
   window.__SONGSTERR_FINGERING_COACH__ = {
     extract: () => extractTabNotes(),
     extractTrack: (partId) => extractTabNotes(partId),
     getLastExtracted: () => lastExtractedData,
+    getLastFingeringResult: () => lastFingeringResult,
     getRawState: () => {
       try {
         return JSON.parse(document.getElementById('state')?.textContent || '{}');

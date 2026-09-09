@@ -13,6 +13,9 @@
         "https://www.songsterr.com/*"
       ],
       "js": [
+        "src/normalizer.js",
+        "src/fingering_engine.js",
+        "src/formatter.js",
         "content.js"
       ],
       "run_at": "document_idle"

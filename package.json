@@ -1,0 +1,21 @@
+{
+  "name": "songsterr-fingering-coach",
+  "version": "0.2.0",
+  "description": "Songsterr Fingering Coach - Chrome Extension Manifest V3 & Decoupled Left-Hand Fingering Recommendation Engine",
+  "main": "src/fingering_engine.js",
+  "scripts": {
+    "test": "node tests/run_all_tests.js",
+    "test:synthetic": "node tests/synthetic.test.js",
+    "test:fixtures": "node tests/fixtures.test.js",
+    "test:phase1": "node test_runner.js"
+  },
+  "keywords": [
+    "guitar",
+    "tab",
+    "fingering",
+    "songsterr",
+    "chrome-extension"
+  ],
+  "author": "",
+  "license": "MIT"
+}
