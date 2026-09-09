@@ -2,7 +2,7 @@
 
 🎸 **Songsterr Fingering Coach** 是一個針對 [Songsterr](https://www.songsterr.com/) 樂譜的 Chrome Extension (Manifest V3) 與**獨立左手吉他指法推薦引擎（Fingering Engine）**。
 
-本專案現已完成 **Phase 1（資料讀取與逆向驗證）**、**Phase 2（解耦指法推薦演算法引擎）** 與 **Phase 2.6（人性化指法演算法優化）**。
+本專案現已完成 **Phase 1（資料讀取與逆向驗證）**、**Phase 2（解耦指法推薦演算法引擎）**、**Phase 2.6（人性化指法演算法優化）** 與 **Phase 3.0（完整樂曲串接與 Fingering Coach UI 基礎建設）**。
 
 ---
 
@@ -14,7 +14,8 @@
 | **Phase 2: Decoupled Engine** | 架構解耦、人體工學狀態空間、Viterbi DP 全域最佳指法搜尋 | `src/fingering_engine.js`、`src/normalizer.js`、離線單元測試套件 | **已完成 (Completed)** ✅ |
 | **Phase 2.5: Real-Song Validation** | 真實長曲目驗證（以《傍晚去太子灣嗎》前 20 小節 120 拍為基準） | 120 拍完整分析、換把/同指跨弦/橫按/拉伸標註、成本排序 | **已完成 (Completed)** ✅ |
 | **Phase 2.6: Human Optimization** | 消除不自然提早換把、重複 Riff 指法一致性、開放手型聚合、可解釋成本 | 樂句邊界獎勵、重複動機記憶、開放和弦手型、成本透明化輸出 | **已完成 (Completed)** ✅ |
-| **Phase 3: Interactive UI** | Chrome 擴充功能前端即時互動向量指板（SVG Fretboard）與音訊同步 | 實時高亮手指 (1-4-0)、當前把位框、播放同步跟隨 | **規劃中 (Next Up)** 🎯 |
+| **Phase 3.0: Full Pipeline & UI** | 完整樂曲串接、Session 快取、極速非阻塞運算、浮動指型 Coach 面板、Mini-Barre 向量圖 | `src/ui/coach_panel.js`、`shape_diagram.js`、`coach.css`、M1-M20 瀏覽 | **已完成 (Completed)** ✅ |
+| **Phase 3.1: Playback Sync** | 與 Songsterr 播放器音訊與遊標即時跟隨同步 | Audio cursor observer、拍點自動推進、小節切換跟隨 | **規劃中 (Next Up)** 🎯 |
 | **Phase 4: Advanced Shapes** | CAGED 五大和弦音階型態比對、自訂偏好指型庫 | 爵士/藍調/金屬自訂手型偏好、進階調弦指板映射 | **待評估 (Backlog)** 📋 |
 
 
@@ -40,31 +41,35 @@
 │  Data Sources (例如 Songsterr CDN)    │
 │  - content.js / test_runner.js       │
 └──────────────────┬───────────────────┘
-                   │ Raw JSON
+                   │ Raw JSON (Full Track)
                    ▼
 ┌──────────────────────────────────────┐
 │  Tab Normalizer (src/normalizer.js)  │
 │  - 拍點聚合 (Same Beat Grouping)      │
 │  - 弦、品、休止符、連音標準化          │
 └──────────────────┬───────────────────┘
-                   │ Normalized Tab Data
+                   │ Full Normalized Track
                    ▼
 ┌──────────────────────────────────────┐
 │ Fingering Engine (fingering_engine)  │
 │  - 人體工學狀態空間 (Ergonomics)      │
 │  - 全域 Viterbi / DP 最佳路徑搜尋     │
-│  - 跨小節平滑性與換把最小化           │
+│  - 樂句邊界 / 重複動機 / 開放手型     │
 └──────────────────┬───────────────────┘
-                   │ Fingering Analysis Result
+                   │ Fingering Analysis (Cached)
                    ▼
 ┌──────────────────────────────────────┐
-│  Formatter (src/formatter.js)        │
-│  - Console Debug Block 格式化        │
-│  - Structured JSON / 視覺化表格       │
+│ UI Layer (src/ui/)                   │
+│  - CoachPanel (src/ui/coach_panel.js)│
+│  - ShapeDiagram (shape_diagram.js)   │
+│  - Scoped Dark Theme (coach.css)     │
 └──────────────────────────────────────┘
 ```
 
-> **重要原則**：`src/fingering_engine.js`、`src/normalizer.js`、`src/formatter.js` 完全不依賴瀏覽器 DOM、Songsterr API 或網路 Fetch，可於 Node.js 離線環境獨立執行並通過完整單元測試。
+> **重要架構原則**：
+> 1. `src/fingering_engine.js`、`src/normalizer.js` 完全純粹解耦，不依賴 DOM 或 UI。
+> 2. UI 層（`CoachPanel`、`ShapeDiagram`）**僅以唯讀方式消費指法分析結果**，絕對不重新計算指法。
+> 3. 全曲 Session 快取以 `songId-revisionId-partId` 為鍵值，全曲 146 小節分析耗時僅約 100ms，徹底杜絕 UI 阻塞。
 
 ---
 
@@ -295,6 +300,24 @@ node tests/run_all_tests.js
     4. **Open-String Shift Window**：M19 完美運用第 4 拍的高音 E 空弦窗口平滑滑降至第 1 把位。
     5. **Explainable Cost Breakdown**：每拍均附帶透明的移動成本、延伸懲罰、樂句邊界獎勵、重複模式獎勵與手型獎勵數據。
 
+#### 4. Phase 3.0 UI 驗證與全曲效能驗證 (`tests/ui_acceptance.test.js`)
+- ✅ **全曲串接與非阻塞運算 (Full Track Pipeline)**：
+  - 以《傍晚去太子灣嗎》全曲 146 小節（數百個拍點）進行端到端串接，正規化僅需 0.5ms，指法推薦引擎僅需約 **100ms**，全流程約 110ms，徹底杜絕瀏覽器主執行緒卡頓。
+- ✅ **Session 記憶體快取 (Fingering Cache)**：
+  - 以 `songId-revisionId-partId` 為鍵值，重複瀏覽或同音軌切換時即時命中快取（0ms），無多餘重複運算。
+- ✅ **M1（Pos 7 / 1-2-3 手型）**：
+  - 正確聚合 G7、G9、B8、E7，產生標準 4 品 compact diagram，左側標註 `7fr`。
+- ✅ **M3（Pos 8 高把位與 B6 換把至 Pos 10）**：
+  - 自動偵測小節內換把，精準拆分為 **Segment 1（Beats 1–5，Pos 8）** 與 **Segment 2（Beat 6，Pos 10）** 兩段獨立手型，杜絕衝突疊圖。
+- ✅ **M4（12 + 10 + 10 Mini-Barre）**：
+  - 成功識別食指（Finger 1）在第 10 品橫跨 B 弦與 G 弦之同指按弦，於 SVG 中自動生成圓角膠囊（Mini-barre Capsule），並與 12 品無名指（Finger 3）精準組合。
+- ✅ **M17（Pos 1 開放和弦手型）**：
+  - 正確辨識低把位 C 和弦分解，頂部繪製琴枕（Nut）粗線，空弦音上方標示「O」，無發聲弦保持乾淨空白。
+- ✅ **M19（空弦音滑降過渡）**：
+  - 前段為 Pos 5，透過高音 E 空弦音平順過渡至 Pos 1，兩段 Segment 自動無縫切換。
+- ✅ **經典樂譜 Fixture 相容性**：
+  - *Enter Sandman*、*Smoke On The Water*（雙音橫按）、*Come As You Are* 全數通過 SVG 向量渲染，無任何異常或語法錯誤。
+
 ---
 
 ## 5. Chrome Extension 載入與使用
@@ -302,28 +325,43 @@ node tests/run_all_tests.js
 1. 開啟 Chrome 瀏覽器，進入 `chrome://extensions/`。
 2. 開啟右上角 **「開發人員模式」**。
 3. 點擊 **「載入未封裝項目」**，選取此專案根目錄。
-4. 開啟任何 Songsterr 樂譜頁面（例如 Enter Sandman、Smoke on the Water 等）。
-5. 開啟 DevTools Console，擴充功能即會自動輸出：
-   - Phase 1 原始音符 JSON 與 Note 摘要表
-   - **Phase 2 指法引擎分析結果（包含推薦把位、手指代號、換把標記、視覺化表格）**。
+4. 開啟任何 Songsterr 樂譜頁面（例如 [Schoolgirl byebye - 傍晚去太子灣嗎](https://www.songsterr.com/a/wsa/schoolgirl-byebye-tab-s6557798)）。
+5. 頁面右側將自動浮現 **Fingering Coach 浮動面板**：
+   - 點擊 `◀ Prev` / `Next ▶` 手動瀏覽小節（M1～M146）。
+   - 點擊小節內各拍點（B1、B2...）高亮當前按弦音符。
+   - 檢視 Compact Chord Shape 向量圖、Mini-Barre 膠囊、當前弦/品/手指詳細卡片。
+   - 點擊面板右上角 `─` 可最小化為右下角吉他浮動按鈕（FAB），點擊隨時還原。
 
 ---
 
-## 6. 目前限制與技術邊界 (Current Limitations)
+## 6. 本地獨立互動式預覽 (Offline UI Preview)
 
-1. **拇指按弦 (Thumb Fret / T)**：
-   - 目前指法推薦以 1 (Index) 到 4 (Pinky) 加上 0 (Open) 為主，暫未包含 Jimi Hendrix 風格的低音大拇指按法（Thumb over neck）。
-2. **特定調弦法指板映射**：
-   - 預設調弦法為標準 E Standard 與一般吉他降音調弦（如 D Standard）。對於開放調弦（Open D / Open G）目前僅依品格與音高計算，未套用特殊開放和弦指型資料庫。
-3. **無 UI 互動層（本階段嚴格限制）**：
-   - 遵照 Phase 2 開發規範，本階段無任何 DOM 浮動面板、指板視覺化或浮水印覆蓋。
+無需安裝 Extension 或連線網路，即可在本機直接開啟獨立預覽器體驗 Coach Panel：
+
+```bash
+# 開啟 tests/ui_preview.html 於預設瀏覽器中
+start tests/ui_preview.html
+# 或 macOS
+# open tests/ui_preview.html
+```
 
 ---
 
-## 7. 下一步規劃 (Roadmap for Phase 3+)
+## 7. 目前限制與技術邊界 (Current Limitations)
 
-- **Phase 3：即時浮動指板 UI (Generative UI / SVG Fretboard)**：
-  - 於 Songsterr 樂譜側邊或下方提供響應式向量吉他指板。
-  - 即時同步 Songsterr 音訊播放進度，以高亮圓點顯示當前拍點之手指（1/2/3/4/0）與當前推薦把位框。
-- **特定指型庫融合 (CAGED & Scale Shapes)**：
-  - 結合常用五聲音階指型與和弦字典，使指法分析在遇見特定分解和弦時更加直覺。
+1. **播放同步尚未實作 (Phase 3.0 刻意排除)**：
+   - 目前採手動按鈕（`Prev / Next Measure / Beat`）瀏覽驗證，播放器遊標自動跟隨將於 Phase 3.1 實現。
+2. **拇指按弦 (Thumb Fret / T)**：
+   - 目前指法推薦以 1 (Index) 到 4 (Pinky) 加上 0 (Open) 為主，暫未包含低音大拇指扣弦按法。
+3. **特定調弦法指板映射**：
+   - 預設支援標準 E Standard 與吉他降音調弦，特殊開放調弦暫依音高品格直接解析。
+
+---
+
+## 8. 下一步規劃 (Roadmap for Phase 3.1+)
+
+- **Phase 3.1：播放同步 (Playback Cursor Synchronization)**：
+  - 監聽 Songsterr 播放器音訊與游標 DOM 進度，即時驅動 Coach 面板小節與拍點自動前進高亮。
+- **Phase 4：特定指型庫融合 (CAGED & Scale Shapes)**：
+  - 結合五聲音階指型與和弦字典，使指法分析在遇見特定分解和弦時更加直覺。
+

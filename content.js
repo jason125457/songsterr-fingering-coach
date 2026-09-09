@@ -1,8 +1,12 @@
 /**
- * Songsterr Fingering Coach - Content Script (Phase 1 Feasibility Prototype)
+ * Songsterr Fingering Coach - Content Script
  * 
- * Extracts structured tab data (Song, Track, Measures, Beats, Notes with string + fret)
- * directly from Songsterr's page state and CloudFront CDN, and logs clean JSON to browser console.
+ * Pipeline:
+ * Songsterr State & CDN Ingestion
+ *   -> Full Normalized Track (TabNormalizer)
+ *   -> Decoupled Left-Hand Fingering Engine (Viterbi DP)
+ *   -> Session Result Cache (songId-revisionId-partId)
+ *   -> Floating Fingering Coach UI Panel (CoachPanel + ShapeDiagram)
  */
 
 (function () {
@@ -23,6 +27,11 @@
 
   let lastProcessedKey = '';
   let lastExtractedData = null;
+  let lastFingeringResult = null;
+  let currentCoachPanel = null;
+
+  // Session cache to prevent redundant recalculation across track switches or re-renders
+  const fingeringCache = new Map(); // key: `${songId}-${revisionId}-${partId}` -> FingeringResult
 
   /**
    * Build the CloudFront CDN URL using Songsterr's internal routing logic
@@ -40,11 +49,13 @@
   }
 
   /**
-   * Parse measure and beat note structure into clean JSON format
+   * Parse measure and beat note structure into clean JSON format (Phase 1 summary)
    */
   function parseMeasures(measures, tuning, maxMeasures = 5) {
     const result = [];
-    const measuresToProcess = measures.slice(0, maxMeasures);
+    const measuresToProcess = typeof maxMeasures === 'number' && maxMeasures > 0 
+      ? measures.slice(0, maxMeasures) 
+      : measures;
 
     measuresToProcess.forEach((measure, mIdx) => {
       const measureNumber = mIdx + 1;
@@ -71,8 +82,6 @@
                     isRest: true
                   });
                 } else if (note.fret !== undefined && note.string !== undefined) {
-                  // In Songsterr, string 0 is the highest pitched string (e.g. High E),
-                  // string 5 is the lowest (e.g. Low E).
                   const stringIndex = note.string; // 0-indexed
                   const stringNumber = note.string + 1; // 1-indexed (1 = High E, 6 = Low E)
                   const baseMidi = Array.isArray(tuning) && tuning[stringIndex] !== undefined 
@@ -113,7 +122,7 @@
   }
 
   /**
-   * Main extraction flow
+   * Main extraction and fingering analysis flow
    */
   async function extractTabNotes(targetPartId = null) {
     const stateElement = document.getElementById('state');
@@ -159,15 +168,15 @@
     const track = trackIndex !== -1 ? tracks[trackIndex] : (tracks[partId] || tracks[0]);
     const actualPartId = track?.partId ?? partId;
 
-    const currentKey = `${songId}-${revisionId}-${actualPartId}`;
-    if (targetPartId === null && currentKey === lastProcessedKey) {
-      return lastExtractedData; // Avoid duplicate logging
+    const cacheKey = `${songId}-${revisionId}-${actualPartId}`;
+    if (targetPartId === null && cacheKey === lastProcessedKey && lastFingeringResult) {
+      return { extractedOutput: lastExtractedData, fingeringResult: lastFingeringResult };
     }
 
     const partUrl = buildPartUrl(songId, revisionId, image, actualPartId);
 
     console.log(
-      `%c🎸 [Songsterr Fingering Coach] Extracting tab for: "${title}" by ${artist} (Track: ${track?.name || actualPartId})`,
+      `%c🎸 [Songsterr Fingering Coach] Ingesting tab: "${title}" by ${artist} (Track: ${track?.name || actualPartId})`,
       'color: #00d26a; font-weight: bold; font-size: 13px;'
     );
     console.log(`[Songsterr Fingering Coach] Fetching structured notes from: ${partUrl}`);
@@ -210,72 +219,76 @@
       first5Measures: first5Measures
     };
 
-    lastProcessedKey = currentKey;
+    lastProcessedKey = cacheKey;
     lastExtractedData = extractedOutput;
 
-    // Output formatted JSON to Browser Console (Phase 1 extracted data)
-    console.group(`%c🎸 [Songsterr Fingering Coach] Parsed JSON (First 5 Measures): ${title} - ${artist}`, 'color: #3b82f6; font-weight: bold;');
-    console.log(JSON.stringify(extractedOutput, null, 2));
-
-    // Also output a quick readable table of raw notes
-    const flattenedNotes = [];
-    first5Measures.forEach(m => {
-      m.notes.forEach(n => {
-        if (!n.isRest) {
-          flattenedNotes.push({
-            'Measure': n.measureNumber,
-            'Beat': n.beatNumber,
-            'Timing': n.timing,
-            'String (0=High E)': n.stringIndex,
-            'Fret': n.fret,
-            'Pitch': n.pitch || '-',
-            'Open Str': n.openString,
-            'Tie': n.isTie ? 'Yes' : ''
-          });
-        }
-      });
-    });
-
-    if (flattenedNotes.length > 0) {
-      console.log('%c📋 Notes Summary Table:', 'font-weight: bold; color: #f59e0b;');
-      console.table(flattenedNotes);
-    } else {
-      console.log('ℹ️ Note: The first 5 measures contain rests only for this track.');
-    }
+    // Output formatted JSON to Browser Console (Phase 1 sample preview)
+    console.group(`%c🎸 [Songsterr Fingering Coach] Ingested Metadata: ${title} - ${artist} (${partData.measures.length} measures)`, 'color: #3b82f6; font-weight: bold;');
+    console.log('Track Summary:', extractedOutput.track);
     console.groupEnd();
 
-    // Phase 2: Run Left-Hand Fingering Engine
+    // Check Fingering Cache
     let fingeringResult = null;
-    if (typeof TabNormalizer !== 'undefined' && typeof FingeringEngine !== 'undefined') {
+    if (fingeringCache.has(cacheKey)) {
+      console.log(`%c⚡ [Songsterr Fingering Coach] Loaded fingering analysis from session cache (${cacheKey})`, 'color: #06b6d4;');
+      fingeringResult = fingeringCache.get(cacheKey);
+    } else if (typeof TabNormalizer !== 'undefined' && typeof FingeringEngine !== 'undefined') {
       try {
-        const normalized = TabNormalizer.normalizeFromSampleFixture(extractedOutput);
-        fingeringResult = FingeringEngine.analyzeTab(normalized);
+        const startTime = performance.now();
 
-        console.group(`%c🖐️ [Songsterr Fingering Coach] Recommended Left-Hand Fingerings: ${title}`, 'color: #10b981; font-weight: bold;');
-        
+        // 1. Normalize full track data
+        const normalizedTrack = TabNormalizer.normalizeSongsterrPart(partData, {
+          title,
+          artist,
+          songId,
+          partId: actualPartId,
+          trackName: track?.name || partData.name,
+          instrument: track?.instrument || partData.instrument,
+          tuning
+        });
+
+        // 2. Run Left-Hand Fingering Engine across all measures
+        fingeringResult = FingeringEngine.analyzeTab(normalizedTrack);
+
+        const endTime = performance.now();
+        const durationMs = (endTime - startTime).toFixed(2);
+
+        // Store in session cache
+        fingeringCache.set(cacheKey, fingeringResult);
+
+        console.log(
+          `%c⏱️ [Songsterr Fingering Coach] Full track fingering analysis for ${normalizedTrack.measures.length} measures completed in ${durationMs}ms (Non-blocking)`,
+          'color: #10b981; font-weight: bold;'
+        );
+
         // Print human-readable debug format
         if (typeof FingeringFormatter !== 'undefined') {
+          console.group(`%c🖐️ [Songsterr Fingering Coach] Recommended Left-Hand Fingerings Summary: ${title}`, 'color: #10b981; font-weight: bold;');
           console.log(FingeringFormatter.formatConsoleDebug(fingeringResult));
-          const tableRows = FingeringFormatter.formatBeatsTable(fingeringResult);
-          if (tableRows.length > 0) {
-            console.log('%c📊 Fingering Summary Table:', 'font-weight: bold; color: #06b6d4;');
-            console.table(tableRows);
-          }
+          console.groupEnd();
         }
-
-        console.log('%c📦 Structured Fingering JSON:', 'font-weight: bold; color: #8b5cf6;');
-        console.log(JSON.stringify(fingeringResult, null, 2));
-        console.groupEnd();
       } catch (fErr) {
         console.error('[Songsterr Fingering Coach] Fingering Engine error:', fErr);
       }
     }
 
     lastFingeringResult = fingeringResult;
-    return { extractedOutput, fingeringResult };
-  }
 
-  let lastFingeringResult = null;
+    // Mount or update Floating Coach Panel UI
+    if (fingeringResult && typeof CoachPanel !== 'undefined') {
+      try {
+        if (currentCoachPanel) {
+          currentCoachPanel.destroy();
+        }
+        currentCoachPanel = new CoachPanel(fingeringResult, { initialMeasure: 1 });
+        console.log('%c🎨 [Songsterr Fingering Coach] Coach Panel UI successfully mounted to page', 'color: #8b5cf6; font-weight: bold;');
+      } catch (uiErr) {
+        console.error('[Songsterr Fingering Coach] Failed to initialize Coach Panel UI:', uiErr);
+      }
+    }
+
+    return { extractedOutput, fingeringResult, coachPanel: currentCoachPanel };
+  }
 
   // Expose global debug object on window for developer testing
   window.__SONGSTERR_FINGERING_COACH__ = {
@@ -283,6 +296,8 @@
     extractTrack: (partId) => extractTabNotes(partId),
     getLastExtracted: () => lastExtractedData,
     getLastFingeringResult: () => lastFingeringResult,
+    getCoachPanel: () => currentCoachPanel,
+    getCache: () => fingeringCache,
     getRawState: () => {
       try {
         return JSON.parse(document.getElementById('state')?.textContent || '{}');

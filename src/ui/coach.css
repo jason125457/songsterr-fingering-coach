@@ -1,0 +1,403 @@
+/**
+ * coach.css
+ * 
+ * Modern dark-mode styling for the Songsterr Fingering Coach Panel & SVG Diagram.
+ * Scoped under .sfc- prefix to prevent style bleeding with Songsterr page elements.
+ */
+
+.sfc-panel {
+  position: fixed;
+  top: 76px;
+  right: 20px;
+  width: 290px;
+  max-width: calc(100vw - 32px);
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  color: #f4f4f5;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 13px;
+  z-index: 999999;
+  user-select: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+}
+
+.sfc-panel.sfc-hidden {
+  display: none !important;
+}
+
+/* Header */
+.sfc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #202024;
+  border-bottom: 1px solid #27272a;
+  cursor: grab;
+}
+
+.sfc-header:active {
+  cursor: grabbing;
+}
+
+.sfc-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sfc-logo-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.sfc-title-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sfc-app-name {
+  font-weight: 700;
+  font-size: 12px;
+  color: #00d26a;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.sfc-track-name {
+  font-size: 11px;
+  color: #a1a1aa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sfc-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sfc-btn-icon {
+  background: transparent;
+  border: none;
+  color: #a1a1aa;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.15s ease;
+}
+
+.sfc-btn-icon:hover {
+  background: #27272a;
+  color: #ffffff;
+}
+
+/* Body */
+.sfc-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Navigation Controls */
+.sfc-measure-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.sfc-nav-btn {
+  background: #27272a;
+  border: 1px solid #3f3f46;
+  color: #f4f4f5;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.sfc-nav-btn:hover:not(:disabled) {
+  background: #3f3f46;
+  border-color: #52525b;
+  color: #ffffff;
+}
+
+.sfc-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sfc-measure-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #ffffff;
+}
+
+.sfc-measure-total {
+  font-size: 11px;
+  font-weight: 500;
+  color: #71717a;
+}
+
+/* Status Badges */
+.sfc-status-badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sfc-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sfc-badge-pos {
+  background: rgba(0, 210, 106, 0.15);
+  color: #00d26a;
+  border: 1px solid rgba(0, 210, 106, 0.35);
+}
+
+.sfc-badge-shift {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.sfc-badge-stable {
+  background: rgba(113, 113, 122, 0.15);
+  color: #a1a1aa;
+  border: 1px solid rgba(113, 113, 122, 0.3);
+}
+
+.sfc-badge-sig {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Segment Tabs */
+.sfc-segments-row {
+  display: flex;
+  gap: 4px;
+  background: #202024;
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid #27272a;
+}
+
+.sfc-segment-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #a1a1aa;
+  padding: 4px 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.sfc-segment-tab.sfc-active {
+  background: #27272a;
+  color: #00d26a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Beats Bar */
+.sfc-beats-row {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.sfc-beats-row::-webkit-scrollbar {
+  height: 4px;
+}
+
+.sfc-beats-row::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 2px;
+}
+
+.sfc-beat-pill {
+  flex: 1;
+  min-width: 32px;
+  background: #202024;
+  border: 1px solid #27272a;
+  color: #a1a1aa;
+  padding: 4px 2px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.sfc-beat-pill:hover {
+  background: #27272a;
+  color: #f4f4f5;
+}
+
+.sfc-beat-pill.sfc-active {
+  background: #00d26a;
+  border-color: #00d26a;
+  color: #09090b;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(0, 210, 106, 0.4);
+}
+
+.sfc-beat-pill.sfc-has-shift {
+  border-bottom: 2px solid #f59e0b;
+}
+
+/* Shape Diagram Container */
+.sfc-diagram-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #141416;
+  border: 1px solid #27272a;
+  border-radius: 10px;
+  padding: 6px;
+}
+
+.sfc-shape-svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Beat Details Card */
+.sfc-beat-card {
+  background: #202024;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sfc-beat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #a1a1aa;
+  font-weight: 600;
+}
+
+.sfc-notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sfc-note-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 0;
+  font-size: 12px;
+  border-bottom: 1px dashed rgba(63, 63, 70, 0.5);
+}
+
+.sfc-note-item:last-child {
+  border-bottom: none;
+}
+
+.sfc-note-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sfc-note-str {
+  font-weight: 600;
+  color: #f4f4f5;
+}
+
+.sfc-note-fret {
+  color: #a1a1aa;
+}
+
+.sfc-note-finger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #00d26a;
+  color: #09090b;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.sfc-note-finger.sfc-finger-0 {
+  background: #3f3f46;
+  color: #f4f4f5;
+  border: 1px solid #71717a;
+}
+
+/* Floating Minimized Trigger Button */
+.sfc-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #18181b;
+  border: 1px solid #00d26a;
+  color: #00d26a;
+  padding: 10px 14px;
+  border-radius: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 12px rgba(0, 210, 106, 0.3);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 999999;
+  transition: all 0.2s ease;
+}
+
+.sfc-fab:hover {
+  transform: translateY(-2px);
+  background: #00d26a;
+  color: #09090b;
+  box-shadow: 0 12px 35px rgba(0, 210, 106, 0.5);
+}
