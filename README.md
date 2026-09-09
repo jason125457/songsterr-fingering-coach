@@ -6,6 +6,20 @@
 
 ---
 
+## 📌 專案里程碑與開發進度 (Milestones & Progress)
+
+| 階段 (Phase) | 核心目標 (Milestone Objective) | 交付成果 (Key Deliverables) | 當前狀態 (Status) |
+| :--- | :--- | :--- | :---: |
+| **Phase 1: Songsterr Reader** | 逆向解析 Songsterr 樂譜公開音符資料與 CDN 封包 | `content.js`、資料正規化解析、無後端無付費 API 驗證 | **已完成 (Completed)** ✅ |
+| **Phase 2: Decoupled Engine** | 架構解耦、人體工學狀態空間、Viterbi DP 全域最佳指法搜尋 | `src/fingering_engine.js`、`src/normalizer.js`、離線單元測試套件 | **已完成 (Completed)** ✅ |
+| **Phase 2.5: Real-Song Validation** | 真實長曲目驗證（以《傍晚去太子灣嗎》前 20 小節 120 拍為基準） | 120 拍完整分析、換把/同指跨弦/橫按/拉伸標註、成本排序 | **已完成 (Completed)** ✅ |
+| **Phase 2.6: Human Optimization** | 消除不自然提早換把、重複 Riff 指法一致性、開放手型聚合、可解釋成本 | 樂句邊界獎勵、重複動機記憶、開放和弦手型、成本透明化輸出 | **已完成 (Completed)** ✅ |
+| **Phase 3: Interactive UI** | Chrome 擴充功能前端即時互動向量指板（SVG Fretboard）與音訊同步 | 實時高亮手指 (1-4-0)、當前把位框、播放同步跟隨 | **規劃中 (Next Up)** 🎯 |
+| **Phase 4: Advanced Shapes** | CAGED 五大和弦音階型態比對、自訂偏好指型庫 | 爵士/藍調/金屬自訂手型偏好、進階調弦指板映射 | **待評估 (Backlog)** 📋 |
+
+
+---
+
 ## 遵守規範宣告
 
 - ❌ **無樂譜下載功能**：本專案不提供、不實作任何匯出或下載 Guitar Pro / MIDI / PDF 樂譜檔案的功能。
