@@ -1,20 +1,22 @@
 /**
  * fingering_engine.js
  * 
- * Independent, decoupled Left-Hand Guitar Fingering Recommendation Engine (Phase 2 v1).
+ * Independent, decoupled Left-Hand Guitar Fingering Recommendation Engine (Phase 2.6).
  * 
  * Converts Normalized Tab Data into ergonomically optimized left-hand fingerings.
  * - recommendedFinger: 1 (Index), 2 (Middle), 3 (Ring), 4 (Pinky), 0 (Open String)
  * - recommendedPosition: Base fret where Index finger rests (e.g. Position 7)
  * - isPositionShift: true if entering this beat/measure required shifting hand position
+ * - costBreakdown: Detailed explainability metrics for position & finger selection
  * 
- * Features:
- * - Dynamic Programming / Global Cost Optimization across the full passage (not just 1 measure)
- * - Minimizes unnecessary position shifts
- * - Enforces physical hand ergonomics and four-finger span
- * - Enforces physically playable simultaneous notes (double stops & chords)
- * - Keeps open strings from disrupting hand position
- * - Zero dependencies (No DOM, No Songsterr, No Network)
+ * Phase 2.6 Features:
+ * 1. Phrase / Measure Boundary Preference (shifts prefer bar lines & pauses, penalty for mid-phrase jumps)
+ * 2. Repeated Pattern Consistency (re-use canonical position and fingerings across recurring motifs)
+ * 3. Generic Shape Coherence (natural Open Position / Position 1 anchor for low frets + open strings)
+ * 4. Open-String Shift Window (zero-effort gliding window across open strings, rests, and ties)
+ * 5. Explainable Cost Breakdown (transparent debug breakdown for every position choice)
+ * 
+ * Zero dependencies (No DOM, No Songsterr, No Network).
  */
 
 (function (root, factory) {
@@ -46,100 +48,139 @@
   }
 
   /**
-   * Cost Weights for Scoring Engine
+   * Cost Weights for Scoring Engine (Phase 2.6 Rebalanced)
+   * 
+   * Scoring Philosophy Priority:
+   * 1. Physically playable (EXTREME_INFEASIBLE)
+   * 2. Stable / natural hand shape (FINGER_DEVIATION, STRETCH_INDEX, STRETCH_PINKY)
+   * 3. Repeated riff consistency (REPEATED_PATTERN_BONUS)
+   * 4. Musical phrase-aware shifting (BOUNDARY_SHIFT_BONUS, MID_PHRASE_PREEMPTIVE_SHIFT_PENALTY)
+   * 5. Open string shift window (OPEN_WINDOW_SHIFT_BASE, OPEN_WINDOW_BONUS)
+   * 6. Minimize unnecessary shifts
+   * 7. Minimize absolute fret travel (lowered per-fret cost so 2 frets difference never overrules natural hand shapes)
    */
   const WEIGHTS = {
-    POSITION_SHIFT_BASE: 40,      // Penalty for any position shift
-    POSITION_SHIFT_PER_FRET: 12,  // Penalty per fret of shift distance
-    NATURAL_SPAN_IDEAL: 0,        // Natural fret = position + finger - 1
-    FINGER_DEVIATION: 16,         // Penalty for each finger deviation from natural position
-    STRETCH_INDEX: 15,            // Minor index stretch (fret = pos - 1)
-    STRETCH_PINKY: 18,            // Minor pinky stretch (fret = pos + 4)
-    AWKWARD_STRETCH: 80,          // Stretch beyond 5 frets
-    BARRE_COST: 6,                // Using same finger across multiple strings at same fret
-    CONSECUTIVE_NOTE_CONSISTENCY: -12, // Bonus for using same finger on exact same note
-    INVERTED_FINGER_MOTION: 25,   // Penalty for playing higher fret with lower finger in rapid sequence
-    EXTREME_INFEASIBLE: 10000     // Physically impossible configurations
+    POSITION_SHIFT_BASE: 36,               // Base penalty for shifting positions
+    POSITION_SHIFT_PER_FRET: 5,            // Fret shift penalty (lowered from 12 to 5)
+    OPEN_WINDOW_SHIFT_BASE: 10,            // Shifting during open strings/rests is easy
+    OPEN_WINDOW_SHIFT_PER_FRET: 2,         // Very low per-fret cost during open strings
+    BOUNDARY_SHIFT_BONUS: -18,             // Bonus for shifting at measure boundary or after rest/long note
+    MID_PHRASE_PREEMPTIVE_SHIFT_PENALTY: 18,// Penalty for shifting mid-measure in continuous notes
+    REPEATED_PATTERN_BONUS: -25,           // Bonus for reusing canonical position for recurring motifs
+    OPEN_POSITION_SHAPE_BONUS: -24,        // Bonus for anchoring low frets (1-3) with open strings to Pos 1
+    LOW_FRET_STRETCH_AVOIDANCE: 22,        // Penalty for backward index stretch in frets 1-3 when Pos 1 is available
+    NATURAL_SPAN_IDEAL: 0,                 // Natural fret = position + finger - 1
+    FINGER_DEVIATION: 16,                  // Penalty for each finger deviation from natural position
+    STRETCH_INDEX: 16,                     // Minor index stretch (fret = pos - 1)
+    STRETCH_PINKY: 18,                     // Minor pinky stretch (fret = pos + 4)
+    CONSECUTIVE_STRETCH_PENALTY: 14,       // Accumulative penalty for repeatedly stretching within a phrase
+    AWKWARD_STRETCH: 80,                   // Stretch beyond 5 frets
+    BARRE_COST: 6,                         // Using same finger across multiple strings at same fret
+    CONSECUTIVE_NOTE_CONSISTENCY: -12,     // Bonus for using same finger on exact same note
+    INVERTED_FINGER_MOTION: 25,            // Penalty for playing higher fret with lower finger in rapid sequence
+    EXTREME_INFEASIBLE: 10000              // Physically impossible configurations
   };
 
   /**
-   * Generate candidate (position, [finger_1, finger_2, ...]) options for a single beat
+   * Pre-pass: Detect Melodic Motifs / Repeated Patterns
+   * Discovers recurring measure riffs and determines the canonical position in isolation.
    */
-  function generateBeatCandidates(beatNotes, previousPosition = null, allFrettedFretsInPiece = []) {
-    const frettedNotes = beatNotes.filter(n => !n.isRest && n.fret > 0);
+  function detectMelodicMotifs(flatBeats) {
+    const canonicalPosMap = new Array(flatBeats.length).fill(null);
 
-    // If beat has no fretted notes (only rests or open strings):
-    if (frettedNotes.length === 0) {
-      // Open string / rest: finger is 0 for all notes.
-      // Generate flexible candidate positions so open strings don't force or restrict hand position.
-      const fingerAssignments = beatNotes.map(() => 0);
-      const candidatePositions = new Set();
-      if (previousPosition) candidatePositions.add(previousPosition);
-      if (allFrettedFretsInPiece.length > 0) {
-        allFrettedFretsInPiece.forEach(f => candidatePositions.add(f));
+    // Group beats by measureNumber
+    const measureMap = new Map();
+    flatBeats.forEach((fb, idx) => {
+      if (!measureMap.has(fb.measureNumber)) {
+        measureMap.set(fb.measureNumber, []);
       }
-      if (candidatePositions.size === 0) candidatePositions.add(1);
+      measureMap.get(fb.measureNumber).push({ idx, fb });
+    });
 
-      return Array.from(candidatePositions).map(pos => ({
-        position: pos,
-        fingerAssignments,
-        intraCost: 0
-      }));
+    const measureSignatures = new Map();
+    for (const [mNum, beats] of measureMap.entries()) {
+      const frettedBeats = beats.filter(b => b.fb.beat.notes.some(n => !n.isRest && n.fret > 0));
+      if (frettedBeats.length >= 2) {
+        const sig = beats.map(b => {
+          const fretted = b.fb.beat.notes.filter(n => !n.isRest && n.fret > 0);
+          if (fretted.length === 0) return 'O';
+          return fretted.map(n => `s${n.string}f${n.fret}`).sort().join('+');
+        }).join('|');
+
+        if (!measureSignatures.has(sig)) {
+          measureSignatures.set(sig, []);
+        }
+        measureSignatures.get(sig).push(beats);
+      }
     }
 
-    const frets = frettedNotes.map(n => n.fret);
-    const minFret = Math.min(...frets);
-    const maxFret = Math.max(...frets);
+    for (const [sig, measureList] of measureSignatures.entries()) {
+      if (measureList.length >= 2) {
+        // Find canonical position in isolation for this recurring measure
+        const firstBeats = measureList[0];
+        const allNotes = firstBeats.flatMap(b => b.fb.beat.notes.filter(n => !n.isRest && n.fret > 0));
+        if (allNotes.length > 0) {
+          const frets = allNotes.map(n => n.fret);
+          const minF = Math.min(...frets);
+          const maxF = Math.max(...frets);
 
-    // Hand can cover at most ~5-6 frets with index & pinky stretch [pos - 1, pos + 4]
-    // Therefore candidate positions P satisfy: maxFret - 4 <= P <= minFret + 1
-    const minCandidatePos = Math.max(1, maxFret - 4);
-    const maxCandidatePos = Math.min(20, minFret + 1);
+          let bestPos = minF;
+          let bestCost = Infinity;
 
-    const candidates = [];
+          for (let testP = Math.max(1, maxF - 4); testP <= Math.min(20, minF + 1); testP++) {
+            let pCost = 0;
+            let possible = true;
+            for (const n of allNotes) {
+              if (n.fret < testP - 1 || n.fret > testP + 4) {
+                possible = false;
+                break;
+              }
+              const natFinger = n.fret - testP + 1;
+              if (natFinger >= 1 && natFinger <= 4) {
+                pCost += (natFinger === 1 ? 0 : natFinger === 2 ? 1 : natFinger === 3 ? 2 : 4);
+              } else if (n.fret === testP - 1) {
+                pCost += WEIGHTS.STRETCH_INDEX;
+              } else if (n.fret === testP + 4) {
+                pCost += WEIGHTS.STRETCH_PINKY;
+              }
+            }
+            if (possible && pCost < bestCost) {
+              bestCost = pCost;
+              bestPos = testP;
+            }
+          }
 
-    for (let pos = minCandidatePos; pos <= maxCandidatePos; pos++) {
-      // Check if all frets can be reached from this position
-      let canReach = true;
-      for (const f of frets) {
-        if (f < pos - 1 || f > pos + 4) {
-          canReach = false;
-          break;
+          measureList.forEach(beats => {
+            beats.forEach(b => {
+              canonicalPosMap[b.idx] = bestPos;
+            });
+          });
         }
       }
-      if (!canReach) continue;
-
-      // Generate valid finger assignments for the fretted notes in this position
-      const validAssignments = generateFrettedAssignments(frettedNotes, pos);
-
-      for (const assignment of validAssignments) {
-        // Map back to all notes in the beat (fretted gets finger, open string gets 0, rest gets 0)
-        let frettedIdx = 0;
-        const fullFingerAssignments = beatNotes.map((n) => {
-          if (n.isRest || n.fret === 0) return 0;
-          return assignment.fingers[frettedIdx++];
-        });
-
-        candidates.push({
-          position: pos,
-          fingerAssignments: fullFingerAssignments,
-          intraCost: assignment.cost
-        });
-      }
     }
 
-    // Fallback if no clean candidate found (e.g. extreme multi-fret chord):
-    if (candidates.length === 0) {
-      const pos = Math.max(1, minFret);
-      const fullFingerAssignments = beatNotes.map(n => (n.isRest || n.fret === 0 ? 0 : 1));
-      candidates.push({
-        position: pos,
-        fingerAssignments: fullFingerAssignments,
-        intraCost: WEIGHTS.AWKWARD_STRETCH
-      });
-    }
+    return canonicalPosMap;
+  }
 
-    return candidates;
+  /**
+   * Pre-pass: Detect Generic Open Position Hand Shape
+   * Identifies note groups containing low frets (1-3) combined with open strings across adjacent strings/beats.
+   */
+  function detectOpenPositionShape(flatBeats, k) {
+    const currentMeasure = flatBeats[k].measureNumber;
+    const measureBeats = flatBeats.filter(fb => fb.measureNumber === currentMeasure);
+    const measureNotes = measureBeats.flatMap(fb => fb.beat.notes).filter(n => !n.isRest);
+
+    if (measureNotes.length === 0) return false;
+
+    const frettedNotes = measureNotes.filter(n => n.fret > 0);
+    const hasOpenStrings = measureNotes.some(n => n.fret === 0);
+
+    // If fretted notes are in low frets (1..3) and open strings are present
+    if (frettedNotes.length > 0 && frettedNotes.every(n => n.fret <= 3) && hasOpenStrings) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -156,13 +197,13 @@
 
       // Primary ideal finger
       if (naturalFinger >= 1 && naturalFinger <= 4) {
-        options.push({ fingers: [naturalFinger], cost: fingerPref(naturalFinger) });
+        options.push({ fingers: [naturalFinger], cost: fingerPref(naturalFinger), stretchCost: 0 });
       } else if (fret === pos - 1) {
         // Index stretch back
-        options.push({ fingers: [1], cost: WEIGHTS.STRETCH_INDEX + fingerPref(1) });
+        options.push({ fingers: [1], cost: WEIGHTS.STRETCH_INDEX + fingerPref(1), stretchCost: WEIGHTS.STRETCH_INDEX });
       } else if (fret === pos + 4) {
         // Pinky stretch forward
-        options.push({ fingers: [4], cost: WEIGHTS.STRETCH_PINKY + fingerPref(4) });
+        options.push({ fingers: [4], cost: WEIGHTS.STRETCH_PINKY + fingerPref(4), stretchCost: WEIGHTS.STRETCH_PINKY });
       }
 
       // Secondary viable fingers with small penalty (adds flexibility to prevent shifts)
@@ -170,7 +211,7 @@
         if (!options.some(o => o.fingers[0] === altFinger)) {
           const dev = Math.abs(altFinger - naturalFinger);
           if (dev <= 2) {
-            options.push({ fingers: [altFinger], cost: (dev * WEIGHTS.FINGER_DEVIATION) + fingerPref(altFinger) });
+            options.push({ fingers: [altFinger], cost: (dev * WEIGHTS.FINGER_DEVIATION) + fingerPref(altFinger), stretchCost: 0 });
           }
         }
       }
@@ -179,17 +220,42 @@
     }
 
     // Multiple fretted notes at the same beat (Chords / Double Stops)
-    // We must ensure physical hand feasibility!
     const results = [];
     const numNotes = frettedNotes.length;
 
-    // Helper: generate combinations of fingers 1..4 for numNotes
     function searchCombinations(idx, currentFingers) {
       if (idx === numNotes) {
-        const cost = evaluateSimultaneousCost(frettedNotes, currentFingers, pos);
-        if (cost < WEIGHTS.EXTREME_INFEASIBLE) {
-          results.push({ fingers: [...currentFingers], cost });
+        let cost = 0;
+        let stretchCost = 0;
+        for (let i = 0; i < frettedNotes.length; i++) {
+          const f_i = frettedNotes[i].fret;
+          const finger_i = currentFingers[i];
+          const ideal_i = f_i - pos + 1;
+
+          if (f_i === pos - 1 && finger_i === 1) {
+            cost += WEIGHTS.STRETCH_INDEX;
+            stretchCost += WEIGHTS.STRETCH_INDEX;
+          } else if (f_i === pos + 4 && finger_i === 4) {
+            cost += WEIGHTS.STRETCH_PINKY;
+            stretchCost += WEIGHTS.STRETCH_PINKY;
+          } else if (ideal_i >= 1 && ideal_i <= 4) {
+            cost += Math.abs(finger_i - ideal_i) * WEIGHTS.FINGER_DEVIATION;
+          } else {
+            cost += WEIGHTS.AWKWARD_STRETCH;
+          }
+
+          for (let j = i + 1; j < frettedNotes.length; j++) {
+            const f_j = frettedNotes[j].fret;
+            const finger_j = currentFingers[j];
+            if (f_i !== f_j && finger_i === finger_j) return; // impossible
+            if (f_i === f_j && finger_i === finger_j) {
+              cost += (finger_i === 1 || finger_i === 3) ? WEIGHTS.BARRE_COST : WEIGHTS.BARRE_COST * 3;
+            }
+            if (f_i < f_j && finger_i > finger_j) return;
+            if (f_i > f_j && finger_i < finger_j) return;
+          }
         }
+        results.push({ fingers: [...currentFingers], cost, stretchCost });
         return;
       }
 
@@ -203,10 +269,10 @@
     searchCombinations(0, []);
 
     if (results.length === 0) {
-      // Fallback
       results.push({
         fingers: frettedNotes.map((_, i) => Math.min(4, i + 1)),
-        cost: WEIGHTS.AWKWARD_STRETCH
+        cost: WEIGHTS.AWKWARD_STRETCH,
+        stretchCost: WEIGHTS.AWKWARD_STRETCH
       });
     }
 
@@ -214,123 +280,188 @@
   }
 
   /**
-   * Evaluate whether a simultaneous chord/double stop fingering is physically possible and its cost
+   * Generate candidate (position, [finger_1, finger_2, ...]) options for a single beat
    */
-  function evaluateSimultaneousCost(notes, fingers, pos) {
-    let cost = 0;
+  function generateBeatCandidates(beatNotes, previousPosition = null, allFrettedFretsInPiece = []) {
+    const frettedNotes = beatNotes.filter(n => !n.isRest && n.fret > 0);
 
-    for (let i = 0; i < notes.length; i++) {
-      const f_i = notes[i].fret;
-      const finger_i = fingers[i];
-      const ideal_i = f_i - pos + 1;
-
-      // Check single note ergonomics
-      if (f_i === pos - 1 && finger_i === 1) {
-        cost += WEIGHTS.STRETCH_INDEX;
-      } else if (f_i === pos + 4 && finger_i === 4) {
-        cost += WEIGHTS.STRETCH_PINKY;
-      } else if (ideal_i >= 1 && ideal_i <= 4) {
-        cost += Math.abs(finger_i - ideal_i) * WEIGHTS.FINGER_DEVIATION;
-      } else {
-        cost += WEIGHTS.AWKWARD_STRETCH;
+    // If beat has no fretted notes (only rests or open strings):
+    if (frettedNotes.length === 0) {
+      const fingerAssignments = beatNotes.map(() => 0);
+      const candidatePositions = new Set();
+      if (previousPosition) candidatePositions.add(previousPosition);
+      if (allFrettedFretsInPiece.length > 0) {
+        allFrettedFretsInPiece.forEach(f => candidatePositions.add(f));
       }
+      if (candidatePositions.size === 0) candidatePositions.add(1);
 
-      // Check pairwise physical constraints with other simultaneous notes
-      for (let j = i + 1; j < notes.length; j++) {
-        const f_j = notes[j].fret;
-        const finger_j = fingers[j];
+      return Array.from(candidatePositions).map(pos => ({
+        position: pos,
+        fingerAssignments,
+        intraCost: 0,
+        stretchCost: 0
+      }));
+    }
 
-        // 1. Same finger on different frets simultaneously is IMPOSSIBLE!
-        if (f_i !== f_j && finger_i === finger_j) {
-          return WEIGHTS.EXTREME_INFEASIBLE;
-        }
+    const frets = frettedNotes.map(n => n.fret);
+    const minFret = Math.min(...frets);
+    const maxFret = Math.max(...frets);
 
-        // 2. Same finger on same fret across strings = Barre
-        if (f_i === f_j && finger_i === finger_j) {
-          // Usually Finger 1 or 3 does barre, Finger 2 or 4 is rare
-          if (finger_i === 1 || finger_i === 3) {
-            cost += WEIGHTS.BARRE_COST;
-          } else {
-            cost += WEIGHTS.BARRE_COST * 3;
-          }
-        }
+    const minCandidatePos = Math.max(1, maxFret - 4);
+    const maxCandidatePos = Math.min(20, minFret + 1);
 
-        // 3. Physical ordering:
-        // Lower fret MUST use lower or equal finger (Cannot have finger 4 on fret 5 and finger 1 on fret 7)
-        if (f_i < f_j && finger_i > finger_j) {
-          return WEIGHTS.EXTREME_INFEASIBLE;
+    const candidates = [];
+
+    for (let pos = minCandidatePos; pos <= maxCandidatePos; pos++) {
+      let canReach = true;
+      for (const f of frets) {
+        if (f < pos - 1 || f > pos + 4) {
+          canReach = false;
+          break;
         }
-        if (f_i > f_j && finger_i < finger_j) {
-          return WEIGHTS.EXTREME_INFEASIBLE;
-        }
+      }
+      if (!canReach) continue;
+
+      const validAssignments = generateFrettedAssignments(frettedNotes, pos);
+
+      for (const assignment of validAssignments) {
+        let frettedIdx = 0;
+        const fullFingerAssignments = beatNotes.map((n) => {
+          if (n.isRest || n.fret === 0) return 0;
+          return assignment.fingers[frettedIdx++];
+        });
+
+        candidates.push({
+          position: pos,
+          fingerAssignments: fullFingerAssignments,
+          intraCost: assignment.cost,
+          stretchCost: assignment.stretchCost || 0
+        });
       }
     }
 
-    return cost;
+    if (candidates.length === 0) {
+      const pos = Math.max(1, minFret);
+      const fullFingerAssignments = beatNotes.map(n => (n.isRest || n.fret === 0 ? 0 : 1));
+      candidates.push({
+        position: pos,
+        fingerAssignments: fullFingerAssignments,
+        intraCost: WEIGHTS.AWKWARD_STRETCH,
+        stretchCost: WEIGHTS.AWKWARD_STRETCH
+      });
+    }
+
+    return candidates;
   }
 
   /**
-   * Transition cost between beat (k-1) and beat (k)
+   * Detailed Transition Calculation with Cost Breakdown
    */
-  function calculateTransitionCost(prevCand, currCand, prevBeatNotes, currBeatNotes) {
-    let cost = 0;
+  function calculateTransition(prevCand, currCand, prevFlatBeat, currFlatBeat) {
+    const breakdown = {
+      movementCost: 0,
+      anchorCost: 0,
+      openWindowBonus: 0,
+      phraseBoundaryBonus: 0,
+      midPhrasePenalty: 0,
+      noteConsistencyBonus: 0,
+      invertedMotionPenalty: 0,
+      total: 0
+    };
 
-    // 2. Note consistency & melodic phrasing
-    const prevFretted = prevBeatNotes.map((n, i) => ({ note: n, finger: prevCand.fingerAssignments[i] })).filter(x => !x.note.isRest && x.note.fret > 0);
-    const currFretted = currBeatNotes.map((n, i) => ({ note: n, finger: currCand.fingerAssignments[i] })).filter(x => !x.note.isRest && x.note.fret > 0);
+    const prevNotes = prevFlatBeat.beat?.notes || [];
+    const currNotes = currFlatBeat.beat?.notes || [];
 
-    // 1. Position shift cost
+    const prevFretted = prevNotes.map((n, i) => ({ note: n, finger: prevCand.fingerAssignments[i] })).filter(x => !x.note.isRest && x.note.fret > 0);
+    const currFretted = currNotes.map((n, i) => ({ note: n, finger: currCand.fingerAssignments[i] })).filter(x => !x.note.isRest && x.note.fret > 0);
+
+    // 1. Position Shift Cost
     if (currCand.position !== prevCand.position) {
       const shiftDistance = Math.abs(currCand.position - prevCand.position);
       const prevHasFretted = prevFretted.length > 0;
       const currHasFretted = currFretted.length > 0;
 
+      const isMeasureBoundary = (currFlatBeat.measureNumber !== prevFlatBeat.measureNumber) || (currFlatBeat.beat.beatNumber === 1);
+      const prevIsRestOrOpen = !prevHasFretted;
+      const prevIsLongNote = prevFlatBeat.beat.timing === '1/2' || prevFlatBeat.beat.timing === '1/1' || prevFlatBeat.beat.timing === '3/4';
+      const isNaturalBoundary = isMeasureBoundary || prevIsRestOrOpen || prevIsLongNote;
+
       if (prevHasFretted && currHasFretted) {
-        // Direct shift between fretted notes
-        cost += WEIGHTS.POSITION_SHIFT_BASE + (shiftDistance * WEIGHTS.POSITION_SHIFT_PER_FRET);
+        // Direct fretted shift
+        breakdown.movementCost = WEIGHTS.POSITION_SHIFT_BASE + (shiftDistance * WEIGHTS.POSITION_SHIFT_PER_FRET);
+
         // Anchored shift principle:
-        // When shifting to a new position, landing on Finger 1 provides an ergonomic anchor.
-        // Landing on Finger 2, 3, or 4 without Finger 1 anchored incurs an unanchored shift penalty.
-        if (currFretted[0].finger > 1) {
-          cost += (currFretted[0].finger - 1) * 16;
+        // When shifting to a new position up the neck (> Pos 1), landing on Finger 1 provides an ergonomic anchor.
+        // In Position 1 (open position), the guitar nut anchors the hand, so fingers 1/2/3 naturally take frets 1/2/3.
+        if (currCand.position > 1 && currFretted[0].finger > 1) {
+          breakdown.anchorCost = (currFretted[0].finger - 1) * 16;
+        }
+
+        // Phrase / Measure boundary scoring
+        if (isNaturalBoundary) {
+          breakdown.phraseBoundaryBonus = WEIGHTS.BOUNDARY_SHIFT_BONUS;
+        } else {
+          breakdown.midPhrasePenalty = WEIGHTS.MID_PHRASE_PREEMPTIVE_SHIFT_PENALTY;
         }
       } else {
-        // Shift across open strings or rests: moderate cost so the hand doesn't drift 1 fret needlessly,
-        // but can easily shift if moving to a distant register.
-        cost += (WEIGHTS.POSITION_SHIFT_BASE * 0.4) + (shiftDistance * 4);
+        // Open-string / rest shift window:
+        // Significantly reduced shift penalty because fingers are not pressing strings.
+        // Moving across open strings is cheap (base 12 + 2/fret), but never negative.
+        breakdown.movementCost = WEIGHTS.OPEN_WINDOW_SHIFT_BASE + (shiftDistance * WEIGHTS.OPEN_WINDOW_SHIFT_PER_FRET);
+        breakdown.openWindowBonus = 0;
       }
     }
 
+    // 2. Note Consistency & Melodic Phrasing
     if (prevFretted.length > 0 && currFretted.length > 0) {
       for (const p of prevFretted) {
         for (const c of currFretted) {
           // Same string & same fret
           if (p.note.string === c.note.string && p.note.fret === c.note.fret) {
             if (p.finger === c.finger) {
-              cost += WEIGHTS.CONSECUTIVE_NOTE_CONSISTENCY; // Bonus
+              breakdown.noteConsistencyBonus += WEIGHTS.CONSECUTIVE_NOTE_CONSISTENCY;
             } else {
-              cost += WEIGHTS.FINGER_DEVIATION; // Inconsistency penalty
+              breakdown.noteConsistencyBonus += WEIGHTS.FINGER_DEVIATION;
             }
           }
 
-          // Inverted finger motion on same string (e.g. higher fret played with lower finger)
+          // Inverted finger motion on same string
           if (p.note.string === c.note.string) {
             if (p.note.fret < c.note.fret && p.finger > c.finger && currCand.position === prevCand.position) {
-              cost += WEIGHTS.INVERTED_FINGER_MOTION;
+              breakdown.invertedMotionPenalty += WEIGHTS.INVERTED_FINGER_MOTION;
             } else if (p.note.fret > c.note.fret && p.finger < c.finger && currCand.position === prevCand.position) {
-              cost += WEIGHTS.INVERTED_FINGER_MOTION;
+              breakdown.invertedMotionPenalty += WEIGHTS.INVERTED_FINGER_MOTION;
             }
           }
         }
       }
     }
 
-    return cost;
+    breakdown.total = breakdown.movementCost + breakdown.anchorCost + breakdown.openWindowBonus +
+                      breakdown.phraseBoundaryBonus + breakdown.midPhrasePenalty +
+                      breakdown.noteConsistencyBonus + breakdown.invertedMotionPenalty;
+
+    return breakdown;
+  }
+
+  /**
+   * Transition cost between beat (k-1) and beat (k) - Backward compatible
+   */
+  function calculateTransitionCost(prevCand, currCand, prevParam, currParam) {
+    const prevFlatBeat = Array.isArray(prevParam) 
+      ? { measureNumber: 1, beat: { timing: '1/4', notes: prevParam } } 
+      : (prevParam && prevParam.beat ? prevParam : { measureNumber: 1, beat: { timing: '1/4', notes: [] } });
+    const currFlatBeat = Array.isArray(currParam) 
+      ? { measureNumber: 1, beat: { timing: '1/4', notes: currParam } } 
+      : (currParam && currParam.beat ? currParam : { measureNumber: 1, beat: { timing: '1/4', notes: [] } });
+
+    const breakdown = calculateTransition(prevCand, currCand, prevFlatBeat, currFlatBeat);
+    return breakdown.total;
   }
 
   /**
    * Main Engine Entry Point:
-   * Analyzes normalized tab data and attaches left-hand fingerings.
+   * Analyzes normalized tab data and attaches left-hand fingerings + cost breakdowns.
    */
   function analyzeTab(normalizedTabData) {
     if (!normalizedTabData || !Array.isArray(normalizedTabData.measures)) {
@@ -360,10 +491,13 @@
       };
     }
 
-    // Step 1: Pre-compute candidate states for each beat
+    // Step 1: Pre-compute candidate states, recurring motifs, and open position shapes
     const allFrettedNotes = flatBeats.flatMap(fb => fb.beat.notes.filter(n => !n.isRest && n.fret > 0));
     const allFrettedFrets = Array.from(new Set(allFrettedNotes.map(n => n.fret)));
     const initialPos = allFrettedNotes.length > 0 ? allFrettedNotes[0].fret : 1;
+
+    const motifCanonicalPos = detectMelodicMotifs(flatBeats);
+    const isOpenShapeMeasure = flatBeats.map((_, k) => detectOpenPositionShape(flatBeats, k));
 
     const beatCandidates = [];
     let lastPos = initialPos;
@@ -377,20 +511,47 @@
     }
 
     // Step 2: Viterbi / Dynamic Programming Forward Pass
-    // dp[k][i] = { minCost, prevCandIndex }
     const dp = [];
 
     // Initialize beat 0
-    dp[0] = beatCandidates[0].map(c => ({
-      cost: c.intraCost,
-      prevIndex: -1
-    }));
+    dp[0] = beatCandidates[0].map(c => {
+      let intraCost = c.intraCost;
+      let shapeCost = 0;
+      let repeatedPatternBonus = 0;
+
+      if (motifCanonicalPos[0] !== null && c.position === motifCanonicalPos[0]) {
+        repeatedPatternBonus = WEIGHTS.REPEATED_PATTERN_BONUS;
+      }
+      if (isOpenShapeMeasure[0]) {
+        if (c.position === 1) shapeCost = WEIGHTS.OPEN_POSITION_SHAPE_BONUS;
+        else if (c.position >= 3 && c.stretchCost > 0) shapeCost = WEIGHTS.LOW_FRET_STRETCH_AVOIDANCE;
+      }
+
+      const total = intraCost + shapeCost + repeatedPatternBonus;
+      return {
+        cost: total,
+        prevIndex: -1,
+        breakdown: {
+          position: c.position,
+          movementCost: 0,
+          anchorCost: 0,
+          openWindowBonus: 0,
+          phraseBoundaryBonus: 0,
+          midPhrasePenalty: 0,
+          repeatedPatternBonus,
+          shapeCost,
+          stretchCost: c.stretchCost || 0,
+          intraCost,
+          total
+        }
+      };
+    });
 
     for (let k = 1; k < flatBeats.length; k++) {
       const prevCands = beatCandidates[k - 1];
       const currCands = beatCandidates[k];
-      const prevNotes = flatBeats[k - 1].beat.notes;
-      const currNotes = flatBeats[k].beat.notes;
+      const prevFlat = flatBeats[k - 1];
+      const currFlat = flatBeats[k];
 
       dp[k] = [];
 
@@ -398,21 +559,48 @@
         const currCand = currCands[cIdx];
         let bestCost = Infinity;
         let bestPrevIndex = -1;
+        let bestBreakdown = null;
+
+        let shapeCost = 0;
+        let repeatedPatternBonus = 0;
+
+        if (motifCanonicalPos[k] !== null && currCand.position === motifCanonicalPos[k]) {
+          repeatedPatternBonus = WEIGHTS.REPEATED_PATTERN_BONUS;
+        }
+        if (isOpenShapeMeasure[k]) {
+          if (currCand.position === 1) shapeCost = WEIGHTS.OPEN_POSITION_SHAPE_BONUS;
+          else if (currCand.position >= 3 && currCand.stretchCost > 0) shapeCost = WEIGHTS.LOW_FRET_STRETCH_AVOIDANCE;
+        }
 
         for (let pIdx = 0; pIdx < prevCands.length; pIdx++) {
           const prevCand = prevCands[pIdx];
-          const transCost = calculateTransitionCost(prevCand, currCand, prevNotes, currNotes);
-          const totalCost = dp[k - 1][pIdx].cost + transCost + currCand.intraCost;
+          const trans = calculateTransition(prevCand, currCand, prevFlat, currFlat);
+          const totalTransitionAndCand = trans.total + currCand.intraCost + shapeCost + repeatedPatternBonus;
+          const totalCost = dp[k - 1][pIdx].cost + totalTransitionAndCand;
 
           if (totalCost < bestCost) {
             bestCost = totalCost;
             bestPrevIndex = pIdx;
+            bestBreakdown = {
+              position: currCand.position,
+              movementCost: trans.movementCost,
+              anchorCost: trans.anchorCost,
+              openWindowBonus: trans.openWindowBonus,
+              phraseBoundaryBonus: trans.phraseBoundaryBonus,
+              midPhrasePenalty: trans.midPhrasePenalty,
+              repeatedPatternBonus,
+              shapeCost,
+              stretchCost: currCand.stretchCost || 0,
+              intraCost: currCand.intraCost,
+              total: totalTransitionAndCand
+            };
           }
         }
 
         dp[k][cIdx] = {
           cost: bestCost,
-          prevIndex: bestPrevIndex
+          prevIndex: bestPrevIndex,
+          breakdown: bestBreakdown
         };
       }
     }
@@ -433,7 +621,10 @@
     let currBestIndex = bestFinalCandIndex;
 
     for (let k = lastBeatIndex; k >= 0; k--) {
-      optimalPath[k] = beatCandidates[k][currBestIndex];
+      optimalPath[k] = {
+        ...beatCandidates[k][currBestIndex],
+        costBreakdown: dp[k][currBestIndex]?.breakdown
+      };
       currBestIndex = dp[k][currBestIndex]?.prevIndex ?? 0;
     }
 
@@ -472,6 +663,7 @@
             recommendedFinger: finger,
             recommendedPosition: currentPos,
             isPositionShift: isShift,
+            costBreakdown: chosen.costBreakdown,
             pitch,
             isRest: !!n.isRest,
             isTie: !!n.isTie,
@@ -484,6 +676,7 @@
           timing: b.timing,
           recommendedPosition: currentPos,
           isPositionShift: isShift,
+          costBreakdown: chosen.costBreakdown,
           notes: annotatedNotes
         };
       });
@@ -509,6 +702,9 @@
     analyzeTab,
     generateBeatCandidates,
     calculateTransitionCost,
+    calculateTransition,
+    detectMelodicMotifs,
+    detectOpenPositionShape,
     WEIGHTS
   };
 });

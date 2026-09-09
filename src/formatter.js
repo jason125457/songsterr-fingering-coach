@@ -104,8 +104,26 @@
     return rows;
   }
 
+  /**
+   * Format cost breakdown for a beat
+   */
+  function formatCostBreakdown(costBreakdown) {
+    if (!costBreakdown) return 'No breakdown available';
+    const lines = [];
+    lines.push(`Position ${costBreakdown.position}`);
+    lines.push(`movementCost: ${costBreakdown.movementCost ?? 0}`);
+    lines.push(`stretchCost: ${costBreakdown.stretchCost ?? 0}`);
+    lines.push(`phraseBoundaryBonus: ${costBreakdown.phraseBoundaryBonus ?? 0}`);
+    lines.push(`repeatedPatternBonus: ${costBreakdown.repeatedPatternBonus ?? 0}`);
+    lines.push(`shapeCost: ${costBreakdown.shapeCost ?? 0}`);
+    lines.push(`openWindowBonus: ${costBreakdown.openWindowBonus ?? 0}`);
+    lines.push(`total: ${costBreakdown.total ?? 0}`);
+    return lines.join('\n');
+  }
+
   return {
     formatConsoleDebug,
-    formatTableRows
+    formatTableRows,
+    formatCostBreakdown
   };
 });

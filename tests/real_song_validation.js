@@ -126,6 +126,7 @@ function analyzeValidationResults(analyzed) {
           recommendedFinger: n.recommendedFinger,
           recommendedPosition: n.recommendedPosition,
           isPositionShift: n.isPositionShift,
+          costBreakdown: b.costBreakdown,
           isRest: n.isRest,
           isTie: n.isTie
         });
@@ -137,7 +138,8 @@ function analyzeValidationResults(analyzed) {
             string: n.stringName,
             fret: n.fret,
             recommendedFinger: n.recommendedFinger,
-            recommendedPosition: n.recommendedPosition
+            recommendedPosition: n.recommendedPosition,
+            costBreakdown: b.costBreakdown
           });
         }
       });
@@ -182,7 +184,6 @@ function analyzeValidationResults(analyzed) {
     // 4. Large finger span / stretch within beat
     currActive.forEach(n => {
       const pos = curr.beat.recommendedPosition;
-      const idealFinger = n.fret - pos + 1;
       if (n.fret === pos - 1 && n.recommendedFinger === 1) {
         resultData.largeStretches.push({
           measure: curr.measureNumber,
@@ -213,7 +214,6 @@ function analyzeValidationResults(analyzed) {
       const prevActive = prev.beat.notes.filter(n => !n.isRest && n.fret > 0);
 
       // 2. Same finger rapid string crossing detection
-      // If previous beat and current beat both have fretted notes, on DIFFERENT strings, with SAME finger
       if (prevActive.length > 0 && currActive.length > 0) {
         for (const p of prevActive) {
           for (const c of currActive) {
@@ -245,28 +245,9 @@ function analyzeValidationResults(analyzed) {
       }
 
       // 5. Cost calculation for finding most uncertain / high-cost transitions
-      const prevCand = {
-        position: prev.beat.recommendedPosition,
-        fingerAssignments: prev.beat.notes.map(n => n.recommendedFinger)
-      };
-      const currCand = {
-        position: curr.beat.recommendedPosition,
-        fingerAssignments: curr.beat.notes.map(n => n.recommendedFinger)
-      };
-
-      const transCost = calculateTransitionCost(prevCand, currCand, prev.beat.notes, curr.beat.notes);
-
-      let intraCost = 0;
-      currActive.forEach(n => {
-        const ideal = n.fret - curr.beat.recommendedPosition + 1;
-        if (n.fret === curr.beat.recommendedPosition - 1 && n.recommendedFinger === 1) intraCost += 15;
-        else if (n.fret === curr.beat.recommendedPosition + 4 && n.recommendedFinger === 4) intraCost += 18;
-        else if (ideal >= 1 && ideal <= 4) intraCost += Math.abs(n.recommendedFinger - ideal) * 16;
-        else intraCost += 80;
-      });
-
-      const totalCost = transCost + intraCost;
-      if (totalCost > 0 || curr.beat.isPositionShift) {
+      const cb = curr.beat.costBreakdown || {};
+      const totalCost = cb.total !== undefined ? cb.total : 0;
+      if (curr.beat.isPositionShift || totalCost > 10) {
         resultData.topHighCostSegments.push({
           measure: curr.measureNumber,
           beat: curr.beat.beatNumber,
@@ -277,9 +258,8 @@ function analyzeValidationResults(analyzed) {
           prevPosition: prev.beat.recommendedPosition,
           currPosition: curr.beat.recommendedPosition,
           isPositionShift: curr.beat.isPositionShift,
-          transCost,
-          intraCost,
-          totalCost
+          costBreakdown: cb,
+          totalCost: totalCost
         });
       }
     }
@@ -300,7 +280,17 @@ if (require.main === module) {
     console.log(`📌 Total Stretches (pos-1 / pos+4): ${data.largeStretches.length}`);
     console.log(`\n🔥 Top 5 Highest-Cost / Most Uncertain Segments:`);
     data.topHighCostSegments.slice(0, 5).forEach((s, idx) => {
-      console.log(`  ${idx + 1}. [Cost ${s.totalCost}] M${s.measure} B${s.beat}: ${s.fromNotes} (Pos ${s.prevPosition}) → ${s.toNotes} (Pos ${s.currPosition}) | Shift: ${s.isPositionShift}`);
+      console.log(`\n  ${idx + 1}. [Cost ${s.totalCost}] M${s.measure} B${s.beat}: ${s.fromNotes} (Pos ${s.prevPosition}) → ${s.toNotes} (Pos ${s.currPosition}) | Shift: ${s.isPositionShift}`);
+      if (s.costBreakdown) {
+        console.log(`     Position ${s.costBreakdown.position}`);
+        console.log(`     movementCost: ${s.costBreakdown.movementCost}`);
+        console.log(`     stretchCost: ${s.costBreakdown.stretchCost}`);
+        console.log(`     phraseBoundaryBonus: ${s.costBreakdown.phraseBoundaryBonus}`);
+        console.log(`     repeatedPatternBonus: ${s.costBreakdown.repeatedPatternBonus}`);
+        console.log(`     shapeCost: ${s.costBreakdown.shapeCost}`);
+        console.log(`     openWindowBonus: ${s.costBreakdown.openWindowBonus}`);
+        console.log(`     total: ${s.costBreakdown.total}`);
+      }
     });
   }).catch(console.error);
 }

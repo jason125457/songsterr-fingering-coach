@@ -2,7 +2,7 @@
 
 🎸 **Songsterr Fingering Coach** 是一個針對 [Songsterr](https://www.songsterr.com/) 樂譜的 Chrome Extension (Manifest V3) 與**獨立左手吉他指法推薦引擎（Fingering Engine）**。
 
-本專案現已完成 **Phase 1（資料讀取與逆向驗證）** 與 **Phase 2（解耦指法推薦演算法引擎）**。
+本專案現已完成 **Phase 1（資料讀取與逆向驗證）**、**Phase 2（解耦指法推薦演算法引擎）** 與 **Phase 2.6（人性化指法演算法優化）**。
 
 ---
 
@@ -270,11 +270,16 @@ node tests/run_all_tests.js
 - ✅ **Deep Purple - Smoke On The Water**：成功判定四度雙音 Riff 位於 **Position 3**，橫按與雙指分配符合人體工學。
 - ✅ **Nirvana - Come As You Are**：成功判定降全音前奏 Riff 位於 **Position 1**，0品空弦(0) - 1品(1) - 2品(2) 正確對應。
 
-#### 3. Phase 2.5 真實歌曲全曲前 20 小節實測 (`tests/real_song_validation.js`)
+#### 3. Phase 2.5 & Phase 2.6 人性化真實歌曲實測驗證 (`tests/real_song_validation.js`)
 - ✅ **Schoolgirl byebye - 傍晚去太子灣嗎**：
-  - 執行指令：`node tests/real_song_validation.js`
+  - 執行指令：`npm run test:validation` 或 `node tests/real_song_validation.js`
   - 成功驗證前 20 小節（共 120 拍點）之主吉他（Lead Guitar）指法。
-  - 完整解析 Cmaj7 / Fmaj7 / 主歌開放和弦分解之把位切換、同指跨弦躍遷、高把位三音橫按（Fret 10 mini-barre + Fret 12 pinky）、空弦換把窗口等細膩技巧。
+  - **Phase 2.6 人性化演算法全面優化**：
+    1. **Phrase / Measure Boundary Preference**：M2 整小節穩定留在 Pos 7，準確在 M3 第一拍小節線換入 Pos 8。
+    2. **Repeated Pattern Consistency**：M5、M9、M13 的 Cmaj7 旋律再現自動復用 M1 的 Pos 7 與 1-2-3 手指。
+    3. **Generic Shape Coherence**：M17 的低音 C 分解和弦自動錨定至更符合真人習慣的第 1 把位開放手型（Pos 1，指 3 + 指 2）。
+    4. **Open-String Shift Window**：M19 完美運用第 4 拍的高音 E 空弦窗口平滑滑降至第 1 把位。
+    5. **Explainable Cost Breakdown**：每拍均附帶透明的移動成本、延伸懲罰、樂句邊界獎勵、重複模式獎勵與手型獎勵數據。
 
 ---
 
