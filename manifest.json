@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Songsterr Fingering Coach",
-  "version": "0.3.0",
-  "description": "Songsterr Fingering Coach - Chrome Extension & Ergonomic Left-Hand Fingering Recommendation Engine with Compact Shape Coach Panel.",
+  "version": "0.3.1",
+  "description": "Songsterr Fingering Coach - Chrome Extension & Ergonomic Left-Hand Fingering Recommendation Engine with Compact Shape Coach Panel and Playback Observer.",
   "host_permissions": [
     "https://www.songsterr.com/*",
     "https://*.cloudfront.net/*"
@@ -21,6 +21,7 @@
         "src/formatter.js",
         "src/ui/shape_diagram.js",
         "src/ui/coach_panel.js",
+        "src/songsterr/playback_observer.js",
         "content.js"
       ],
       "run_at": "document_idle"

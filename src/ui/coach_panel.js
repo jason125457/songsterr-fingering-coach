@@ -292,8 +292,21 @@
       });
       beatsHtml += `</div>`;
 
-      // 5. SVG Hand-Shape Diagram
-      const svgDiagram = ShapeDiagram.renderSVG(activeSegment, this.currentBeatNumber, { width: 260, height: 210 });
+      // Derive tuning names dynamically from track MIDI tuning (never hardcode)
+      const trackTuning = this.data.track?.tuningMidi || this.data.track?.tuning;
+      const tuningNames = Array.isArray(this.data.track?.tuningNames) && this.data.track.tuningNames.length === 6
+        ? this.data.track.tuningNames
+        : (Array.isArray(trackTuning) && trackTuning.length === 6
+            ? trackTuning.map(midiToPitch)
+            : ['E4', 'B3', 'G3', 'D3', 'A2', 'E2']);
+
+      // 5. SVG Hand-Shape Diagram (passing dynamic tuning)
+      const svgDiagram = ShapeDiagram.renderSVG(activeSegment, this.currentBeatNumber, {
+        width: 260,
+        height: 210,
+        tuningNames,
+        tuning: trackTuning
+      });
       const diagramHtml = `
         <div class="sfc-diagram-box">
           ${svgDiagram}
@@ -304,7 +317,6 @@
       let beatDetailsHtml = '';
       if (currentBeat) {
         const activeNotes = currentBeat.notes.filter(n => !n.isRest && n.string >= 0);
-        const tuningNames = this.data.track?.tuningNames || ['E4', 'B3', 'G3', 'D3', 'A2', 'E2'];
 
         beatDetailsHtml = `
           <div class="sfc-beat-card">
@@ -319,15 +331,16 @@
           beatDetailsHtml += `<div style="color: #71717a; font-size: 11.5px; padding: 2px 0;">(Rest / No fretted notes)</div>`;
         } else {
           activeNotes.forEach((n) => {
-            const strNumber = 6 - n.string; // 1 to 6
-            const strOpenName = tuningNames[n.string] || `Str ${strNumber}`;
+            // Guitar standard: String 1 = High E (normalized string 0), String 6 = Low E (normalized string 5)
+            const guitarStringNumber = n.string + 1;
+            const strOpenName = tuningNames[n.string] || `Str ${guitarStringNumber}`;
             const fingerName = FINGER_NAMES[n.recommendedFinger] || `Finger ${n.recommendedFinger}`;
             const pitchStr = n.pitch ? ` (${n.pitch})` : '';
 
             beatDetailsHtml += `
               <div class="sfc-note-item">
                 <div class="sfc-note-left">
-                  <span class="sfc-note-str">Str ${strNumber} [${strOpenName}]</span>
+                  <span class="sfc-note-str">String ${guitarStringNumber} [${strOpenName}]</span>
                   <span class="sfc-note-fret">Fret ${n.fret}${pitchStr}</span>
                 </div>
                 <div class="sfc-note-right">

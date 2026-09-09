@@ -287,8 +287,20 @@
       }
     }
 
-    return { extractedOutput, fingeringResult, coachPanel: currentCoachPanel };
+    // Phase 3.1A: Initialize PlaybackObserver in debug mode (logging to console, no CoachPanel manipulation)
+    if (typeof PlaybackObserver !== 'undefined' && !currentPlaybackObserver) {
+      try {
+        currentPlaybackObserver = new PlaybackObserver({ debugLog: true });
+        currentPlaybackObserver.start();
+      } catch (obsErr) {
+        console.error('[Songsterr Fingering Coach] Failed to start PlaybackObserver:', obsErr);
+      }
+    }
+
+    return { extractedOutput, fingeringResult, coachPanel: currentCoachPanel, playbackObserver: currentPlaybackObserver };
   }
+
+  let currentPlaybackObserver = null;
 
   // Expose global debug object on window for developer testing
   window.__SONGSTERR_FINGERING_COACH__ = {
@@ -297,6 +309,7 @@
     getLastExtracted: () => lastExtractedData,
     getLastFingeringResult: () => lastFingeringResult,
     getCoachPanel: () => currentCoachPanel,
+    getPlaybackObserver: () => currentPlaybackObserver,
     getCache: () => fingeringCache,
     getRawState: () => {
       try {

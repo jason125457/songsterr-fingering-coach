@@ -1,12 +1,13 @@
 {
   "name": "songsterr-fingering-coach",
-  "version": "0.3.0",
-  "description": "Songsterr Fingering Coach - Chrome Extension Manifest V3 & Decoupled Left-Hand Fingering Recommendation Engine with Compact Shape Coach Panel",
+  "version": "0.3.1",
+  "description": "Songsterr Fingering Coach - Chrome Extension Manifest V3 & Decoupled Left-Hand Fingering Recommendation Engine with Compact Shape Coach Panel and Playback Observer",
   "main": "src/fingering_engine.js",
   "scripts": {
-    "test": "node tests/run_all_tests.js && node tests/ui_acceptance.test.js",
+    "test": "node tests/run_all_tests.js && node tests/ui_acceptance.test.js && node tests/playback_observer.test.js",
     "test:engine": "node tests/run_all_tests.js",
     "test:ui": "node tests/ui_acceptance.test.js",
+    "test:observer": "node tests/playback_observer.test.js",
     "test:synthetic": "node tests/synthetic.test.js",
     "test:fixtures": "node tests/fixtures.test.js",
     "test:validation": "node tests/real_song_validation.js",

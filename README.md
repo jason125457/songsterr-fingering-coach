@@ -2,7 +2,7 @@
 
 🎸 **Songsterr Fingering Coach** 是一個針對 [Songsterr](https://www.songsterr.com/) 樂譜的 Chrome Extension (Manifest V3) 與**獨立左手吉他指法推薦引擎（Fingering Engine）**。
 
-本專案現已完成 **Phase 1（資料讀取與逆向驗證）**、**Phase 2（解耦指法推薦演算法引擎）**、**Phase 2.6（人性化指法演算法優化）** 與 **Phase 3.0（完整樂曲串接與 Fingering Coach UI 基礎建設）**。
+本專案現已完成 **Phase 1（資料讀取與逆向驗證）**、**Phase 2（解耦指法推薦演算法引擎）**、**Phase 2.6（人性化指法演算法優化）**、**Phase 3.0（完整樂曲串接與 Fingering Coach UI 基礎建設）** 與 **Phase 3.0.1 QA Fix + Phase 3.1A Playback Cursor Feasibility**。
 
 ---
 
@@ -15,7 +15,9 @@
 | **Phase 2.5: Real-Song Validation** | 真實長曲目驗證（以《傍晚去太子灣嗎》前 20 小節 120 拍為基準） | 120 拍完整分析、換把/同指跨弦/橫按/拉伸標註、成本排序 | **已完成 (Completed)** ✅ |
 | **Phase 2.6: Human Optimization** | 消除不自然提早換把、重複 Riff 指法一致性、開放手型聚合、可解釋成本 | 樂句邊界獎勵、重複動機記憶、開放和弦手型、成本透明化輸出 | **已完成 (Completed)** ✅ |
 | **Phase 3.0: Full Pipeline & UI** | 完整樂曲串接、Session 快取、極速非阻塞運算、浮動指型 Coach 面板、Mini-Barre 向量圖 | `src/ui/coach_panel.js`、`shape_diagram.js`、`coach.css`、M1-M20 瀏覽 | **已完成 (Completed)** ✅ |
-| **Phase 3.1: Playback Sync** | 與 Songsterr 播放器音訊與遊標即時跟隨同步 | Audio cursor observer、拍點自動推進、小節切換跟隨 | **規劃中 (Next Up)** 🎯 |
+| **Phase 3.0.1: QA Fix** | 吉他弦編號校正（String 1=High E, String 6=Low E）、全動態調弦名稱解析（Drop D, D Std） | 修正 `coach_panel.js`、`shape_diagram.js`、動態 Tuning 回歸測試 | **已完成 (Completed)** ✅ |
+| **Phase 3.1A: Playback Feasibility** | Songsterr 播放游標技術可行性驗證、多聲部（Multi-Voice）時間軸對齊研究、獨立 Observer | `src/songsterr/playback_observer.js`、Romanza 多聲部樣本、游標事件流 | **已完成 (Completed)** ✅ |
+| **Phase 3.1B: Playback Sync UI** | 將 PlaybackObserver 正式連動 CoachPanel 實現自動切換與小節跟隨 | 播放自動滾動、拍點高亮同步、使用者暫停/Seek 恢復 | **規劃中 (Next Up)** 🎯 |
 | **Phase 4: Advanced Shapes** | CAGED 五大和弦音階型態比對、自訂偏好指型庫 | 爵士/藍調/金屬自訂手型偏好、進階調弦指板映射 | **待評估 (Backlog)** 📋 |
 
 
@@ -317,6 +319,21 @@ node tests/run_all_tests.js
   - 前段為 Pos 5，透過高音 E 空弦音平順過渡至 Pos 1，兩段 Segment 自動無縫切換。
 - ✅ **經典樂譜 Fixture 相容性**：
   - *Enter Sandman*、*Smoke On The Water*（雙音橫按）、*Come As You Are* 全數通過 SVG 向量渲染，無任何異常或語法錯誤。
+
+#### 5. Phase 3.0.1 QA 修正與 Phase 3.1A 播放游標驗證 (`tests/playback_observer.test.js`)
+- ✅ **吉他弦編號校正 (String Numbering Fix)**：
+  - 嚴格落實吉他標準規範：`normalized string 0`（High E）$\rightarrow$ **第 1 弦 (Guitar String 1)**；`normalized string 5`（Low E）$\rightarrow$ **第 6 弦 (Guitar String 6)**。
+- ✅ **全動態調弦名稱解析 (Dynamic Tuning)**：
+  - UI 與 SVG 徹底摒除標準調弦假設，依據 Track Tuning MIDI 動態換算：
+    - Standard (`[64, 59, 55, 50, 45, 40]`): `E A D G B e`
+    - Drop D (`[64, 59, 55, 50, 45, 38]`): `D A D G B e`
+    - D Standard (`[62, 57, 53, 48, 43, 38]`): `D G C F A d`
+- ✅ **多聲部（Multi-Voice）時間軸對齊研究（以《Romanza》52 小節為例）**：
+  - 驗證 Voice 0（三連音分解，9 個 1/12 拍）與 Voice 1（低音附點二分音符，1 個 3/4 拍）於時間軸 $t=0$ 同時發聲。
+  - 明確區分 `musical beat`（小節拍號）與 `rhythm event`（小節內發聲事件順序 `eventIndex`）。
+- ✅ **獨立 PlaybackObserver 轉接器 (`src/songsterr/playback_observer.js`)**：
+  - 完全自 CoachPanel 解耦，具備多層檢測策略（React Store、`#root[data-playing]`、`#cursorMarker[data-cursor]`、`<use href^="#cursor-playhead">` 座標匹配 `[data-testid="tab-beat-target"]`）。
+  - 對外發布標準事件流 `{ state, measureNumber, eventIndex, positionInMeasure, currentTime, confidence }` 並即時響應 Seek。
 
 ---
 

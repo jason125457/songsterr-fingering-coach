@@ -268,11 +268,28 @@
       svg += `<line x1="${x}" y1="${margin.top}" x2="${x}" y2="${margin.top + gridHeight}" stroke="#71717a" stroke-width="${s === 0 || s === 1 ? 1.8 : 1.2}" />`;
     }
 
-    // String name headers (6 = Low E on left, 1 = High E on right)
-    const stringNames = ['E', 'A', 'D', 'G', 'B', 'e'];
+    // Dynamic String name headers (Col 0 = Low E/Str 6 on left -> Col 5 = High E/Str 1 on right)
+    const NOTE_LETTERS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const dynamicStringNames = [];
+    for (let col = 0; col < 6; col++) {
+      const stringIdx = 5 - col; // 0 = High E, 5 = Low E
+      let name = '';
+      if (Array.isArray(options.tuningNames) && options.tuningNames[stringIdx]) {
+        name = options.tuningNames[stringIdx].replace(/[0-9]/g, '');
+        if (stringIdx === 0) name = name.toLowerCase();
+      } else if (Array.isArray(options.tuning) && typeof options.tuning[stringIdx] === 'number') {
+        const letter = NOTE_LETTERS[options.tuning[stringIdx] % 12];
+        name = stringIdx === 0 ? letter.toLowerCase() : letter;
+      } else {
+        const defaultNames = ['E', 'A', 'D', 'G', 'B', 'e'];
+        name = defaultNames[col];
+      }
+      dynamicStringNames.push(name);
+    }
+
     for (let col = 0; col < 6; col++) {
       const x = getX(col);
-      svg += `<text x="${x}" y="${margin.top + gridHeight + 14}" fill="#71717a" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9" text-anchor="middle">${stringNames[col]}</text>`;
+      svg += `<text x="${x}" y="${margin.top + gridHeight + 14}" fill="#71717a" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="600" text-anchor="middle">${dynamicStringNames[col]}</text>`;
     }
 
     // Render Mini-Barres (behind note circles)
