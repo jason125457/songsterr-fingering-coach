@@ -123,6 +123,15 @@
       tuning: rawPartData.tuning || meta.tuning || DEFAULT_TUNING
     };
 
+    // Strict Guitar Gate: Tuning must be 6 strings for 6-string guitar coach
+    if (!Array.isArray(track.tuning) || track.tuning.length !== 6) {
+      throw new Error(`Unsupported instrument tuning: length is ${track.tuning ? track.tuning.length : 0}. Only 6-string guitar is supported.`);
+    }
+
+    // Determine max frets: prefer declared track/part fret count, fallback to 24
+    const declaredFrets = rawPartData.frets || rawPartData.fretsCount || rawPartData.numFrets || meta.frets || meta.fretsCount;
+    const maxFrets = (typeof declaredFrets === 'number' && declaredFrets > 0) ? declaredFrets : 24;
+
     let currentSignature = '4/4';
 
     const measures = rawPartData.measures.map((measure, mIdx) => {
@@ -180,6 +189,14 @@
                     source: { voiceIndex: vIdx, beatIndex: bIdx }
                   });
                 } else if (n.string !== undefined && n.fret !== undefined) {
+                  // Strict note schema validation: integer string in [0, tuning.length-1], integer fret in [0, maxFrets]
+                  if (typeof n.string !== 'number' || !Number.isInteger(n.string) || n.string < 0 || n.string >= track.tuning.length) {
+                    throw new Error(`Invalid guitar note string: ${n.string}. Must be an integer between 0 and ${track.tuning.length - 1}.`);
+                  }
+                  if (typeof n.fret !== 'number' || !Number.isInteger(n.fret) || n.fret < 0 || n.fret > maxFrets) {
+                    throw new Error(`Invalid guitar note fret: ${n.fret}. Exceeds declared max frets ${maxFrets}.`);
+                  }
+
                   const noteObj = {
                     string: n.string,
                     fret: n.fret,

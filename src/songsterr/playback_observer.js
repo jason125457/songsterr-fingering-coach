@@ -141,6 +141,18 @@
     }
 
     /**
+     * Reset cached playhead position, cursor marker sample, and motion history
+     */
+    reset() {
+      this.lastPosition = null;
+      this.lastCursorMarkerSample = null;
+      this.lastCandidatesSample = [];
+      this.lastEmittedEvent = null;
+      this.recentMotionHistory = [];
+      return this;
+    }
+
+    /**
      * Observe DOM changes:
      * - #root[data-playing] (playing state)
      * - #cursorMarker[data-cursor] (seek / click)

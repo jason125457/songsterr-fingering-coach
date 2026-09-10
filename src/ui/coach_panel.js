@@ -57,6 +57,13 @@
       this.activeSegmentIndex = 0;
       this.isMinimized = false;
 
+      // Song & Track Identity
+      this.currentSongId = options.songId || fingeringResult?.song?.songId || null;
+      this.isUnsupported = false;
+      this.isLoading = false;
+      this.unsupportedTrack = null;
+      this.unsupportedReason = null;
+
       // Playback Sync & Mode states
       this.mode = options.initialMode || 'follow'; // 'follow' | 'manual'
       this.lastPlaybackConfidence = 'exact';
@@ -131,6 +138,13 @@
     }
 
     renderHeaderActionsHtml() {
+      if (this.isUnsupported) {
+        return `
+          <span class="sfc-mode-unsupported" title="Current track is unsupported">⚠️ Unsupported</span>
+          <button class="sfc-btn-icon" id="sfc-btn-minimize" title="Minimize Panel">─</button>
+        `;
+      }
+
       const modeHtml = this.mode === 'follow'
         ? `<span class="sfc-mode-indicator sfc-mode-follow" id="sfc-mode-badge" title="Auto-following live playback">▶ Following</span>`
         : `<button class="sfc-btn-resume" id="sfc-btn-resume-follow" title="Resume following live playback">▶ Resume Follow</button>`;
@@ -146,6 +160,46 @@
       if (actionsEl) {
         actionsEl.innerHTML = this.renderHeaderActionsHtml();
         this.attachHeaderActionListeners();
+      }
+    }
+
+    showLoading(message = 'Loading song...') {
+      this.isLoading = true;
+      this.isUnsupported = false;
+      const body = this.panelEl?.querySelector('#sfc-panel-body');
+      if (body) {
+        body.innerHTML = `
+          <div class="sfc-loading-card">
+            <div class="sfc-loading-icon">⏳</div>
+            <div class="sfc-loading-title">${message}</div>
+          </div>
+        `;
+      }
+    }
+
+    showUnsupported(track, reason = '音軌暫不受支援') {
+      this.isUnsupported = true;
+      this.isLoading = false;
+      this.unsupportedTrack = track;
+      this.unsupportedReason = reason;
+
+      const trackTitleEl = this.panelEl?.querySelector('#sfc-track-info') || document.getElementById('sfc-track-info');
+      if (trackTitleEl) {
+        trackTitleEl.textContent = `${this.data?.song?.title || 'Song'} (${track?.name || track?.instrument || 'Unsupported'})`;
+      }
+
+      this.updateHeaderActions();
+
+      const body = this.panelEl?.querySelector('#sfc-panel-body');
+      if (body) {
+        body.innerHTML = `
+          <div class="sfc-unsupported-card">
+            <div class="sfc-unsupported-icon">⚠️</div>
+            <div class="sfc-unsupported-title">音軌暫不支援 (Unsupported Track)</div>
+            <p class="sfc-unsupported-desc">${reason}</p>
+            <p class="sfc-unsupported-hint">左手指法教練第一版僅支援標準 6 弦吉他音軌。請切換至吉他軌以查看指法指引。</p>
+          </div>
+        `;
       }
     }
 
@@ -270,6 +324,15 @@
      */
     updateData(newFingeringResult) {
       if (!newFingeringResult || !Array.isArray(newFingeringResult.measures)) return;
+      this.isLoading = false;
+      this.isUnsupported = false;
+
+      const newSongId = newFingeringResult.song?.songId;
+      if (newSongId !== undefined && newSongId !== this.currentSongId) {
+        this.currentSongId = newSongId;
+        this.currentMeasureIndex = 0;
+      }
+
       this.data = newFingeringResult;
       this.measures = newFingeringResult.measures;
       this.totalMeasures = this.measures.length;
@@ -278,6 +341,7 @@
       this.currentBeatNumber = 1;
       this.activeSegmentIndex = 0;
       this.updateHeaderTrackInfo();
+      this.updateHeaderActions();
       this.updateView();
     }
 
@@ -360,6 +424,7 @@
      * @param {Object} playbackEvent Raw event from PlaybackObserver
      */
     syncPlayback(canonicalResult, playbackEvent) {
+      if (this.isUnsupported || this.isLoading) return;
       if (this.mode === 'manual') {
         return; // User is in manual browsing mode; do NOT steal UI
       }

@@ -80,6 +80,21 @@
     }
 
     /**
+     * Reset controller state completely on song switch or track invalidation
+     */
+    reset() {
+      this.stop();
+      this.normalizedTrack = null;
+      this.stats = {
+        totalEventsReceived: 0,
+        syncedUpdates: 0,
+        skippedManualCount: 0,
+        lastSyncTimestamp: 0
+      };
+      return this;
+    }
+
+    /**
      * Switch or update the active track data
      * @param {Object} normalizedTrack 
      * @param {Object} fingeringResult 

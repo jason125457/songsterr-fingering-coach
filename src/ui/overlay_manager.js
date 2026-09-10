@@ -372,6 +372,17 @@
     }
 
     /**
+     * Complete clear of overlays and active song data
+     */
+    clearAll() {
+      this.clearOverlays();
+      this.fingeringResult = null;
+      this.measuresDataMap.clear();
+      this.anchorMap.clear();
+      this.activePlaybackMeasure = null;
+    }
+
+    /**
      * Get currently active overlays in DOM
      */
     getActiveOverlays() {

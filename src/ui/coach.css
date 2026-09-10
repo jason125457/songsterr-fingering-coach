@@ -660,4 +660,57 @@
   letter-spacing: 0.2px;
 }
 
+/* Unsupported & Loading State in CoachPanel */
+.sfc-unsupported-card,
+.sfc-loading-card {
+  padding: 24px 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.sfc-unsupported-icon,
+.sfc-loading-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.sfc-unsupported-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+.sfc-loading-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.sfc-unsupported-desc {
+  font-size: 11.5px;
+  color: #d4d4d8;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.sfc-unsupported-hint {
+  font-size: 10.5px;
+  color: #71717a;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.sfc-mode-unsupported {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
 
