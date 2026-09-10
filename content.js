@@ -127,6 +127,75 @@
   }
 
   /**
+  /**
+   * Detect current active partId directly from live Songsterr DOM / markers / URL
+   */
+  function detectCurrentPartId(meta = null) {
+    // 1. Check active cursor marker (#cursorMarker[data-cursor]) -> format "partId,measure,voice,beat,string"
+    const cursorMarker = document.getElementById('cursorMarker');
+    if (cursorMarker) {
+      const dc = cursorMarker.getAttribute('data-cursor');
+      if (dc) {
+        const parts = dc.split(',').map(s => parseInt(s.trim(), 10));
+        if (!isNaN(parts[0])) return parts[0];
+      }
+    }
+
+    // 2. Check DOM elements with data-part-id in SVG score
+    const partEl = document.querySelector('[data-part-id]');
+    if (partEl) {
+      const p = parseInt(partEl.getAttribute('data-part-id'), 10);
+      if (!isNaN(p)) return p;
+    }
+
+    // 3. Check DOM elements with data-track-index
+    const trackEl = document.querySelector('[data-track-index]');
+    if (trackEl) {
+      const tIdx = parseInt(trackEl.getAttribute('data-track-index'), 10);
+      if (!isNaN(tIdx)) {
+        if (meta && Array.isArray(meta.tracks) && meta.tracks[tIdx]) {
+          return meta.tracks[tIdx].partId ?? tIdx;
+        }
+        return tIdx;
+      }
+    }
+
+    // 4. Check URL parameters (?part=1 or ?track=1 or /t1)
+    if (typeof window !== 'undefined' && window.location) {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('part')) {
+        const p = parseInt(urlParams.get('part'), 10);
+        if (!isNaN(p)) return p;
+      }
+      if (urlParams.has('track')) {
+        const t = parseInt(urlParams.get('track'), 10);
+        if (!isNaN(t)) return t;
+      }
+      const pathMatch = window.location.pathname.match(/t(\d+)$/);
+      if (pathMatch) {
+        return parseInt(pathMatch[1], 10);
+      }
+    }
+
+    // 5. Fallback to SSR state
+    const stateElement = document.getElementById('state');
+    if (stateElement) {
+      try {
+        const state = JSON.parse(stateElement.textContent);
+        const sPartId = state.routeContent?.params?.partId ?? 
+                        state.route?.params?.partId ?? 
+                        state.part?.partId ?? 
+                        state.meta?.partId ?? 
+                        meta?.defaultTrack ?? 
+                        0;
+        return sPartId;
+      } catch (e) {}
+    }
+
+    return null;
+  }
+
+  /**
    * Main extraction and fingering analysis flow
    */
   async function extractTabNotes(targetPartId = null) {
@@ -160,12 +229,15 @@
     // Determine which track is currently selected
     let partId = targetPartId;
     if (partId === null || partId === undefined) {
-      partId = state.routeContent?.params?.partId ?? 
-               state.route?.params?.partId ?? 
-               state.part?.partId ?? 
-               state.meta?.partId ?? 
-               meta.defaultTrack ?? 
-               0;
+      const detected = detectCurrentPartId(meta);
+      partId = detected !== null ? detected : (
+        state.routeContent?.params?.partId ?? 
+        state.route?.params?.partId ?? 
+        state.part?.partId ?? 
+        state.meta?.partId ?? 
+        meta.defaultTrack ?? 
+        0
+      );
     }
 
     // Find track details
@@ -176,6 +248,31 @@
     const cacheKey = `${songId}-${revisionId}-${actualPartId}`;
     if (targetPartId === null && cacheKey === lastProcessedKey && lastFingeringResult) {
       return { extractedOutput: lastExtractedData, fingeringResult: lastFingeringResult };
+    }
+
+    // Fast-path: Check memory session cache
+    if (fingeringCache.has(cacheKey)) {
+      const cachedResult = fingeringCache.get(cacheKey);
+      const cachedNormalized = normalizedCache.get(cacheKey);
+      lastProcessedKey = cacheKey;
+      lastFingeringResult = cachedResult;
+      currentNormalizedTrack = cachedNormalized;
+      currentActivePartId = actualPartId;
+
+      console.log(`%c⚡ [Songsterr Fingering Coach] Serving track "${track?.name || actualPartId}" from memory cache`, 'color: #10b981; font-weight: bold;');
+
+      if (currentCoachPanel) {
+        currentCoachPanel.updateData(cachedResult);
+      }
+      if (currentOverlayManager) {
+        currentOverlayManager.setFingeringResult(cachedResult);
+      }
+      if (currentSyncController) {
+        currentSyncController.coachPanel = currentCoachPanel;
+        currentSyncController.overlayManager = currentOverlayManager;
+        currentSyncController.setTrack(cachedNormalized, cachedResult);
+      }
+      return { extractedOutput: lastExtractedData, fingeringResult: cachedResult };
     }
 
     const partUrl = buildPartUrl(songId, revisionId, image, actualPartId);
@@ -380,6 +477,30 @@
     }
   };
 
+  let currentActivePartId = null;
+  let isExtracting = false;
+
+  async function checkTrackChange(explicitPartId = null) {
+    if (isExtracting) return;
+    const detectedPartId = explicitPartId !== null ? explicitPartId : detectCurrentPartId();
+    if (detectedPartId === null) return;
+
+    if (currentActivePartId === null || detectedPartId !== currentActivePartId) {
+      console.log(
+        `%c🔄 [Songsterr Fingering Coach] Active track change detected in DOM: Part ${currentActivePartId} -> Part ${detectedPartId}`,
+        'color: #f59e0b; font-weight: bold; font-size: 12px;'
+      );
+      isExtracting = true;
+      try {
+        await extractTabNotes(detectedPartId);
+      } catch (err) {
+        console.error('[Songsterr Fingering Coach] Failed to switch track:', err);
+      } finally {
+        isExtracting = false;
+      }
+    }
+  }
+
   // Run on initial page load with a short delay to ensure DOM is fully ready
   function init() {
     if (location.pathname.includes('/a/wsa/')) {
@@ -410,6 +531,16 @@
       }, 800);
     }
   });
+
+  // Real-time track switch detection:
+  // 1. Polling check (every 400ms) for track switch in DOM
+  setInterval(checkTrackChange, 400);
+
+  // 2. Click listener to detect instrument dropdown / mixer selections immediately
+  document.addEventListener('click', () => {
+    setTimeout(checkTrackChange, 120);
+    setTimeout(checkTrackChange, 450);
+  }, { passive: true });
 
   init();
 })();

@@ -272,12 +272,23 @@
       this.data = newFingeringResult;
       this.measures = newFingeringResult.measures;
       this.totalMeasures = this.measures.length;
-      this.currentMeasureIndex = Math.min(this.currentMeasureIndex, this.totalMeasures - 1);
+      this.currentMeasureIndex = Math.min(this.currentMeasureIndex, Math.max(0, this.totalMeasures - 1));
       this.currentEventIndex = 1;
       this.currentBeatNumber = 1;
       this.activeSegmentIndex = 0;
       this.updateHeaderTrackInfo();
       this.updateView();
+    }
+
+    setFingeringResult(newFingeringResult) {
+      this.updateData(newFingeringResult);
+    }
+
+    updateHeaderTrackInfo() {
+      const trackTitleEl = this.panelEl?.querySelector('#sfc-track-info') || document.getElementById('sfc-track-info');
+      if (trackTitleEl && this.data) {
+        trackTitleEl.textContent = `${this.data.song?.title || 'Song'} (${this.data.track?.name || 'Guitar'})`;
+      }
     }
 
     /**
