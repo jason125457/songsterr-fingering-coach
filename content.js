@@ -304,9 +304,10 @@
         if (!currentOverlayManager) {
           currentOverlayManager = new OverlayManager({
             fingeringResult,
-            initialMeasure: 1
+            initialMeasure: 1,
+            density: 'small'
           });
-          console.log('%c📐 [Songsterr Fingering Coach] Inline Overlay Manager initialized (Virtualized Viewport)', 'color: #3b82f6; font-weight: bold;');
+          console.log('%c📐 [Songsterr Fingering Coach] Inline Overlay Manager initialized (Virtualized Viewport, Density: Small)', 'color: #3b82f6; font-weight: bold;');
         } else {
           currentOverlayManager.setFingeringResult(fingeringResult);
         }
