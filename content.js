@@ -564,15 +564,27 @@
             currentOverlayManager = new OverlayManager({
               fingeringResult,
               initialMeasure: 1,
-              density: 'small'
+              density: 'medium'
             });
-            console.log('%c📐 [Songsterr Fingering Coach] Inline Overlay Manager initialized (Density: Small)', 'color: #3b82f6; font-weight: bold;');
+            window.__sfc_overlay_manager = currentOverlayManager;
+            console.log('%c📐 [Songsterr Fingering Coach] Inline Overlay Manager initialized (Density: Medium Hand Map)', 'color: #3b82f6; font-weight: bold;');
           } else {
             currentOverlayManager.setFingeringResult(fingeringResult);
+            window.__sfc_overlay_manager = currentOverlayManager;
           }
         } catch (overlayErr) {
           console.error('[Songsterr Fingering Coach] Failed to initialize OverlayManager:', overlayErr);
         }
+      }
+
+      // Allow dynamic density switching via DOM CustomEvent (cross-world compatible)
+      if (!window.__sfc_density_listener_attached) {
+        window.__sfc_density_listener_attached = true;
+        window.addEventListener('sfc-set-density', (e) => {
+          if (currentOverlayManager && e.detail && e.detail.density) {
+            currentOverlayManager.setDensity(e.detail.density);
+          }
+        });
       }
 
       // 12. Initialize or start PlaybackObserver

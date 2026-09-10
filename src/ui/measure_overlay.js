@@ -33,7 +33,7 @@
 
       this.measureData = measureData;
       this.options = options;
-      this.density = options.density || 'small';
+      this.density = options.density || 'medium';
       this.measureNumber = measureData.measureNumber || 1;
       this.segments = ShapeDiagram.splitMeasureIntoSegments(measureData);
       this.currentSegmentIndex = 0;
@@ -53,24 +53,24 @@
     applyDensityMetrics() {
       const isMulti = this.segments.length > 1;
       if (this.density === 'large') {
-        this.svgWidth = this.options.svgWidth || 64;
-        this.svgHeight = this.options.svgHeight || 48;
-        this.overlayWidth = this.options.width || (isMulti ? 148 : 72);
-        this.overlayHeight = this.options.height || 56;
-        this.minPerSeg = 64;
+        this.svgWidth = this.options.svgWidth || 98;
+        this.svgHeight = this.options.svgHeight || 72;
+        this.overlayWidth = this.options.width || (isMulti ? 210 : 106);
+        this.overlayHeight = this.options.height || 90;
+        this.minPerSeg = 98;
       } else if (this.density === 'medium') {
-        this.svgWidth = this.options.svgWidth || 52;
-        this.svgHeight = this.options.svgHeight || 38;
-        this.overlayWidth = this.options.width || (isMulti ? 122 : 58);
-        this.overlayHeight = this.options.height || 46;
-        this.minPerSeg = 52;
+        this.svgWidth = this.options.svgWidth || 84;
+        this.svgHeight = this.options.svgHeight || 62;
+        this.overlayWidth = this.options.width || (isMulti ? 180 : 92);
+        this.overlayHeight = this.options.height || 78;
+        this.minPerSeg = 84;
       } else {
-        // 'small' default: scaled down ~35-50% for subtle, glanceable hint
-        this.svgWidth = this.options.svgWidth || 44;
-        this.svgHeight = this.options.svgHeight || 32;
-        this.overlayWidth = this.options.width || (isMulti ? 104 : 50);
-        this.overlayHeight = this.options.height || 40;
-        this.minPerSeg = 44;
+        // 'small' fallback
+        this.svgWidth = this.options.svgWidth || 68;
+        this.svgHeight = this.options.svgHeight || 50;
+        this.overlayWidth = this.options.width || (isMulti ? 148 : 76);
+        this.overlayHeight = this.options.height || 66;
+        this.minPerSeg = 68;
       }
 
       if (this.domElement) {
@@ -85,6 +85,10 @@
      */
     setDensity(density) {
       if (this.density === density) return;
+      if (this.domElement) {
+        this.domElement.classList.remove(`sfc-density-${this.density}`);
+        this.domElement.classList.add(`sfc-density-${density}`);
+      }
       this.density = density;
       this.applyDensityMetrics();
       this.render();
@@ -119,8 +123,8 @@
       // Adaptive sizing constraint: maxWidth <= anchorWidth * 0.8
       const maxAllowedW = availableWidth ? Math.round(availableWidth * 0.8) : this.overlayWidth;
 
-      // Tier 3: Extremely narrow measure fallback (e.g. anchorWidth < 110px or maxAllowedW < 88px for multi-segment)
-      const isExtremelyNarrow = maxAllowedW < (numSegments > 1 ? 88 : 42);
+      // Tier 3: Extremely narrow measure fallback
+      const isExtremelyNarrow = maxAllowedW < (numSegments > 1 ? 90 : 46);
       if (isExtremelyNarrow) {
         if (numSegments > 1) {
           const shiftSummary = this.segments.map(seg => {
@@ -137,50 +141,33 @@
         }
       }
 
-      // Check presentation classification for single-segment measures
       const classification = ShapeDiagram.classifyMeasure 
         ? ShapeDiagram.classifyMeasure(this.measureData) 
         : { type: 'shape' };
 
-      // Sequence presentation for pure single-note melodic measures without internal position shifts
-      if (numSegments <= 1 && classification.type === 'sequence') {
-        const spanText = classification.handSpan ? classification.handSpan.text : `P${this.measureData.recommendedPosition || 1}`;
-        const seqFlow = (classification.fingerSequence && classification.fingerSequence.length > 0)
-          ? classification.fingerSequence.slice(0, 8).map((f, i) => {
-              const isFActive = this.activeEventIndex !== null && (i + 1 === this.activeEventIndex);
-              return `<span class="sfc-seq-f${isFActive ? ' sfc-seq-f-active' : ''}">${f}</span>`;
-            }).join('<span class="sfc-seq-sep">➔</span>')
-          : `P${this.measureData.recommendedPosition || 1}`;
-
-        return `
-          <div class="sfc-overlay-sequence">
-            <div class="sfc-seq-header">
-              <span class="sfc-seq-span">${spanText}</span>
-              <span class="sfc-seq-pos">P${this.measureData.recommendedPosition || 1}</span>
-            </div>
-            <div class="sfc-seq-flow">
-              ${seqFlow}
-            </div>
-          </div>
-        `;
-      }
+      const isSequence = classification.type === 'sequence';
+      const baseRenderOptions = {
+        compact: true,
+        density: this.density,
+        inlineTheme: 'light',
+        showFretLabel: true,
+        width: this.svgWidth,
+        height: this.svgHeight,
+        tuning: this.options.tuning,
+        tuningNames: this.options.tuningNames
+      };
 
       if (numSegments <= 1) {
         const seg = this.segments[0];
-        const svg = ShapeDiagram.renderSVG(seg, this.activeEventIndex, {
-          compact: true,
-          density: this.density,
-          width: this.svgWidth,
-          height: this.svgHeight,
-          tuning: this.options.tuning,
-          tuningNames: this.options.tuningNames
-        });
+        const svg = isSequence
+          ? ShapeDiagram.renderHandFrameSVG(seg, this.activeEventIndex, baseRenderOptions)
+          : ShapeDiagram.renderSVG(seg, this.activeEventIndex, baseRenderOptions);
         return `<div class="sfc-overlay-diagram">${svg}</div>`;
       }
 
       // Generalized Multi-Segment (N >= 2)
       const minPerSeg = this.minPerSeg;
-      const totalSideBySideW = numSegments * minPerSeg + (numSegments - 1) * 6;
+      const totalSideBySideW = numSegments * minPerSeg + (numSegments - 1) * 8;
       const canFitSideBySide = maxAllowedW >= totalSideBySideW;
 
       if (canFitSideBySide) {
@@ -191,14 +178,10 @@
           }
           const isSegActive = this.currentSegmentIndex === sIdx && this.activeEventIndex !== null;
           const segActiveEv = isSegActive ? this.activeEventIndex : null;
-          const svg = ShapeDiagram.renderSVG(seg, segActiveEv, {
-            compact: true,
-            density: this.density,
-            width: this.svgWidth,
-            height: this.svgHeight,
-            tuning: this.options.tuning,
-            tuningNames: this.options.tuningNames
-          });
+          const svg = isSequence
+            ? ShapeDiagram.renderHandFrameSVG(seg, segActiveEv, baseRenderOptions)
+            : ShapeDiagram.renderSVG(seg, segActiveEv, baseRenderOptions);
+
           html += `<div class="sfc-overlay-segment${isSegActive ? ' sfc-segment-active' : ''}" data-segment-index="${sIdx}">`;
           html += `<span class="sfc-segment-badge">P${seg.position}</span>`;
           html += svg;
@@ -207,17 +190,26 @@
         html += `</div>`;
         return html;
       } else {
-        // Space constrained: render active segment with compact dimensions and shift indicator in header
-        const activeSeg = this.segments[this.currentSegmentIndex] || this.segments[0];
-        const svg = ShapeDiagram.renderSVG(activeSeg, this.activeEventIndex, {
-          compact: true,
-          density: this.density,
-          width: Math.min(this.svgWidth, Math.max(34, maxAllowedW - 10)),
-          height: this.svgHeight,
-          tuning: this.options.tuning,
-          tuningNames: this.options.tuningNames
+        // Space constrained horizontally: stack vertically in a column
+        let html = `<div class="sfc-overlay-multi-stacked">`;
+        const stackedOptions = Object.assign({}, baseRenderOptions, { height: Math.round(this.svgHeight * 0.88) });
+        this.segments.forEach((seg, sIdx) => {
+          if (sIdx > 0) {
+            html += `<div class="sfc-segment-arrow-v">↓</div>`;
+          }
+          const isSegActive = this.currentSegmentIndex === sIdx && this.activeEventIndex !== null;
+          const segActiveEv = isSegActive ? this.activeEventIndex : null;
+          const svg = isSequence
+            ? ShapeDiagram.renderHandFrameSVG(seg, segActiveEv, stackedOptions)
+            : ShapeDiagram.renderSVG(seg, segActiveEv, stackedOptions);
+
+          html += `<div class="sfc-overlay-segment${isSegActive ? ' sfc-segment-active' : ''}" data-segment-index="${sIdx}">`;
+          html += `<span class="sfc-segment-badge">P${seg.position}</span>`;
+          html += svg;
+          html += `</div>`;
         });
-        return `<div class="sfc-overlay-diagram">${svg}</div>`;
+        html += `</div>`;
+        return html;
       }
     }
 
@@ -233,49 +225,15 @@
         ? ShapeDiagram.classifyMeasure(this.measureData) 
         : { type: 'shape' };
 
-      // C1: Sequence measures render clean single-row glanceable pill
-      if (this.segments.length <= 1 && classification.type === 'sequence') {
-        const spanText = classification.handSpan ? classification.handSpan.text : `Hand P${currentSegment.position}`;
-        const seqFlow = (classification.fingerSequence && classification.fingerSequence.length > 0)
-          ? classification.fingerSequence.slice(0, 6).map((f, i) => {
-              const isFActive = this.activeEventIndex !== null && (i + 1 === this.activeEventIndex);
-              return `<span class="sfc-seq-f${isFActive ? ' sfc-seq-f-active' : ''}">${f}</span>`;
-            }).join('<span class="sfc-seq-sep">➔</span>')
-          : `P${currentSegment.position}`;
-
-        this.domElement.innerHTML = `
-          <div class="sfc-overlay-glance-seq">
-            <span class="sfc-glance-tag">M${this.measureNumber} · P${currentSegment.position}</span>
-            <span class="sfc-glance-span">${spanText}</span>
-            <span class="sfc-glance-flow">${seqFlow}</span>
-          </div>
-        `;
-        if (this.isHighlighted) {
-          this.domElement.classList.add('sfc-overlay-active');
-        } else {
-          this.domElement.classList.remove('sfc-overlay-active');
-        }
-        return;
+      // Header with measure number, active position, and hand span / shift chip
+      const spanText = classification.handSpan ? `${classification.handSpan.minFret}–${classification.handSpan.maxFret}` : '';
+      let headerPosText = `M${this.measureNumber} · P${currentSegment.position}`;
+      if (spanText) {
+        headerPosText += ` · ${spanText}`;
       }
 
-      // Extremely narrow measure micro fallback
-      const availableWidth = this.lastAnchorWidth;
-      const maxAllowedW = availableWidth ? Math.round(availableWidth * 0.8) : this.overlayWidth;
-      const isExtremelyNarrow = maxAllowedW < (this.segments.length > 1 ? 88 : 42);
-      if (isExtremelyNarrow) {
-        const bodyHTML = this.renderDiagramsHTML(this.lastAnchorWidth);
-        this.domElement.innerHTML = bodyHTML;
-        if (this.isHighlighted) {
-          this.domElement.classList.add('sfc-overlay-active');
-        } else {
-          this.domElement.classList.remove('sfc-overlay-active');
-        }
-        return;
-      }
-
-      // C2: Shape measures render header + mini chord SVG diagram
       let headerHTML = `<div class="sfc-overlay-header">`;
-      headerHTML += `<span class="sfc-overlay-pos-badge">M${this.measureNumber} · P${currentSegment.position}</span>`;
+      headerHTML += `<span class="sfc-overlay-pos-badge">${headerPosText}</span>`;
       
       if (hasShift) {
         const segPositions = this.segments.map(s => `P${s.position}`).join('➔');

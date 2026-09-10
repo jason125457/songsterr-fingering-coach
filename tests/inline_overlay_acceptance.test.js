@@ -618,22 +618,26 @@ const mediumOverlay = new MeasureOverlay(m1Data, { density: 'medium' });
 const largeOverlay = new MeasureOverlay(m1Data, { density: 'large' });
 
 assert(smallOverlay.density === 'small', 'Default or specified density should be small');
-assert(smallOverlay.svgWidth === 44, `Small svgWidth must be 44 (got ${smallOverlay.svgWidth})`);
-assert(smallOverlay.svgHeight === 32, `Small svgHeight must be 32 (got ${smallOverlay.svgHeight})`);
-assert(smallOverlay.overlayWidth === 50, `Small overlayWidth must be 50 (got ${smallOverlay.overlayWidth})`);
+assert(smallOverlay.svgWidth === 68, `Small svgWidth must be 68 (got ${smallOverlay.svgWidth})`);
+assert(smallOverlay.svgHeight === 50, `Small svgHeight must be 50 (got ${smallOverlay.svgHeight})`);
+assert(smallOverlay.overlayWidth === 76, `Small overlayWidth must be 76 (got ${smallOverlay.overlayWidth})`);
 
-// Linear dimension reduction: 44 vs 80 in Phase 3.2B is 45% smaller; 50 vs 88 is 43% smaller!
-const linearRatio = (88 - smallOverlay.overlayWidth) / 88;
-assert(linearRatio >= 0.35 && linearRatio <= 0.55, `Small must be 35%~50% scaled down (got ${(linearRatio * 100).toFixed(1)}%)`);
+assert(mediumOverlay.svgWidth === 84, `Medium svgWidth must be 84 (got ${mediumOverlay.svgWidth})`);
+assert(mediumOverlay.svgHeight === 62, `Medium svgHeight must be 62 (got ${mediumOverlay.svgHeight})`);
+assert(mediumOverlay.overlayWidth === 92, `Medium overlayWidth must be 92 (got ${mediumOverlay.overlayWidth})`);
+
+assert(largeOverlay.svgWidth === 98, `Large svgWidth must be 98 (got ${largeOverlay.svgWidth})`);
+assert(largeOverlay.svgHeight === 72, `Large svgHeight must be 72 (got ${largeOverlay.svgHeight})`);
+assert(largeOverlay.overlayWidth === 106, `Large overlayWidth must be 106 (got ${largeOverlay.overlayWidth})`);
 
 // H.2 Fretboard Rows Compression (3~4 frets in compact mode)
 const seg0 = m1Data; // frets 7, 8, 9
 const compactShape = ShapeDiagram.aggregateSegmentShape(seg0, null, { compact: true });
 assert(compactShape.fretCount >= 3 && compactShape.fretCount <= 4, `Compact shape must compress to 3~4 frets (got ${compactShape.fretCount})`);
 
-// H.3 Omit Bulky 7fr / 8fr Label in Compact Mode
+// H.3 Fret Label & Position Badge in Phase 3.4.2 Hand Map
 const smallSVG = ShapeDiagram.renderSVG(seg0, null, { compact: true, density: 'small' });
-assert(!smallSVG.includes('>7fr<') && !smallSVG.includes('>8fr<'), 'Compact SVG must NOT render bulky 7fr text on left');
+assert(smallSVG.includes('>7fr<'), 'Hand map SVG renders 7fr text for clarity');
 assert(smallOverlay.domElement.innerHTML.includes('P7'), 'Header must concisely display P7 badge');
 
 // H.4 Adaptive Sizing Constraint (maxWidth <= anchorWidth * 0.8)

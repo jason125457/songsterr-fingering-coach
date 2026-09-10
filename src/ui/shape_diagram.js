@@ -98,7 +98,7 @@
     const deadStrings = new Map(); // key: stringIndex -> { active: boolean }
     const fretSet = new Set();
     const isCompact = !!options.compact;
-    const pos = segment?.position || 1;
+    const pos = segment?.position || segment?.recommendedPosition || 1;
     let minFret = pos;
     let maxFret = pos + (isCompact ? 2 : 3);
 
@@ -259,32 +259,33 @@
 
     // Scale dimensions and parameters based on density
     let width, height, margin, circleRadius, fontSize, openRadius, barreRadius;
+    const hasFretLabel = !options.omitFretLabel && shape.minFret > 1;
     if (isCompact) {
       if (density === 'large') {
-        width = options.width || 70;
-        height = options.height || 52;
-        margin = { top: 11, left: 10, right: 10, bottom: 6 };
+        width = options.width || 98;
+        height = options.height || 72;
+        margin = { top: 12, left: hasFretLabel ? 18 : 11, right: 10, bottom: 6 };
+        circleRadius = 5.8;
+        fontSize = 8.5;
+        openRadius = 4.0;
+        barreRadius = 6.4;
+      } else if (density === 'medium') {
+        width = options.width || 84;
+        height = options.height || 62;
+        margin = { top: 10, left: hasFretLabel ? 16 : 9, right: 8, bottom: 5 };
         circleRadius = 5.0;
-        fontSize = 7.5;
+        fontSize = 7.4;
         openRadius = 3.5;
         barreRadius = 5.5;
-      } else if (density === 'medium') {
-        width = options.width || 56;
-        height = options.height || 42;
-        margin = { top: 8, left: 8, right: 8, bottom: 5 };
-        circleRadius = 4.2;
-        fontSize = 6.5;
-        openRadius = 3.0;
-        barreRadius = 4.5;
       } else {
-        // default: small (~40-50% smaller than original Phase 3.2B)
-        width = options.width || 46;
-        height = options.height || 34;
-        margin = { top: 6, left: 6, right: 6, bottom: 4 };
-        circleRadius = 3.4;
-        fontSize = 5.4;
-        openRadius = 2.4;
-        barreRadius = 3.8;
+        // default: small
+        width = options.width || 68;
+        height = options.height || 50;
+        margin = { top: 8, left: hasFretLabel ? 14 : 7, right: 7, bottom: 4 };
+        circleRadius = 4.2;
+        fontSize = 6.2;
+        openRadius = 2.8;
+        barreRadius = 4.6;
       }
     } else {
       // Full CoachPanel diagram
@@ -320,41 +321,51 @@
       return margin.top + fretIndex * fretSpacing;
     }
 
-    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" class="sfc-shape-svg${isCompact ? ' sfc-shape-compact' : ''} sfc-density-${density}" width="${isCompact ? width : '100%'}" height="${isCompact ? height : '100%'}">`;
+    const isLightTheme = options.inlineTheme === 'light' || options.theme === 'light';
+    const bgFill = isLightTheme 
+      ? (options.bgFill || 'rgba(255, 255, 255, 0.96)') 
+      : (isCompact ? 'rgba(24, 24, 27, 0.45)' : '#18181b');
+    const nutStroke = isLightTheme ? '#1e293b' : '#f4f4f5';
+    const topFretStroke = isLightTheme ? '#94a3b8' : '#52525b';
+    const fretStroke = isLightTheme ? '#cbd5e1' : '#3f3f46';
+    const stringStroke = isLightTheme ? '#64748b' : '#71717a';
+    const fretTextFill = isLightTheme ? '#475569' : '#00d26a';
 
-    // Translucent background for compact diagram; solid for CoachPanel
-    const bgFill = isCompact ? 'rgba(24, 24, 27, 0.45)' : '#18181b';
-    svg += `<rect width="${width}" height="${height}" rx="${isCompact ? 3 : 8}" fill="${bgFill}" />`;
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" class="sfc-shape-svg${isCompact ? ' sfc-shape-compact' : ''} sfc-density-${density}${isLightTheme ? ' sfc-theme-light' : ''}" width="${isCompact ? width : '100%'}" height="${isCompact ? height : '100%'}">`;
+
+    // Background rect
+    svg += `<rect width="${width}" height="${height}" rx="${isCompact ? 5 : 8}" fill="${bgFill}" />`;
 
     // Starting fret label or Nut
     const isNut = shape.minFret === 1;
     if (isNut) {
       // Draw thick nut at top
-      svg += `<line x1="${getX(0)}" y1="${margin.top}" x2="${getX(5)}" y2="${margin.top}" stroke="#f4f4f5" stroke-width="${isCompact ? 2.5 : 5}" stroke-linecap="round" />`;
+      svg += `<line x1="${getX(0)}" y1="${margin.top}" x2="${getX(5)}" y2="${margin.top}" stroke="${nutStroke}" stroke-width="${isCompact ? 3.0 : 5}" stroke-linecap="round" />`;
     } else {
       // Top fret line
-      svg += `<line x1="${getX(0)}" y1="${margin.top}" x2="${getX(5)}" y2="${margin.top}" stroke="#52525b" stroke-width="${isCompact ? 0.9 : 1.5}" />`;
-      // In CoachPanel, draw full fret label on left; in compact mode omit bulky 7fr label to preserve space
-      if (!isCompact && !options.omitFretLabel) {
-        const fretTextX = margin.left - 8;
+      svg += `<line x1="${getX(0)}" y1="${margin.top}" x2="${getX(5)}" y2="${margin.top}" stroke="${topFretStroke}" stroke-width="${isCompact ? 1.0 : 1.5}" />`;
+      // Fret label on left
+      if (!options.omitFretLabel && (shape.minFret > 1 || !isCompact)) {
+        const fretTextX = margin.left - (isCompact ? 3 : 8);
         const fretTextY = margin.top + fretSpacing * 0.55;
-        svg += `<text x="${fretTextX}" y="${fretTextY}" fill="#00d26a" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="bold" text-anchor="end">${shape.minFret}fr</text>`;
+        const fSize = isCompact ? Math.max(6.5, fontSize * 0.92) : 12;
+        svg += `<text x="${fretTextX}" y="${fretTextY}" fill="${fretTextFill}" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="${fSize}" font-weight="bold" text-anchor="end">${shape.minFret}fr</text>`;
       }
     }
 
     // Horizontal fret lines
     for (let f = 1; f <= numFrets; f++) {
       const y = getFretLineY(f);
-      svg += `<line x1="${getX(0)}" y1="${y}" x2="${getX(5)}" y2="${y}" stroke="#3f3f46" stroke-width="${isCompact ? 0.7 : 1.2}" />`;
+      svg += `<line x1="${getX(0)}" y1="${y}" x2="${getX(5)}" y2="${y}" stroke="${fretStroke}" stroke-width="${isCompact ? 0.8 : 1.2}" />`;
     }
 
     // Vertical string lines
     for (let s = 0; s < numStrings; s++) {
       const x = getX(s);
       const strStrokeWidth = isCompact 
-        ? (s === 0 || s === 1 ? 1.0 : 0.7) 
+        ? (s === 0 || s === 1 ? 1.1 : 0.8) 
         : (s === 0 || s === 1 ? 1.8 : 1.2);
-      svg += `<line x1="${x}" y1="${margin.top}" x2="${x}" y2="${margin.top + gridHeight}" stroke="#71717a" stroke-width="${strStrokeWidth}" />`;
+      svg += `<line x1="${x}" y1="${margin.top}" x2="${x}" y2="${margin.top + gridHeight}" stroke="${stringStroke}" stroke-width="${strStrokeWidth}" />`;
     }
 
     // Dynamic String name headers (omit in compact mode)
@@ -390,10 +401,19 @@
       const x2 = getX(barre.maxCol);
       const y = getY(barre.fret);
       const radius = barreRadius;
-      const fillColor = barre.active ? 'rgba(0, 210, 106, 0.45)' : 'rgba(82, 82, 91, 0.55)';
-      const strokeColor = barre.active ? '#00d26a' : '#71717a';
+      let fillColor, strokeColor;
+      if (barre.active) {
+        fillColor = 'rgba(0, 210, 106, 0.45)';
+        strokeColor = '#00d26a';
+      } else if (isLightTheme) {
+        fillColor = 'rgba(30, 41, 59, 0.14)';
+        strokeColor = '#475569';
+      } else {
+        fillColor = 'rgba(82, 82, 91, 0.55)';
+        strokeColor = '#71717a';
+      }
 
-      svg += `<rect x="${x1 - radius}" y="${y - radius}" width="${(x2 - x1) + radius * 2}" height="${radius * 2}" rx="${radius}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isCompact ? 0.9 : 1.5}" />`;
+      svg += `<rect class="sfc-barre-capsule" x="${x1 - radius}" y="${y - radius}" width="${(x2 - x1) + radius * 2}" height="${radius * 2}" rx="${radius}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isCompact ? 1.0 : 1.5}" />`;
       // Mini-barre label (omit in compact mode to preserve space)
       if (!isCompact && (barre.maxCol - barre.minCol >= 1)) {
         svg += `<text x="${(x1 + x2) / 2}" y="${y - 12}" fill="${strokeColor}" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">barre</text>`;
@@ -404,14 +424,14 @@
     shape.openStrings.forEach((item) => {
       const x = getX(item.col);
       const y = margin.top - (isCompact ? (openRadius + 2) : 12);
-      const color = item.active ? '#00d26a' : '#a1a1aa';
+      const color = item.active ? '#00d26a' : (isLightTheme ? '#475569' : '#a1a1aa');
       const oRad = openRadius;
       const strokeWidth = isCompact 
-        ? (item.active ? 1.4 : 0.8)
+        ? (item.active ? 1.6 : 1.1)
         : (item.active ? 2.5 : 1.5);
       svg += `<circle cx="${x}" cy="${y}" r="${oRad}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" />`;
       if (item.active) {
-        svg += `<circle cx="${x}" cy="${y}" r="${isCompact ? 1.2 : 2.5}" fill="#00d26a" />`;
+        svg += `<circle cx="${x}" cy="${y}" r="${isCompact ? 1.4 : 2.5}" fill="#00d26a" />`;
       }
     });
 
@@ -419,8 +439,8 @@
     shape.deadStrings.forEach((item) => {
       const x = getX(item.col);
       const y = margin.top - (isCompact ? (openRadius + 2) : 12);
-      const deadFontSize = isCompact ? (fontSize + 1) : 12;
-      svg += `<text x="${x}" y="${y + (isCompact ? 2 : 4)}" fill="#ef4444" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="${deadFontSize}" font-weight="bold" text-anchor="middle">×</text>`;
+      const deadFontSize = isCompact ? (fontSize + 1.2) : 12;
+      svg += `<text x="${x}" y="${y + (isCompact ? 2.5 : 4)}" fill="#ef4444" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="${deadFontSize}" font-weight="bold" text-anchor="middle">×</text>`;
     });
 
     // Render Note Dots
@@ -435,26 +455,27 @@
 
       if (isActive) {
         // Outer glowing pulse ring
-        svg += `<circle cx="${x}" cy="${y}" r="${cRadius + (isCompact ? 2.0 : 4)}" fill="rgba(0, 210, 106, 0.32)" />`;
+        svg += `<circle cx="${x}" cy="${y}" r="${cRadius + (isCompact ? 2.2 : 4)}" fill="rgba(0, 210, 106, 0.32)" />`;
         circleFill = '#00d26a';
-        circleStroke = '#a7f3d0';
+        circleStroke = isLightTheme ? '#059669' : '#a7f3d0';
         textFill = '#09090b';
         strokeDash = '';
       } else if (options.handFrameMode) {
-        // Ghosted structural guide for hand frame overview
-        circleFill = 'rgba(39, 39, 42, 0.65)';
-        circleStroke = 'rgba(161, 161, 170, 0.65)';
-        textFill = '#d4d4d8';
-        strokeDash = 'stroke-dasharray="2.5,1.5"';
+        // Ghosted/hollow structural guide for sequence / melody notes
+        circleFill = isLightTheme ? '#ffffff' : 'rgba(39, 39, 42, 0.65)';
+        circleStroke = isLightTheme ? '#475569' : 'rgba(161, 161, 170, 0.65)';
+        textFill = isLightTheme ? '#0f172a' : '#d4d4d8';
+        strokeDash = isLightTheme ? '' : 'stroke-dasharray="2.5,1.5"';
       } else {
-        circleFill = '#3f3f46';
-        circleStroke = '#71717a';
-        textFill = '#f4f4f5';
+        // Solid simultaneous chord note
+        circleFill = isLightTheme ? '#1e293b' : '#3f3f46';
+        circleStroke = isLightTheme ? '#0f172a' : '#71717a';
+        textFill = '#ffffff';
         strokeDash = '';
       }
 
-      svg += `<circle cx="${x}" cy="${y}" r="${cRadius}" fill="${circleFill}" stroke="${circleStroke}" stroke-width="${isActive ? (isCompact ? 1.4 : 2) : (isCompact ? 0.8 : 1.2)}" ${strokeDash} />`;
-      svg += `<text x="${x}" y="${y + (isCompact ? (cRadius * 0.45) : 3.5)}" fill="${textFill}" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="${fontSize}" font-weight="${isActive ? 'bold' : '600'}" text-anchor="middle">${note.finger}</text>`;
+      svg += `<circle cx="${x}" cy="${y}" r="${cRadius}" fill="${circleFill}" stroke="${circleStroke}" stroke-width="${isActive ? (isCompact ? 1.5 : 2) : (isCompact ? 1.1 : 1.2)}" ${strokeDash} />`;
+      svg += `<text x="${x}" y="${y + (isCompact ? (cRadius * 0.42) : 3.5)}" fill="${textFill}" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="${fontSize}" font-weight="${isActive ? 'bold' : '700'}" text-anchor="middle">${note.finger}</text>`;
     });
 
     svg += `</svg>`;
