@@ -45,9 +45,12 @@
         state: 'stopped',         // 'playing' | 'paused' | 'stopped'
         measureNumber: 1,         // 1-indexed
         eventIndex: 1,            // 1-indexed rhythm event inside measure
+        voiceIndex: 0,            // 0-indexed voice
+        beatIndex: 0,             // 0-indexed beat within voice
         positionInMeasure: 0.0,   // 0.0 to 1.0
         currentTime: 0.0,
-        confidence: 'exact'       // 'exact' | 'measure-only'
+        confidence: 'exact',      // 'exact' | 'measure-only'
+        source: null              // 'dom-playhead' | 'cursor-marker' | 'measure-only' | 'react-store'
       };
 
       this.lastLoggedMeasure = null;
@@ -221,10 +224,13 @@
 
     /**
      * Tier 1: Probe React Fiber / Store
+     * Note: In Chrome Extension MV3 content scripts running in isolated world,
+     * window.__store__ is inaccessible. This is kept as a fallback for main-world contexts.
      */
     probeReactStore() {
       try {
-        const win = this.options.targetWindow || window;
+        const win = this.options.targetWindow || (typeof window !== 'undefined' ? window : null);
+        if (!win) return null;
         const store = win.__store__;
         if (store && typeof store.get === 'function') {
           const state = store.get();
@@ -232,7 +238,11 @@
           if (player?.instance && typeof player.instance.getCursor === 'function') {
             const cursorVal = player.instance.getCursor();
             if (typeof cursorVal === 'number' && !isNaN(cursorVal)) {
-              return this.cursorToMeasureEvent(cursorVal, state);
+              const res = this.cursorToMeasureEvent(cursorVal, state);
+              if (res) {
+                res.source = 'react-store';
+              }
+              return res;
             }
           }
         }
@@ -244,6 +254,7 @@
 
     /**
      * Tier 2: Probe DOM Playhead SVG (<use href^="#cursor-playhead">) and match against beat targets
+     * Includes multi-line staff protection (lineIndex filtering and 2D proximity)
      */
     probeDomPlayhead() {
       try {
@@ -261,10 +272,16 @@
 
         if (!activePlayhead) return null;
 
-        // Extract transform X: translate3d(Xpx, Ypx, 0)
-        const match = /translate3d\(\s*(-?[\d.]+)px/i.exec(activePlayhead.style.transform);
+        // Extract transform X and Y: translate3d(Xpx, Ypx, 0)
+        const match = /translate3d\(\s*(-?[\d.]+)px(?:,\s*(-?[\d.]+)px)?/i.exec(activePlayhead.style.transform);
         if (!match) return null;
         const cursorX = parseFloat(match[1]);
+        const cursorY = match[2] ? parseFloat(match[2]) : 0;
+
+        // Extract lineIndex from playhead href if present, e.g. #cursor-playhead-0-1 or cursor-playhead-2
+        const href = activePlayhead.getAttribute('href') || activePlayhead.getAttribute('xlink:href') || '';
+        const lineMatch = href.match(/cursor-playhead(?:-\d+)?-(\d+)/);
+        const playheadLineIndex = lineMatch ? parseInt(lineMatch[1], 10) : null;
 
         // Find parent SVG
         const parentSvg = activePlayhead.closest('svg');
@@ -277,10 +294,26 @@
 
         for (let i = 0; i < beatTargets.length; i++) {
           const bt = beatTargets[i];
+
+          // Multi-line staff protection: filter by data-line-index if present on target
+          const targetLineAttr = bt.getAttribute('data-line-index');
+          if (playheadLineIndex !== null && targetLineAttr !== null) {
+            const targetLine = parseInt(targetLineAttr, 10);
+            if (!isNaN(targetLine) && targetLine !== playheadLineIndex) {
+              continue; // Skip beat targets on a different staff line
+            }
+          }
+
           const xAttr = parseFloat(bt.getAttribute('x') || '0');
-          const diff = Math.abs(xAttr - cursorX);
-          if (diff < minDiff) {
-            minDiff = diff;
+          const yAttr = parseFloat(bt.getAttribute('y') || '0');
+          const xDiff = Math.abs(xAttr - cursorX);
+
+          // 2D distance penalty if Y coordinates differ significantly on same staff system
+          const yDiff = (cursorY !== 0 && yAttr !== 0) ? Math.abs(yAttr - cursorY) : 0;
+          const totalDiff = xDiff + (yDiff > 30 ? yDiff * 2 : 0);
+
+          if (totalDiff < minDiff) {
+            minDiff = totalDiff;
             closestBeat = bt;
           }
         }
@@ -292,11 +325,13 @@
 
           return {
             measureNumber: mIdx + 1,       // 1-indexed
-            eventIndex: bIdx + 1,          // 1-indexed rhythm event
+            eventIndex: bIdx + 1,          // 1-indexed rhythm event in voice
             voiceIndex: vIdx,
+            beatIndex: bIdx,
             positionInMeasure: 0.0,
             currentTime: 0.0,
-            confidence: minDiff < 15 ? 'exact' : 'measure-only'
+            confidence: minDiff < 15 ? 'exact' : 'measure-only',
+            source: 'dom-playhead'
           };
         }
 
@@ -311,9 +346,12 @@
             return {
               measureNumber: mIdx + 1,
               eventIndex: 1,
+              voiceIndex: 0,
+              beatIndex: 0,
               positionInMeasure: Math.max(0, Math.min(1, (cursorX - x) / w)),
               currentTime: 0.0,
-              confidence: 'measure-only'
+              confidence: 'measure-only',
+              source: 'measure-only'
             };
           }
         }
@@ -341,9 +379,11 @@
             measureNumber: parts[1] + 1, // measure is 0-indexed
             eventIndex: parts[3] + 1,    // beat is 0-indexed rhythm event
             voiceIndex: parts[2] || 0,
+            beatIndex: parts[3],
             positionInMeasure: 0.0,
             currentTime: 0.0,
-            confidence: 'exact'
+            confidence: 'exact',
+            source: 'cursor-marker'
           };
         }
       } catch (e) {
@@ -424,8 +464,8 @@
             this.lastLoggedMeasure = mNum;
             this.lastLoggedEvent = evIdx;
 
-            const confTag = this.currentState.confidence === 'measure-only' ? ' (measure-only)' : '';
-            console.log(`▶ M${mNum} event ${evIdx}${confTag}`);
+            const srcTag = this.currentState.source ? ` [${this.currentState.source}]` : '';
+            console.log(`▶ M${mNum} event ${evIdx}${srcTag}`);
           }
         }
       }

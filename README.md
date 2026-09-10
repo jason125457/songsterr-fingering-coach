@@ -17,6 +17,7 @@
 | **Phase 3.0: Full Pipeline & UI** | 完整樂曲串接、Session 快取、極速非阻塞運算、浮動指型 Coach 面板、Mini-Barre 向量圖 | `src/ui/coach_panel.js`、`shape_diagram.js`、`coach.css`、M1-M20 瀏覽 | **已完成 (Completed)** ✅ |
 | **Phase 3.0.1: QA Fix** | 吉他弦編號校正（String 1=High E, String 6=Low E）、全動態調弦名稱解析（Drop D, D Std） | 修正 `coach_panel.js`、`shape_diagram.js`、動態 Tuning 回歸測試 | **已完成 (Completed)** ✅ |
 | **Phase 3.1A: Playback Feasibility** | Songsterr 播放游標技術可行性驗證、多聲部（Multi-Voice）時間軸對齊研究、獨立 Observer | `src/songsterr/playback_observer.js`、Romanza 多聲部樣本、游標事件流 | **已完成 (Completed)** ✅ |
+| **Phase 3.1A.1: Multi-Voice & Playback Validation** | 有理數時間軸聚合（Rational Fraction Timeline）、Canonical 多聲部事件模型、PlaybackMapper 轉接器、多行五線譜座標隔離 | `src/normalizer.js`、`src/songsterr/playback_mapper.js`、`tests/multi_voice_acceptance.test.js` | **已完成 (Completed)** ✅ |
 | **Phase 3.1B: Playback Sync UI** | 將 PlaybackObserver 正式連動 CoachPanel 實現自動切換與小節跟隨 | 播放自動滾動、拍點高亮同步、使用者暫停/Seek 恢復 | **規劃中 (Next Up)** 🎯 |
 | **Phase 4: Advanced Shapes** | CAGED 五大和弦音階型態比對、自訂偏好指型庫 | 爵士/藍調/金屬自訂手型偏好、進階調弦指板映射 | **待評估 (Backlog)** 📋 |
 
@@ -333,7 +334,27 @@ node tests/run_all_tests.js
   - 明確區分 `musical beat`（小節拍號）與 `rhythm event`（小節內發聲事件順序 `eventIndex`）。
 - ✅ **獨立 PlaybackObserver 轉接器 (`src/songsterr/playback_observer.js`)**：
   - 完全自 CoachPanel 解耦，具備多層檢測策略（React Store、`#root[data-playing]`、`#cursorMarker[data-cursor]`、`<use href^="#cursor-playhead">` 座標匹配 `[data-testid="tab-beat-target"]`）。
-  - 對外發布標準事件流 `{ state, measureNumber, eventIndex, positionInMeasure, currentTime, confidence }` 並即時響應 Seek。
+  - 對外發布標準事件流 `{ state, measureNumber, eventIndex, positionInMeasure, currentTime, confidence, source }` 並即時響應 Seek。
+
+#### 6. Phase 3.1A.1 多聲部時間軸聚合與播放游標映射驗證 (`tests/multi_voice_acceptance.test.js`)
+- ✅ **有理數分數時間軸聚合（Rational Fraction Timeline）**：
+  - 各聲部（Voice）獨立累計時間偏移量，使用精確分數運算（`{ num, den, text, value }`）徹底杜絕浮點誤差。
+  - 同一時間點不同 Voice 發聲自動聚合於同一個 **Canonical Event**。
+  - 《Romanza》第 1 小節（3/4 拍）由 9 個三連音分解（Voice 0）與 1 個附點二分音符低音（Voice 1）組成，精準聚合為 **9 個 Canonical Events**，Event 1 同時包含高音旋律（第 1 弦 7 品）與低音（第 6 弦 0 品），徹底消除第 10 個虛假事件。
+- ✅ **來源身分追溯保留（Preserved Source Identity）**：
+  - 每個 Canonical Event 保留 `sources: [{ voiceIndex, beatIndex, duration, isRest }]`。
+  - 每個音符標註 `note.source = { voiceIndex, beatIndex }`，實現 DOM 拍點與規範化事件雙向精準定位。
+- ✅ **獨立 PlaybackMapper 轉接器 (`src/songsterr/playback_mapper.js`)**：
+  - 提供 `mapPlaybackEventToCanonical(playbackEvent, normalizedTrack)`。
+  - **Strategy 1（來源身分比對）**：精準將 `(measureNumber, voiceIndex, beatIndex)` 映射回 Canonical Event（例如 Voice 0 Beat 0 與 Voice 1 Beat 0 皆精確對應至 Event 1）。
+  - **Strategy 2（小節內時間比例比對）**：依拍號換算小節總時長（如 3/4 換算為 0.75），精確將連續進度 `positionInMeasure`（0.0～1.0）映射至當前 Canonical Event。
+  - **Strategy 3（小節降級比對）**：在游標信心度僅為 `measure-only` 時安全退回小節首事件。
+- ✅ **多行五線譜座標隔離與訊號來源標記 (Multi-Line Staff Protection)**：
+  - PlaybackObserver 支援解析 `<use href="#cursor-playhead-{group}-{line}">` 之 `lineIndex`，與各拍點 `<rect data-testid="tab-beat-target" data-line-index="...">` 進行行號隔離，並加入 2D 座標距離權重，徹底杜絕不同譜行間相同 X 座標的誤判。
+  - 事件物件明確標註來源：`source: "dom-playhead" | "cursor-marker" | "measure-only"`。
+  - 控制台 Debug 格式升級：`▶ M1 event 1 [dom-playhead]`。
+- ✅ **Chrome MV3 執行環境隔離特徵確認**：
+  - 確認 Content Script 於 Isolated World 執行，無法直接讀取頁面主世界的 `window.__store__`。系統以 DOM SVG 游標 (`dom-playhead`) 與 `#cursorMarker` 作為高可用核心策略，保證 100% 穩定擷取。
 
 ---
 

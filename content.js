@@ -310,6 +310,7 @@
     getLastFingeringResult: () => lastFingeringResult,
     getCoachPanel: () => currentCoachPanel,
     getPlaybackObserver: () => currentPlaybackObserver,
+    getPlaybackMapper: () => (typeof PlaybackMapper !== 'undefined' ? PlaybackMapper : null),
     getCache: () => fingeringCache,
     getRawState: () => {
       try {
