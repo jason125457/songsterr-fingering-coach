@@ -533,3 +533,55 @@
   width: 100%;
 }
 
+/* Generalized Multi-Segment Layout (Phase 3.2B) */
+.sfc-overlay-multi-segments {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.sfc-overlay-segment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid rgba(63, 63, 70, 0.6);
+  border-radius: 6px;
+  padding: 2px;
+  background: rgba(24, 24, 27, 0.7);
+  transition: all 0.15s ease;
+}
+
+.sfc-overlay-segment.sfc-segment-active {
+  border-color: #00d26a;
+  box-shadow: 0 0 8px rgba(0, 210, 106, 0.4);
+  background: rgba(0, 210, 106, 0.08);
+}
+
+.sfc-segment-badge {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 8px;
+  font-weight: 700;
+  color: #a1a1aa;
+  margin-bottom: 2px;
+  line-height: 1;
+}
+
+.sfc-overlay-segment.sfc-segment-active .sfc-segment-badge {
+  color: #00d26a;
+}
+
+.sfc-segment-arrow {
+  font-size: 9px;
+  color: #fbbf24;
+  font-weight: 800;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+

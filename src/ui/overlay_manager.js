@@ -3,12 +3,17 @@
  * 
  * Manages the inline measure fingering overlay layer on Songsterr.
  * 
+ * Product Principle:
+ * Every visible Songsterr measure gets its precomputed Fingering Shape.
+ * Playback only highlights the current measure/event; it never controls shape visibility.
+ * 
  * Features:
- * - Discovers Songsterr measure anchors via `rect[data-testid="tab-measure-target"][data-measure-index]`
- * - Viewport virtualization sliding window: renders only 4-6 overlays in DOM around active measure
- * - Zero DOM bloat: supports 150+ measure tracks without memory overhead or FPS drops
- * - Position stability across window resize, responsive scale, and vertical scroll (RAF debounced)
- * - Live playback synchronization via PlaybackSyncController
+ * - True 2D Viewport-driven virtualization (X and Y bounds + overscan)
+ * - Strict measure-anchor query: targets only `rect[data-testid="tab-measure-target"]`
+ * - Instant initial mounting: every visible measure displays its shape immediately on page load without pressing Play
+ * - Complete decoupling of scroll & playback: users can freely scroll without viewport hijacking
+ * - Adaptive multi-measure scaling and positioning across window resize, responsive scale, and zoom
+ * - Live playback synchronization via PlaybackSyncController (highlighting only)
  */
 
 (function (root, factory) {
@@ -26,9 +31,8 @@
      */
     constructor(options = {}) {
       this.options = options;
-      this.maxOverlays = options.maxOverlays || 5; // Constrained to 4-6 overlays
-      this.activeMeasureNumber = options.initialMeasure || 1;
-      this.activeEventIndex = null;
+      this.activePlaybackMeasure = options.initialMeasure || null;
+      this.activePlaybackEventIndex = null;
 
       this.fingeringResult = null;
       this.measuresDataMap = new Map(); // measureNumber -> measureData
@@ -39,6 +43,10 @@
       this.anchorMap = new Map(); // measureNumber -> DOM element
       this.activeOverlays = new Map(); // measureNumber -> MeasureOverlay
       this.container = null;
+
+      // 2D Overscan margins (in pixels) to preload incoming measures during scroll
+      this.overscanX = options.overscanX !== undefined ? options.overscanX : 120;
+      this.overscanY = options.overscanY !== undefined ? options.overscanY : 350;
 
       this.rafId = null;
       this.isDestroyed = false;
@@ -59,6 +67,7 @@
 
     /**
      * Set or update fingering result data
+     * Immediately renders shapes for all currently visible measures without requiring playback
      * @param {Object} fingeringResult 
      */
     setFingeringResult(fingeringResult) {
@@ -76,15 +85,15 @@
       this.tuning = fingeringResult.tuning || null;
       this.tuningNames = fingeringResult.tuningNames || null;
 
-      // Clear existing overlays and rebuild window
+      // Clear existing overlays, ensure root container, scan anchors, and reconcile visible measures
       this.clearOverlays();
       this.ensureContainer();
       this.scanAnchors();
-      this.updateVirtualWindow(this.activeMeasureNumber);
+      this.reconcileOverlays();
     }
 
     /**
-     * Ensure the root container exists in DOM
+     * Ensure the root overlay container exists in DOM
      */
     ensureContainer() {
       if (typeof document === 'undefined') return null;
@@ -110,14 +119,17 @@
     }
 
     /**
-     * Scan DOM for Songsterr measure anchors
-     * Targets `rect[data-testid="tab-measure-target"][data-measure-index]`
+     * Strict Scan for Songsterr measure anchors
+     * Targets ONLY validated `rect[data-testid="tab-measure-target"]` with measure index or number
      */
     scanAnchors() {
       this.anchorMap.clear();
       if (typeof document === 'undefined') return;
 
-      const targets = document.querySelectorAll('rect[data-testid="tab-measure-target"], [data-measure-index], [data-measure-number]');
+      const targets = document.querySelectorAll(
+        'rect[data-testid="tab-measure-target"][data-measure-index], rect[data-testid="tab-measure-target"][data-measure-number]'
+      );
+
       targets.forEach((el) => {
         let mNum = null;
         if (el.hasAttribute('data-measure-number')) {
@@ -125,60 +137,78 @@
         } else if (el.hasAttribute('data-measure-index')) {
           mNum = parseInt(el.getAttribute('data-measure-index'), 10) + 1; // 0-indexed to 1-indexed
         }
-        if (mNum && !isNaN(mNum)) {
+        if (mNum && !isNaN(mNum) && mNum > 0) {
           this.anchorMap.set(mNum, el);
         }
       });
     }
 
     /**
-     * Calculate virtual window of 4-6 measures centered around active measure
-     * @param {number} activeMeasureNumber 
-     * @param {number} totalMeasures 
-     * @returns {number[]} Array of measure numbers
+     * True 2D Viewport Visibility Check
+     * Evaluates both horizontal (X) and vertical (Y) bounding box intersection with overscan
+     * @param {DOMRect|Object} rect Anchor client bounding rect
+     * @param {number} viewportW 
+     * @param {number} viewportH 
+     * @returns {boolean}
      */
-    calculateWindow(activeMeasureNumber, totalMeasures) {
-      if (!totalMeasures || totalMeasures <= 0) return [activeMeasureNumber];
+    isRectIn2DViewport(rect, viewportW, viewportH) {
+      if (!rect) return false;
 
-      const size = Math.min(this.maxOverlays, totalMeasures);
-      // Window strategy: [active - 1, active, active + 1, active + 2, ...]
-      let start = Math.max(1, activeMeasureNumber - 1);
-      let end = Math.min(totalMeasures, start + size - 1);
+      const inY = (rect.bottom >= -this.overscanY) && (rect.top <= viewportH + this.overscanY);
+      const inX = (rect.right >= -this.overscanX) && (rect.left <= viewportW + this.overscanX);
 
-      // If reaching the end of song, shift start backwards to keep window filled
-      if (end - start + 1 < size) {
-        start = Math.max(1, end - size + 1);
-      }
-
-      const windowMeasures = [];
-      for (let m = start; m <= end; m++) {
-        windowMeasures.push(m);
-      }
-      return windowMeasures;
+      return inY && inX;
     }
 
     /**
-     * Update the virtualized overlays in DOM based on active measure
-     * @param {number} activeMeasureNumber 
+     * Get all measure numbers currently visible in the 2D viewport
+     * @returns {Set<number>}
      */
-    updateVirtualWindow(activeMeasureNumber) {
-      this.activeMeasureNumber = activeMeasureNumber;
-      if (this.totalMeasures <= 0) return;
+    getVisibleMeasureNumbers() {
+      const visible = new Set();
+      if (typeof window === 'undefined') return visible;
 
-      const windowMeasures = this.calculateWindow(activeMeasureNumber, this.totalMeasures);
-      const targetSet = new Set(windowMeasures);
+      const viewportW = window.innerWidth || 1200;
+      const viewportH = window.innerHeight || 800;
+
+      this.anchorMap.forEach((anchorEl, mNum) => {
+        if (typeof anchorEl.getBoundingClientRect === 'function') {
+          const rect = anchorEl.getBoundingClientRect();
+          if (this.isRectIn2DViewport(rect, viewportW, viewportH)) {
+            visible.add(mNum);
+          }
+        }
+      });
+
+      return visible;
+    }
+
+    /**
+     * Viewport-driven reconciliation engine
+     * Instantiates overlays for all newly visible measures and unmounts out-of-viewport measures
+     */
+    reconcileOverlays() {
+      if (this.isDestroyed || this.totalMeasures <= 0) return;
+
+      this.scanAnchors();
+      const visibleMeasures = this.getVisibleMeasureNumbers();
       const container = this.ensureContainer();
 
-      // 1. Unmount overlays that left the window
+      const scrollOffset = {
+        scrollX: typeof window !== 'undefined' ? (window.scrollX || window.pageXOffset || 0) : 0,
+        scrollY: typeof window !== 'undefined' ? (window.scrollY || window.pageYOffset || 0) : 0
+      };
+
+      // 1. Unmount overlays that moved outside 2D viewport + overscan
       for (const [mNum, overlay] of this.activeOverlays.entries()) {
-        if (!targetSet.has(mNum)) {
+        if (!visibleMeasures.has(mNum)) {
           overlay.destroy();
           this.activeOverlays.delete(mNum);
         }
       }
 
-      // 2. Instantiate and mount overlays entering the window
-      windowMeasures.forEach((mNum) => {
+      // 2. Instantiate and mount overlays entering the 2D viewport
+      visibleMeasures.forEach((mNum) => {
         if (!this.activeOverlays.has(mNum)) {
           const mData = this.measuresDataMap.get(mNum);
           if (mData) {
@@ -192,75 +222,76 @@
         }
       });
 
-      // 3. Update highlight states
-      this.activeOverlays.forEach((overlay, mNum) => {
-        overlay.setHighlighted(mNum === activeMeasureNumber);
-      });
-
-      // 4. Reposition all active overlays
-      this.repositionAll();
-    }
-
-    /**
-     * Reposition all active overlays to align with Songsterr anchors
-     */
-    repositionAll() {
-      if (this.isDestroyed) return;
-      this.scanAnchors();
-
-      const scrollOffset = {
-        scrollX: typeof window !== 'undefined' ? (window.scrollX || window.pageXOffset || 0) : 0,
-        scrollY: typeof window !== 'undefined' ? (window.scrollY || window.pageYOffset || 0) : 0
-      };
-
+      // 3. Update positions and playback highlight for all mounted overlays
       this.activeOverlays.forEach((overlay, mNum) => {
         const anchor = this.anchorMap.get(mNum);
         if (anchor && typeof anchor.getBoundingClientRect === 'function') {
           const rect = anchor.getBoundingClientRect();
           overlay.updatePosition(rect, scrollOffset);
         }
+
+        // Playback highlight: active if mNum matches activePlaybackMeasure
+        const isPlaybackActive = (mNum === this.activePlaybackMeasure);
+        overlay.setHighlighted(isPlaybackActive);
+        if (isPlaybackActive && this.activePlaybackEventIndex !== null) {
+          overlay.setActiveEvent(this.activePlaybackEventIndex);
+        }
       });
     }
 
     /**
-     * Throttle repositioning using requestAnimationFrame
+     * Schedule reconciliation using requestAnimationFrame (debounced for 60 FPS)
      */
-    scheduleReposition() {
+    scheduleReconciliation() {
       if (this.rafId || this.isDestroyed) return;
       if (typeof requestAnimationFrame === 'function') {
         this.rafId = requestAnimationFrame(() => {
           this.rafId = null;
-          this.repositionAll();
+          this.reconcileOverlays();
         });
       } else {
-        this.repositionAll();
+        this.reconcileOverlays();
       }
     }
 
     /**
      * Live Playback Synchronization entry point
      * Called by PlaybackSyncController
+     * NOTE: Playback only highlights the active measure/event; it NEVER dictates overlay lifecycle or forces scroll.
      * @param {Object} canonicalResult { measureNumber, eventIndex, ... }
      * @param {Object} playbackEvent Raw observer event
      */
     syncPlayback(canonicalResult, playbackEvent = null) {
       if (!canonicalResult || !canonicalResult.measureNumber) return;
 
+      const prevMeasure = this.activePlaybackMeasure;
       const targetMeasure = canonicalResult.measureNumber;
       const targetEventIndex = canonicalResult.eventIndex !== undefined ? canonicalResult.eventIndex : null;
 
-      // If active measure changed or outside current activeOverlays
-      if (targetMeasure !== this.activeMeasureNumber || !this.activeOverlays.has(targetMeasure)) {
-        this.updateVirtualWindow(targetMeasure);
+      this.activePlaybackMeasure = targetMeasure;
+      this.activePlaybackEventIndex = targetEventIndex;
+
+      // If previous active overlay is currently in viewport, remove its highlight
+      if (prevMeasure && prevMeasure !== targetMeasure && this.activeOverlays.has(prevMeasure)) {
+        const prevOverlay = this.activeOverlays.get(prevMeasure);
+        prevOverlay.setHighlighted(false);
       }
 
-      this.activeEventIndex = targetEventIndex;
-
-      // Update active event on the current active overlay
-      const currentOverlay = this.activeOverlays.get(targetMeasure);
-      if (currentOverlay) {
-        currentOverlay.setActiveEvent(targetEventIndex);
+      // If target measure overlay is currently in viewport, highlight it and set active event
+      if (this.activeOverlays.has(targetMeasure)) {
+        const targetOverlay = this.activeOverlays.get(targetMeasure);
+        targetOverlay.setHighlighted(true);
+        targetOverlay.setActiveEvent(targetEventIndex);
       }
+      // If target measure is currently outside viewport (e.g. user scrolled away),
+      // we do NOT pull the viewport back. It will automatically be highlighted if user scrolls back to it.
+    }
+
+    /**
+     * Reposition all currently active overlays
+     */
+    repositionAll() {
+      this.reconcileOverlays();
     }
 
     /**
@@ -274,14 +305,14 @@
 
       if (typeof ResizeObserver !== 'undefined' && document.body) {
         this.resizeObserver = new ResizeObserver(() => {
-          this.scheduleReposition();
+          this.scheduleReconciliation();
         });
         this.resizeObserver.observe(document.body);
       }
 
       if (typeof MutationObserver !== 'undefined' && document.body) {
         this.mutationObserver = new MutationObserver(() => {
-          this.scheduleReposition();
+          this.scheduleReconciliation();
         });
         this.mutationObserver.observe(document.body, {
           childList: true,
@@ -293,11 +324,11 @@
     }
 
     handleScroll() {
-      this.scheduleReposition();
+      this.scheduleReconciliation();
     }
 
     handleResize() {
-      this.scheduleReposition();
+      this.scheduleReconciliation();
     }
 
     /**

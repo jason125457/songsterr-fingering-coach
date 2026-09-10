@@ -5,8 +5,9 @@
  * 
  * Features:
  * - Ultra-compact hand shape visualization using ShapeDiagram (compact mode)
- * - Multi-position segment switching (e.g. M3: Pos 8 -> Pos 10)
- * - Micro shift badge indicator (e.g. "Pos 8 ➔ Pos 10")
+ * - Generalized N-segment support (1, 2, or 3+ position segments)
+ * - Static upfront multi-segment preview: guitarists see full measure shifts before playing
+ * - Adaptive sizing against actual measure width (zero overlap with neighboring measures)
  * - Active playback highlight and active note dot pulse
  * - Zero occlusion design: sits above staff lines with pointer-events: none
  */
@@ -39,8 +40,9 @@
       this.isHighlighted = false;
       this.domElement = null;
       this.anchorRect = null;
+      this.lastAnchorWidth = null;
 
-      this.overlayWidth = options.width || 88;
+      this.overlayWidth = options.width || (this.segments.length > 1 ? 156 : 88);
       this.overlayHeight = options.height || 88;
       this.svgWidth = options.svgWidth || 80;
       this.svgHeight = options.svgHeight || 66;
@@ -64,6 +66,66 @@
     }
 
     /**
+     * Render diagrams for arbitrary N segments
+     * @param {number|null} availableWidth 
+     * @returns {string} HTML string
+     */
+    renderDiagramsHTML(availableWidth) {
+      const numSegments = this.segments.length;
+      if (numSegments <= 1) {
+        const seg = this.segments[0];
+        const svg = ShapeDiagram.renderSVG(seg, this.activeEventIndex, {
+          compact: true,
+          width: this.svgWidth,
+          height: this.svgHeight,
+          tuning: this.options.tuning,
+          tuningNames: this.options.tuningNames
+        });
+        return `<div class="sfc-overlay-diagram">${svg}</div>`;
+      }
+
+      // Generalized Multi-Segment (N >= 2)
+      const minPerSeg = 66;
+      const totalSideBySideW = numSegments * minPerSeg + (numSegments - 1) * 14;
+      const canFitSideBySide = !availableWidth || availableWidth >= totalSideBySideW;
+
+      if (canFitSideBySide) {
+        let html = `<div class="sfc-overlay-multi-segments">`;
+        this.segments.forEach((seg, sIdx) => {
+          if (sIdx > 0) {
+            html += `<div class="sfc-segment-arrow">➔</div>`;
+          }
+          const isSegActive = this.currentSegmentIndex === sIdx && this.activeEventIndex !== null;
+          const segActiveEv = isSegActive ? this.activeEventIndex : null;
+          const svg = ShapeDiagram.renderSVG(seg, segActiveEv, {
+            compact: true,
+            width: 68,
+            height: 56,
+            tuning: this.options.tuning,
+            tuningNames: this.options.tuningNames
+          });
+          html += `<div class="sfc-overlay-segment${isSegActive ? ' sfc-segment-active' : ''}" data-segment-index="${sIdx}">`;
+          html += `<span class="sfc-segment-badge">P${seg.position}</span>`;
+          html += svg;
+          html += `</div>`;
+        });
+        html += `</div>`;
+        return html;
+      } else {
+        // Constrained width fallback: render active segment with compact dimensions
+        const activeSeg = this.segments[this.currentSegmentIndex] || this.segments[0];
+        const svg = ShapeDiagram.renderSVG(activeSeg, this.activeEventIndex, {
+          compact: true,
+          width: Math.min(this.svgWidth, Math.max(60, availableWidth - 12)),
+          height: this.svgHeight,
+          tuning: this.options.tuning,
+          tuningNames: this.options.tuningNames
+        });
+        return `<div class="sfc-overlay-diagram">${svg}</div>`;
+      }
+    }
+
+    /**
      * Render or refresh inner HTML of the overlay
      */
     render() {
@@ -82,16 +144,8 @@
       }
       headerHTML += `</div>`;
 
-      // Diagram container with compact SVG
-      const svgHTML = ShapeDiagram.renderSVG(currentSegment, this.activeEventIndex, {
-        compact: true,
-        width: this.svgWidth,
-        height: this.svgHeight,
-        tuning: this.options.tuning,
-        tuningNames: this.options.tuningNames
-      });
-
-      const bodyHTML = `<div class="sfc-overlay-diagram">${svgHTML}</div>`;
+      // Diagram container with generalized N-segment rendering
+      const bodyHTML = this.renderDiagramsHTML(this.lastAnchorWidth);
 
       this.domElement.innerHTML = `${headerHTML}${bodyHTML}`;
 
@@ -103,28 +157,7 @@
     }
 
     /**
-     * Update only the SVG part without rebuilding header
-     */
-    updateSVG() {
-      if (!this.domElement) return;
-      const diagramContainer = this.domElement.querySelector('.sfc-overlay-diagram');
-      if (!diagramContainer) {
-        this.render();
-        return;
-      }
-
-      const currentSegment = this.segments[this.currentSegmentIndex] || this.segments[0];
-      diagramContainer.innerHTML = ShapeDiagram.renderSVG(currentSegment, this.activeEventIndex, {
-        compact: true,
-        width: this.svgWidth,
-        height: this.svgHeight,
-        tuning: this.options.tuning,
-        tuningNames: this.options.tuningNames
-      });
-    }
-
-    /**
-     * Update position relative to Songsterr measure anchor
+     * Update position relative to Songsterr measure anchor with adaptive sizing
      * @param {DOMRect|Object} anchorRect 
      * @param {Object} scrollOffset { scrollX, scrollY }
      */
@@ -132,8 +165,15 @@
       if (!this.domElement || !anchorRect) return;
       this.anchorRect = anchorRect;
 
+      const anchorW = anchorRect.width || 200;
       const scrollX = typeof scrollOffset.scrollX === 'number' ? scrollOffset.scrollX : (typeof window !== 'undefined' ? (window.scrollX || window.pageXOffset || 0) : 0);
       const scrollY = typeof scrollOffset.scrollY === 'number' ? scrollOffset.scrollY : (typeof window !== 'undefined' ? (window.scrollY || window.pageYOffset || 0) : 0);
+
+      // Re-render if anchor width changed significantly to adapt multi-segment layout
+      if (this.lastAnchorWidth !== anchorW) {
+        this.lastAnchorWidth = anchorW;
+        this.render();
+      }
 
       const overlayW = this.domElement.offsetWidth || this.overlayWidth;
       const overlayH = this.domElement.offsetHeight || this.overlayHeight;
@@ -142,7 +182,12 @@
       let top = anchorRect.top + scrollY - overlayH - 6;
       let left = anchorRect.left + scrollX + 4; // slight left padding inside the measure
 
-      // If top space is constrained (e.g. very top of page), adjust
+      // Adaptive boundary check: NEVER overlap neighboring measure to the right
+      if (left + overlayW > anchorRect.right + scrollX) {
+        left = Math.max(anchorRect.left + scrollX, anchorRect.right + scrollX - overlayW - 4);
+      }
+
+      // If top space is constrained (e.g. very top of page), adjust below staff
       if (top < 0) {
         top = Math.max(0, anchorRect.bottom + scrollY + 4);
       }
@@ -171,14 +216,12 @@
           }
         }
 
-        if (targetSegIndex !== -1 && targetSegIndex !== this.currentSegmentIndex) {
+        if (targetSegIndex !== -1) {
           this.currentSegmentIndex = targetSegIndex;
-          this.render();
-          return;
         }
       }
 
-      this.updateSVG();
+      this.render();
     }
 
     /**

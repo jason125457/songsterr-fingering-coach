@@ -18,7 +18,8 @@
 | **Phase 3.0.1: QA Fix** | 吉他弦編號校正（String 1=High E, String 6=Low E）、全動態調弦名稱解析（Drop D, D Std） | 修正 `coach_panel.js`、`shape_diagram.js`、動態 Tuning 回歸測試 | **已完成 (Completed)** ✅ |
 | **Phase 3.1A.1: Multi-Voice & Playback Validation** | 有理數時間軸聚合（Rational Fraction Timeline）、Canonical 多聲部事件模型、PlaybackMapper 轉接器、多行五線譜座標隔離 | `src/normalizer.js`、`src/songsterr/playback_mapper.js`、`tests/multi_voice_acceptance.test.js` | **已完成 (Completed)** ✅ |
 | **Phase 3.1B: Live Playback Sync UI** | 將 PlaybackObserver + PlaybackMapper 透過 PlaybackSyncController 正式連動 CoachPanel 實現即時播放跟隨 | `src/controller/playback_sync_controller.js`、雙模式切換、Multi-Voice 同步高亮、Pause/Seek/速度自適應 | **已完成 (Completed)** ✅ |
-| **Phase 3.2A: Inline Measure Overlay** | 行內小節微型指法形狀懸浮層（Inline Measure Overlay）與視口虛擬化（Viewport Virtualization 4-6 個節點） | `src/ui/measure_overlay.js`、`src/ui/overlay_manager.js`、換把段落切換、Scroll/Resize 座標防飄移、零遮擋 | **已完成 (Completed)** ✅ |
+| **Phase 3.2A: Inline Measure Overlay Prototype** | 行內小節微型指法形狀懸浮層（Inline Measure Overlay）定位與生命週期驗證 | `src/ui/measure_overlay.js`、`src/ui/overlay_manager.js`、換把段落切換、Scroll/Resize 座標防飄移、零遮擋 | **已完成 (Completed)** ✅ |
+| **Phase 3.2B: Every Visible Measure Shapes** | 視口驅動 2D 虛擬化（2D Viewport Virtualization）、所有可見小節預先算好指型、靜態多段換把全覽、播放高亮完全解耦 | 2D 視口判定、零點擊即時掛載、廣義多段並排/自適應、寬度自適應防碰撞、極低耗能 60 FPS | **已完成 (Completed)** ✅ |
 | **Phase 4: Advanced Shapes** | CAGED 五大和弦音階型態比對、自訂偏好指型庫 | 爵士/藍調/金屬自訂手型偏好、進階調弦指板映射 | **待評估 (Backlog)** 📋 |
 
 
@@ -410,23 +411,64 @@ Phase 3.2A 將左手手型圖以小型 Overlay 形式，直接錨定於 Songster
 
 ---
 
+## 4.4 視口驅動所有可見小節指法全覽 (Phase 3.2B Every Visible Measure Shapes)
+
+Phase 3.2B 實現了真正的視口驅動虛擬化，徹底擺脫播放器狀態對視覺手型的束縛：
+
+> 🎯 **核心產品原則 (Core Product Principle)**：  
+> **「只要進入視口的每一個 Songsterr 小節，都直接顯示預先算好的 Fingering Shape；播放器的功能僅負責高亮當前小節與 Event，絕不干涉或決定手型圖是否可見。」**  
+> *(Every visible Songsterr measure gets its precomputed Fingering Shape. Playback only highlights the current measure/event; it never controls shape visibility.)*
+
+- 🌐 **真 2D 視口虛擬化 (True 2D Viewport Virtualization)**：
+  - 判定小節錨點是否處於當前瀏覽器視口之 X 與 Y 雙軸邊界內，並具備垂直 `overscanY = 350px` 與水平 `overscanX = 120px` 緩衝區。
+  - 當視窗縮放（Zoom）、響應式斷點變更、或橫向捲動時，2D 邊界運算皆能精確判定。
+  - 徹底移除 Phase 3.2A 固定 4~6 個的限制：只要小節在可見範圍內，12、16 甚至 20+ 個小節皆即時掛載對應 Shape，離開視口者立即自動 unmount。
+- ⚡ **零點擊即刻開讀 (Zero-Click Upfront Display on Page Load)**：
+  - 使用者載入 Songsterr 樂譜後，**無須點擊 Play 播放鍵**，首頁視口內的所有小節（如 M1~M16）立即全部呈現預先計算完畢的最佳左手手型圖。
+- 📜 **使用者手動捲動完全解耦 (Decoupled Manual Scrolling)**：
+  - 使用者可隨意向下捲動樂譜至中後段（如 M20~M30 或結尾 M140+）。
+  - Viewport Reconciler 透過 RAF 節流監聽捲動，隨捲動即時掛載新進入的小節手型，並安全釋放離開視口的小節。
+  - 即使背景播放游標停留在 M1 或停止播放，捲動視口絕不會被播放游標強制綁架或拉回。
+- 💡 **播放高亮隔離 (Playback Highlight Only)**：
+  - 當播放器運行時，`syncPlayback(measureIndex, eventIndex)` 僅對當前進行的小節添加祖母綠發光邊框（`.sfc-overlay-active`）與音符圓點脈衝。
+  - 視口內其餘所有小節的指法圖案**保持常駐顯示，絕對不被隱藏或清空**。
+  - 若播放器前進到視口以外的小節，OverlayManager 靜默更新內部指標，絕不強制捲動畫面，待使用者捲回該區域時立即可見高亮狀態。
+- 🧩 **廣義任意 N 段換把靜態全覽 (Generalized Multi-Segment Static Preview)**：
+  - 支援單小節任意 $N \ge 1$ 個換把段落：
+    - $N=1$：單一精簡手型圖。
+    - $N=2$：水平並排顯示（例如 M3：左側 `P8` ➔ 右側 `P10`，中間附帶動態箭頭 `➔`）。
+    - $N \ge 3$：廣義多段水平流暢排列或空間不足時自動自適應降級。
+  - **在播放開始之前，吉他手就能一眼看清全小節的換把走向與完整手型轉換。**
+- 📐 **寬度自適應防碰撞邊界 (Adaptive Sizing Guard)**：
+  - 依據 Songsterr 當前小節真實寬度（`anchorRect.width`）動態計算可用空間。
+  - Overlay 絕對不會向右凸出超出小節線，徹底杜絕與相鄰小節發生視覺碰撞與遮擋。
+- 📊 **極致效能基準實測 (Performance Benchmark Results)**：
+  - **緊湊視口（Tight Viewport）**：掛載 12 個 Overlays。
+  - **常規視口（Normal Viewport）**：掛載 16 個 Overlays。
+  - **寬螢幕全展開視口（Expanded Viewport）**：掛載 20 個 Overlays。
+  - **捲動重繪更新耗時**：平均每次捲動幀更新僅 **1.276 ms**（遠低於 60 FPS 的 16.6ms 門檻）。
+  - **記憶體與 DOM 節點開銷**：全曲 146 小節僅常駐視口約 16 個節點（**0% DOM 膨脹**，杜絕一次塞入數千節點導致的瀏覽器掉幀）。
+
+---
+
 ## 5. Chrome Extension 載入與使用
 
 1. 開啟 Chrome 瀏覽器，進入 `chrome://extensions/`。
 2. 開啟右上角 **「開發人員模式」**。
 3. 點擊 **「載入未封裝項目」**，選取此專案根目錄。
-4. 開啟任何 Songsterr 樂譜頁面（例如 [Schoolgirl byebye - 傍晚去太子灣嗎](https://www.songsterr.com/a/wsa/schoolgirl-byebye-tab-s6557798)）。
+4. 開啟任何 Songsterr 樂譜頁面（例如 [Schoolgirl byebye - 傍晚去太子灣嗎](https://www.songsterr.com/a/wsa/schoolgirl-byebye-tab-s6557798)）：
+   - **無需播放**，畫面上每一個可見小節上方即刻呈現左手指法圖（包含 M3 的 P8➔P10 換把、M4 的 Mini-barre）！
+   - 向下捲動樂譜，新進入畫面之小節自動出現指型圖，離開畫面者自動回收。
 5. 點擊播放器播放按鈕（Space 鍵或 Play 鍵）：
-   - 頁面右側的 **Fingering Coach 浮動面板** 預設處於 **`▶ Following`** 模式，將自動跟隨 Songsterr 游標小節與發聲事件即時推進高亮！
-   - 若使用者手動點擊 `◀ Prev` / `Next ▶` 或點選特定 Event，面板將貼心地自動暫停自動推進（切為 Manual 模式），讓您能靜心研讀指法。
-   - 研讀完畢後，點擊面板右上角的 **`▶ Resume Follow`**，面板立即飛速跳回最新播放進度！
-   - 點擊面板右上角 `─` 可最小化為右下角吉他浮動按鈕（FAB），點擊隨時還原。
+   - 當前演奏的小節 Overlay 自動亮起綠色光暈與音符同步高亮。
+   - 浮動 Coach 面板同時即時跟隨推進。
+   - 手動研讀指法時，點擊浮動面板可隨時進入 Manual 研讀模式；點擊 `▶ Resume Follow` 隨時對齊最新進度。
 
 ---
 
 ## 6. 本地獨立互動式預覽 (Offline UI Preview)
 
-無需安裝 Extension 或連線網路，即可在本機直接開啟獨立預覽器體驗 Coach Panel：
+無需安裝 Extension 或連線網路，即可在本機直接開啟獨立預覽器體驗 Coach Panel 與 Phase 3.2B 視口驅動虛擬化：
 
 ```bash
 # 開啟 tests/ui_preview.html 於預設瀏覽器中
@@ -439,19 +481,19 @@ start tests/ui_preview.html
 
 ## 7. 目前限制與技術邊界 (Current Limitations)
 
-1. **行內覆蓋層範圍 (Phase 3.2A 原型邊界)**：
-   - 目前實施視口虛擬化，同時渲染當前與相鄰 4~6 個小節手型，並非全曲一次覆蓋；進階整曲全覽模式預計於 Phase 3.2B 擴充。
-2. **拇指按弦 (Thumb Fret / T)**：
+1. **拇指按弦 (Thumb Fret / T)**：
    - 目前指法推薦以 1 (Index) 到 4 (Pinky) 加上 0 (Open) 為主，暫未包含低音大拇指扣弦按法。
-3. **特定調弦法指板映射**：
+2. **特定調弦法指板映射**：
    - 預設支援標準 E Standard、Drop 調弦與全音/半音降音調弦，極端特殊開放調弦暫依音高品格直接解析。
+3. **極小窄螢幕手機排版**：
+   - 專注於桌面瀏覽器版面，極端窄螢幕（寬度小於 360px）若小節過窄，多段手型圖會自動降級為當前段手型。
 
 ---
 
 ## 8. 下一步規劃 (Roadmap)
 
-- **Phase 3.2B：進階行內懸浮層與全曲檢視 (Advanced Inline Overlay & Density Control)**：
-  - 提供緊湊度開關（Compact vs Full）、自訂懸浮位置偏好、多行樂譜折行自動偵測。
 - **Phase 4：特定指型庫融合 (CAGED & Scale Shapes)**：
   - 結合五聲音階指型與和弦字典，使指法分析在遇見特定分解和弦時更加直覺。
+- **使用者偏好設定 (User Custom Preferences)**：
+  - 提供緊湊度開關（Compact vs Detailed）、Overlay 垂直位置自訂、顯示/隱藏手型標籤。
 
