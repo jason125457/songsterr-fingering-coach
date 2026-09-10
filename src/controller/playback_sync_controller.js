@@ -27,6 +27,7 @@
       this.observer = options.observer || null;
       this.mapper = options.mapper || null;
       this.coachPanel = options.coachPanel || null;
+      this.overlayManager = options.overlayManager || null;
       this.normalizedTrack = options.normalizedTrack || null;
 
       this.isActive = false;
@@ -88,6 +89,9 @@
       if (this.coachPanel && fingeringResult) {
         this.coachPanel.updateData(fingeringResult);
       }
+      if (this.overlayManager && fingeringResult) {
+        this.overlayManager.setFingeringResult(fingeringResult);
+      }
       this.syncCurrentPosition();
     }
 
@@ -98,13 +102,7 @@
     handlePlaybackChange(playbackEvent) {
       this.stats.totalEventsReceived++;
 
-      if (!this.isActive || !this.coachPanel || !this.mapper || !this.normalizedTrack) {
-        return;
-      }
-
-      // If user is manually inspecting notes, do NOT force-advance the panel
-      if (this.coachPanel.getMode() === 'manual') {
-        this.stats.skippedManualCount++;
+      if (!this.isActive || !this.mapper || !this.normalizedTrack) {
         return;
       }
 
@@ -114,8 +112,21 @@
         return;
       }
 
+      // Dispatch to OverlayManager if present
+      if (this.overlayManager) {
+        this.overlayManager.syncPlayback(canonicalResult, playbackEvent);
+      }
+
+      // If user is manually inspecting notes in CoachPanel, do NOT force-advance the panel
+      if (this.coachPanel && this.coachPanel.getMode() === 'manual') {
+        this.stats.skippedManualCount++;
+        return;
+      }
+
       // Dispatch to CoachPanel
-      this.coachPanel.syncPlayback(canonicalResult, playbackEvent);
+      if (this.coachPanel) {
+        this.coachPanel.syncPlayback(canonicalResult, playbackEvent);
+      }
 
       this.stats.syncedUpdates++;
       this.stats.lastSyncTimestamp = Date.now();
@@ -137,10 +148,10 @@
     }
 
     /**
-     * Manually sync CoachPanel with the observer's current snapshot
+     * Manually sync CoachPanel and OverlayManager with the observer's current snapshot
      */
     syncCurrentPosition() {
-      if (!this.observer || !this.coachPanel || !this.mapper || !this.normalizedTrack) {
+      if (!this.observer || !this.mapper || !this.normalizedTrack) {
         return;
       }
 
@@ -152,7 +163,12 @@
 
       const canonicalResult = this.mapper.mapPlaybackEventToCanonical(currentPos, this.normalizedTrack);
       if (canonicalResult) {
-        this.coachPanel.syncPlayback(canonicalResult, currentPos);
+        if (this.overlayManager) {
+          this.overlayManager.syncPlayback(canonicalResult, currentPos);
+        }
+        if (this.coachPanel && this.coachPanel.getMode() !== 'manual') {
+          this.coachPanel.syncPlayback(canonicalResult, currentPos);
+        }
         this.stats.syncedUpdates++;
         this.stats.lastSyncTimestamp = Date.now();
       }
@@ -173,6 +189,10 @@
       this.observer = null;
       this.mapper = null;
       this.coachPanel = null;
+      if (this.overlayManager) {
+        this.overlayManager.destroy();
+        this.overlayManager = null;
+      }
       this.normalizedTrack = null;
     }
   }

@@ -220,10 +220,13 @@
    */
   function renderSVG(segment, activeBeatNumber = null, options = {}) {
     const shape = aggregateSegmentShape(segment, activeBeatNumber);
+    const isCompact = !!options.compact;
 
-    const width = options.width || 210;
-    const height = options.height || 230;
-    const margin = { top: 38, left: 40, right: 26, bottom: 20 };
+    const width = options.width || (isCompact ? 84 : 210);
+    const height = options.height || (isCompact ? 70 : 230);
+    const margin = isCompact
+      ? { top: 15, left: 22, right: 10, bottom: 6 }
+      : { top: 38, left: 40, right: 26, bottom: 20 };
 
     const gridWidth = width - margin.left - margin.right;
     const gridHeight = height - margin.top - margin.bottom;
@@ -248,56 +251,64 @@
       return margin.top + fretIndex * fretSpacing;
     }
 
-    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" class="sfc-shape-svg" width="100%" height="100%">`;
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" class="sfc-shape-svg${isCompact ? ' sfc-shape-compact' : ''}" width="100%" height="100%">`;
 
     // Dark background for diagram
-    svg += `<rect width="${width}" height="${height}" rx="8" fill="#18181b" />`;
+    svg += `<rect width="${width}" height="${height}" rx="${isCompact ? 4 : 8}" fill="#18181b" />`;
 
     // Starting fret label or Nut
     const isNut = shape.minFret === 1;
     if (isNut) {
       // Draw thick nut at top
-      svg += `<line x1="${getX(0)}" y1="${margin.top}" x2="${getX(5)}" y2="${margin.top}" stroke="#f4f4f5" stroke-width="5" stroke-linecap="round" />`;
+      svg += `<line x1="${getX(0)}" y1="${margin.top}" x2="${getX(5)}" y2="${margin.top}" stroke="#f4f4f5" stroke-width="${isCompact ? 3.5 : 5}" stroke-linecap="round" />`;
     } else {
       // Draw normal fret line at top + fret label on left
-      svg += `<text x="${margin.left - 8}" y="${margin.top + fretSpacing * 0.55}" fill="#00d26a" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="bold" text-anchor="end">${shape.minFret}fr</text>`;
-      svg += `<line x1="${getX(0)}" y1="${margin.top}" x2="${getX(5)}" y2="${margin.top}" stroke="#52525b" stroke-width="1.5" />`;
+      const fretFontSize = isCompact ? 9 : 12;
+      const fretTextX = margin.left - (isCompact ? 4 : 8);
+      const fretTextY = margin.top + fretSpacing * 0.55 + (isCompact ? 2 : 0);
+      svg += `<text x="${fretTextX}" y="${fretTextY}" fill="#00d26a" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="${fretFontSize}" font-weight="bold" text-anchor="end">${shape.minFret}fr</text>`;
+      svg += `<line x1="${getX(0)}" y1="${margin.top}" x2="${getX(5)}" y2="${margin.top}" stroke="#52525b" stroke-width="${isCompact ? 1.0 : 1.5}" />`;
     }
 
     // Horizontal fret lines
     for (let f = 1; f <= numFrets; f++) {
       const y = getFretLineY(f);
-      svg += `<line x1="${getX(0)}" y1="${y}" x2="${getX(5)}" y2="${y}" stroke="#3f3f46" stroke-width="1.2" />`;
+      svg += `<line x1="${getX(0)}" y1="${y}" x2="${getX(5)}" y2="${y}" stroke="#3f3f46" stroke-width="${isCompact ? 0.8 : 1.2}" />`;
     }
 
     // Vertical string lines
     for (let s = 0; s < numStrings; s++) {
       const x = getX(s);
-      svg += `<line x1="${x}" y1="${margin.top}" x2="${x}" y2="${margin.top + gridHeight}" stroke="#71717a" stroke-width="${s === 0 || s === 1 ? 1.8 : 1.2}" />`;
+      const strStrokeWidth = isCompact 
+        ? (s === 0 || s === 1 ? 1.2 : 0.8) 
+        : (s === 0 || s === 1 ? 1.8 : 1.2);
+      svg += `<line x1="${x}" y1="${margin.top}" x2="${x}" y2="${margin.top + gridHeight}" stroke="#71717a" stroke-width="${strStrokeWidth}" />`;
     }
 
-    // Dynamic String name headers (Col 0 = Low E/Str 6 on left -> Col 5 = High E/Str 1 on right)
-    const NOTE_LETTERS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    const dynamicStringNames = [];
-    for (let col = 0; col < 6; col++) {
-      const stringIdx = 5 - col; // 0 = High E, 5 = Low E
-      let name = '';
-      if (Array.isArray(options.tuningNames) && options.tuningNames[stringIdx]) {
-        name = options.tuningNames[stringIdx].replace(/[0-9]/g, '');
-        if (stringIdx === 0) name = name.toLowerCase();
-      } else if (Array.isArray(options.tuning) && typeof options.tuning[stringIdx] === 'number') {
-        const letter = NOTE_LETTERS[options.tuning[stringIdx] % 12];
-        name = stringIdx === 0 ? letter.toLowerCase() : letter;
-      } else {
-        const defaultNames = ['E', 'A', 'D', 'G', 'B', 'e'];
-        name = defaultNames[col];
+    // Dynamic String name headers (omit in compact mode)
+    if (!isCompact) {
+      const NOTE_LETTERS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+      const dynamicStringNames = [];
+      for (let col = 0; col < 6; col++) {
+        const stringIdx = 5 - col; // 0 = High E, 5 = Low E
+        let name = '';
+        if (Array.isArray(options.tuningNames) && options.tuningNames[stringIdx]) {
+          name = options.tuningNames[stringIdx].replace(/[0-9]/g, '');
+          if (stringIdx === 0) name = name.toLowerCase();
+        } else if (Array.isArray(options.tuning) && typeof options.tuning[stringIdx] === 'number') {
+          const letter = NOTE_LETTERS[options.tuning[stringIdx] % 12];
+          name = stringIdx === 0 ? letter.toLowerCase() : letter;
+        } else {
+          const defaultNames = ['E', 'A', 'D', 'G', 'B', 'e'];
+          name = defaultNames[col];
+        }
+        dynamicStringNames.push(name);
       }
-      dynamicStringNames.push(name);
-    }
 
-    for (let col = 0; col < 6; col++) {
-      const x = getX(col);
-      svg += `<text x="${x}" y="${margin.top + gridHeight + 14}" fill="#71717a" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="600" text-anchor="middle">${dynamicStringNames[col]}</text>`;
+      for (let col = 0; col < 6; col++) {
+        const x = getX(col);
+        svg += `<text x="${x}" y="${margin.top + gridHeight + 14}" fill="#71717a" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="600" text-anchor="middle">${dynamicStringNames[col]}</text>`;
+      }
     }
 
     // Render Mini-Barres (behind note circles)
@@ -306,13 +317,13 @@
       const x1 = getX(barre.minCol);
       const x2 = getX(barre.maxCol);
       const y = getY(barre.fret);
-      const radius = 10;
+      const radius = isCompact ? 6 : 10;
       const fillColor = barre.active ? 'rgba(0, 210, 106, 0.45)' : 'rgba(82, 82, 91, 0.55)';
       const strokeColor = barre.active ? '#00d26a' : '#71717a';
 
-      svg += `<rect x="${x1 - radius}" y="${y - radius}" width="${(x2 - x1) + radius * 2}" height="${radius * 2}" rx="${radius}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1.5" />`;
-      // Mini-barre label
-      if (barre.maxCol - barre.minCol >= 1) {
+      svg += `<rect x="${x1 - radius}" y="${y - radius}" width="${(x2 - x1) + radius * 2}" height="${radius * 2}" rx="${radius}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isCompact ? 1.0 : 1.5}" />`;
+      // Mini-barre label (omit in compact mode to preserve space)
+      if (!isCompact && (barre.maxCol - barre.minCol >= 1)) {
         svg += `<text x="${(x1 + x2) / 2}" y="${y - 12}" fill="${strokeColor}" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="9" font-weight="bold" text-anchor="middle">barre</text>`;
       }
     });
@@ -320,20 +331,24 @@
     // Render Open Strings ('O')
     shape.openStrings.forEach((item) => {
       const x = getX(item.col);
-      const y = margin.top - 12;
+      const y = margin.top - (isCompact ? 7 : 12);
       const color = item.active ? '#00d26a' : '#a1a1aa';
-      const strokeWidth = item.active ? 2.5 : 1.5;
-      svg += `<circle cx="${x}" cy="${y}" r="6" fill="none" stroke="${color}" stroke-width="${strokeWidth}" />`;
+      const openRadius = isCompact ? 3.5 : 6;
+      const strokeWidth = isCompact 
+        ? (item.active ? 1.8 : 1.0)
+        : (item.active ? 2.5 : 1.5);
+      svg += `<circle cx="${x}" cy="${y}" r="${openRadius}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" />`;
       if (item.active) {
-        svg += `<circle cx="${x}" cy="${y}" r="2.5" fill="#00d26a" />`;
+        svg += `<circle cx="${x}" cy="${y}" r="${isCompact ? 1.5 : 2.5}" fill="#00d26a" />`;
       }
     });
 
     // Render Dead Strings ('X')
     shape.deadStrings.forEach((item) => {
       const x = getX(item.col);
-      const y = margin.top - 12;
-      svg += `<text x="${x}" y="${y + 4}" fill="#ef4444" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="bold" text-anchor="middle">×</text>`;
+      const y = margin.top - (isCompact ? 7 : 12);
+      const deadFontSize = isCompact ? 8 : 12;
+      svg += `<text x="${x}" y="${y + (isCompact ? 3 : 4)}" fill="#ef4444" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="${deadFontSize}" font-weight="bold" text-anchor="middle">×</text>`;
     });
 
     // Render Note Dots
@@ -343,18 +358,18 @@
       const y = getY(note.fret);
       const isActive = note.activeOnBeats.length > 0;
 
-      const circleRadius = 9;
+      const circleRadius = isCompact ? 5.5 : 9;
       const circleFill = isActive ? '#00d26a' : '#3f3f46';
       const circleStroke = isActive ? '#a7f3d0' : '#71717a';
       const textFill = isActive ? '#09090b' : '#f4f4f5';
 
       if (isActive) {
         // Outer glowing pulse ring
-        svg += `<circle cx="${x}" cy="${y}" r="${circleRadius + 4}" fill="rgba(0, 210, 106, 0.28)" />`;
+        svg += `<circle cx="${x}" cy="${y}" r="${circleRadius + (isCompact ? 2.5 : 4)}" fill="rgba(0, 210, 106, 0.28)" />`;
       }
 
-      svg += `<circle cx="${x}" cy="${y}" r="${circleRadius}" fill="${circleFill}" stroke="${circleStroke}" stroke-width="${isActive ? 2 : 1.2}" />`;
-      svg += `<text x="${x}" y="${y + 3.5}" fill="${textFill}" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10.5" font-weight="bold" text-anchor="middle">${note.finger}</text>`;
+      svg += `<circle cx="${x}" cy="${y}" r="${circleRadius}" fill="${circleFill}" stroke="${circleStroke}" stroke-width="${isActive ? (isCompact ? 1.5 : 2) : (isCompact ? 0.9 : 1.2)}" />`;
+      svg += `<text x="${x}" y="${y + (isCompact ? 2.5 : 3.5)}" fill="${textFill}" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="${isCompact ? 7.5 : 10.5}" font-weight="bold" text-anchor="middle">${note.finger}</text>`;
     });
 
     svg += `</svg>`;

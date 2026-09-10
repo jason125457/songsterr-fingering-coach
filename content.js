@@ -29,6 +29,7 @@
   let lastExtractedData = null;
   let lastFingeringResult = null;
   let currentCoachPanel = null;
+  let currentOverlayManager = null;
   let currentPlaybackObserver = null;
   let currentSyncController = null;
   let currentNormalizedTrack = null;
@@ -297,6 +298,23 @@
       }
     }
 
+    // Phase 3.2A: Initialize or update Inline Overlay Manager
+    if (fingeringResult && typeof OverlayManager !== 'undefined') {
+      try {
+        if (!currentOverlayManager) {
+          currentOverlayManager = new OverlayManager({
+            fingeringResult,
+            initialMeasure: 1
+          });
+          console.log('%c📐 [Songsterr Fingering Coach] Inline Overlay Manager initialized (Virtualized Viewport)', 'color: #3b82f6; font-weight: bold;');
+        } else {
+          currentOverlayManager.setFingeringResult(fingeringResult);
+        }
+      } catch (overlayErr) {
+        console.error('[Songsterr Fingering Coach] Failed to initialize OverlayManager:', overlayErr);
+      }
+    }
+
     // Phase 3.1A: Initialize PlaybackObserver
     if (typeof PlaybackObserver !== 'undefined' && !currentPlaybackObserver) {
       try {
@@ -307,7 +325,7 @@
       }
     }
 
-    // Phase 3.1B: Initialize or update PlaybackSyncController (Wiring observer -> mapper -> canonical -> coachPanel)
+    // Phase 3.1B & 3.2A: Initialize or update PlaybackSyncController (Wiring observer -> mapper -> canonical -> coachPanel / overlayManager)
     if (typeof PlaybackSyncController !== 'undefined' && normalizedTrack && currentCoachPanel) {
       try {
         if (!currentSyncController) {
@@ -315,12 +333,14 @@
             observer: currentPlaybackObserver,
             mapper: typeof PlaybackMapper !== 'undefined' ? PlaybackMapper : null,
             coachPanel: currentCoachPanel,
+            overlayManager: currentOverlayManager,
             normalizedTrack: normalizedTrack,
             autoStart: true
           });
           console.log('%c⚡ [Songsterr Fingering Coach] Live Playback Sync Controller activated (Follow Mode)', 'color: #10b981; font-weight: bold;');
         } else {
           currentSyncController.coachPanel = currentCoachPanel;
+          currentSyncController.overlayManager = currentOverlayManager;
           currentSyncController.setTrack(normalizedTrack, fingeringResult);
         }
       } catch (ctlErr) {
@@ -332,6 +352,7 @@
       extractedOutput, 
       fingeringResult, 
       coachPanel: currentCoachPanel, 
+      overlayManager: currentOverlayManager,
       playbackObserver: currentPlaybackObserver,
       syncController: currentSyncController 
     };
@@ -344,6 +365,7 @@
     getLastExtracted: () => lastExtractedData,
     getLastFingeringResult: () => lastFingeringResult,
     getCoachPanel: () => currentCoachPanel,
+    getOverlayManager: () => currentOverlayManager,
     getPlaybackObserver: () => currentPlaybackObserver,
     getPlaybackMapper: () => (typeof PlaybackMapper !== 'undefined' ? PlaybackMapper : null),
     getSyncController: () => currentSyncController,

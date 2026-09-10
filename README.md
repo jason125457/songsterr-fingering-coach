@@ -18,6 +18,7 @@
 | **Phase 3.0.1: QA Fix** | 吉他弦編號校正（String 1=High E, String 6=Low E）、全動態調弦名稱解析（Drop D, D Std） | 修正 `coach_panel.js`、`shape_diagram.js`、動態 Tuning 回歸測試 | **已完成 (Completed)** ✅ |
 | **Phase 3.1A.1: Multi-Voice & Playback Validation** | 有理數時間軸聚合（Rational Fraction Timeline）、Canonical 多聲部事件模型、PlaybackMapper 轉接器、多行五線譜座標隔離 | `src/normalizer.js`、`src/songsterr/playback_mapper.js`、`tests/multi_voice_acceptance.test.js` | **已完成 (Completed)** ✅ |
 | **Phase 3.1B: Live Playback Sync UI** | 將 PlaybackObserver + PlaybackMapper 透過 PlaybackSyncController 正式連動 CoachPanel 實現即時播放跟隨 | `src/controller/playback_sync_controller.js`、雙模式切換、Multi-Voice 同步高亮、Pause/Seek/速度自適應 | **已完成 (Completed)** ✅ |
+| **Phase 3.2A: Inline Measure Overlay** | 行內小節微型指法形狀懸浮層（Inline Measure Overlay）與視口虛擬化（Viewport Virtualization 4-6 個節點） | `src/ui/measure_overlay.js`、`src/ui/overlay_manager.js`、換把段落切換、Scroll/Resize 座標防飄移、零遮擋 | **已完成 (Completed)** ✅ |
 | **Phase 4: Advanced Shapes** | CAGED 五大和弦音階型態比對、自訂偏好指型庫 | 爵士/藍調/金屬自訂手型偏好、進階調弦指板映射 | **待評估 (Backlog)** 📋 |
 
 
@@ -60,18 +61,22 @@
 └──────────────────┬───────────────────┘
                    │ Fingering Analysis (Cached)
                    ▼
-┌──────────────────────────────────────┐
-│ UI Layer (src/ui/)                   │
-│  - CoachPanel (src/ui/coach_panel.js)│
-│  - ShapeDiagram (shape_diagram.js)   │
-│  - Scoped Dark Theme (coach.css)     │
-└──────────────────────────────────────┘
+┌────────────────────────────────────────────────────────┐
+│ UI & Presentation Layer (src/ui/)                      │
+│  - CoachPanel (src/ui/coach_panel.js) - 浮動指型面板   │
+│  - OverlayManager (src/ui/overlay_manager.js) - 虛擬層 │
+│  - MeasureOverlay (src/ui/measure_overlay.js) - 行內   │
+│  - ShapeDiagram (src/ui/shape_diagram.js) - SVG 指型   │
+│  - PlaybackSyncController - 播放同步控制器             │
+│  - Scoped Dark Theme (coach.css)                       │
+└────────────────────────────────────────────────────────┘
 ```
 
 > **重要架構原則**：
 > 1. `src/fingering_engine.js`、`src/normalizer.js` 完全純粹解耦，不依賴 DOM 或 UI。
-> 2. UI 層（`CoachPanel`、`ShapeDiagram`）**僅以唯讀方式消費指法分析結果**，絕對不重新計算指法。
+> 2. UI 層（`CoachPanel`、`OverlayManager`、`MeasureOverlay`、`ShapeDiagram`）**僅以唯讀方式消費指法分析結果**，絕對不重新計算指法。
 > 3. 全曲 Session 快取以 `songId-revisionId-partId` 為鍵值，全曲 146 小節分析耗時僅約 100ms，徹底杜絕 UI 阻塞。
+> 4. 行內懸浮層實施嚴格視口虛擬化（Viewport Virtualization），全曲 150+ 小節在 DOM 中同時存在之 Overlay 節點數恆定為 4~6 個，徹底杜絕記憶體膨脹與掉幀。
 
 ---
 
@@ -381,6 +386,30 @@ node tests/run_all_tests.js
 
 ---
 
+## 4.3 行內小節微型指法懸浮層 (Phase 3.2A Inline Measure Overlays)
+
+Phase 3.2A 將左手手型圖以小型 Overlay 形式，直接錨定於 Songsterr 樂譜對應小節上方：
+
+- 🎯 **精準小節錨定 (Songsterr Anchor Discovery)**：
+  - 自動偵測並鎖定 Songsterr 原生 DOM 錨點 `rect[data-testid="tab-measure-target"][data-measure-index]`。
+  - 建立 `measureIndex ➔ DOM anchor` 映射，徹底免除猜測座標或文字辨識。
+- ⚡ **視口虛擬化 (Viewport Virtualization 4-6 Overlays Limit)**：
+  - 即使曲目長達 150+ 小節，畫面中同時存在的 Overlay 數量**嚴格限制在 4~6 個**（當前播放小節 + 前後 1~2 小節）。
+  - 滑動視窗（Sliding Window）隨播放或捲動動態平移，超出範圍者立即銷毀 unmount，維持 $O(1)$ 恆定記憶體與 60 FPS 流暢度。
+- 🖐️ **極致精簡外觀 (Compact ShapeDiagram)**：
+  - 寬度約 84px，高度約 70px，置於小節線上緣空白處。
+  - 具備 `pointer-events: none` 與安全邊界計算，**100% 杜絕遮擋 TAB 六線譜音符與點擊操作**。
+  - 清楚顯示 Position 標籤、1/2/3/4 手指、空弦 'O'、以及迷你橫按（Mini-Barre）藥丸圓角邊框。
+- 🔄 **換把小節動態切換 (Multi-Segment Switching)**：
+  - 小節內若有換把（如 M3: Pos 8 ➔ Pos 10），標頭自動標記 `P8➔P10` 轉場晶片。
+  - 播放走到下一個 segment 時，微型手型圖無縫動態切換為新把位手型。
+- 🟢 **播放同步聯動 (Live Playback Integration)**：
+  - 播放推進時，當前演奏小節 Overlay 自動施加祖母綠邊框光暈（`.sfc-overlay-active`）。
+  - Compact SVG 內部即時高亮發聲音符或空弦圓點，多聲部（Romanza）與雙音（Smoke on the water）同步發光。
+  - 視窗垂直捲動或視窗 Resize 時，透過 `requestAnimationFrame` 與 `ResizeObserver` 穩定重算座標，絕不飄移。
+
+---
+
 ## 5. Chrome Extension 載入與使用
 
 1. 開啟 Chrome 瀏覽器，進入 `chrome://extensions/`。
@@ -410,19 +439,19 @@ start tests/ui_preview.html
 
 ## 7. 目前限制與技術邊界 (Current Limitations)
 
-1. **播放同步尚未實作 (Phase 3.0 刻意排除)**：
-   - 目前採手動按鈕（`Prev / Next Measure / Beat`）瀏覽驗證，播放器遊標自動跟隨將於 Phase 3.1 實現。
+1. **行內覆蓋層範圍 (Phase 3.2A 原型邊界)**：
+   - 目前實施視口虛擬化，同時渲染當前與相鄰 4~6 個小節手型，並非全曲一次覆蓋；進階整曲全覽模式預計於 Phase 3.2B 擴充。
 2. **拇指按弦 (Thumb Fret / T)**：
    - 目前指法推薦以 1 (Index) 到 4 (Pinky) 加上 0 (Open) 為主，暫未包含低音大拇指扣弦按法。
 3. **特定調弦法指板映射**：
-   - 預設支援標準 E Standard 與吉他降音調弦，特殊開放調弦暫依音高品格直接解析。
+   - 預設支援標準 E Standard、Drop 調弦與全音/半音降音調弦，極端特殊開放調弦暫依音高品格直接解析。
 
 ---
 
-## 8. 下一步規劃 (Roadmap for Phase 3.1+)
+## 8. 下一步規劃 (Roadmap)
 
-- **Phase 3.1：播放同步 (Playback Cursor Synchronization)**：
-  - 監聽 Songsterr 播放器音訊與游標 DOM 進度，即時驅動 Coach 面板小節與拍點自動前進高亮。
+- **Phase 3.2B：進階行內懸浮層與全曲檢視 (Advanced Inline Overlay & Density Control)**：
+  - 提供緊湊度開關（Compact vs Full）、自訂懸浮位置偏好、多行樂譜折行自動偵測。
 - **Phase 4：特定指型庫融合 (CAGED & Scale Shapes)**：
   - 結合五聲音階指型與和弦字典，使指法分析在遇見特定分解和弦時更加直覺。
 

@@ -455,3 +455,81 @@
   color: #09090b;
   box-shadow: 0 12px 35px rgba(0, 210, 106, 0.5);
 }
+
+/* ==================================================== */
+/* Inline Measure Fingering Overlays (Phase 3.2A)       */
+/* ==================================================== */
+
+.sfc-overlay-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 99998;
+}
+
+.sfc-measure-overlay {
+  position: absolute;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(24, 24, 27, 0.94);
+  border: 1px solid #3f3f46;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  padding: 3px 4px 4px 4px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  user-select: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  z-index: 99998;
+}
+
+.sfc-measure-overlay.sfc-overlay-active {
+  border-color: #00d26a;
+  box-shadow: 0 0 14px rgba(0, 210, 106, 0.45), 0 4px 16px rgba(0, 0, 0, 0.6);
+  transform: translateY(-1px);
+}
+
+.sfc-overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 4px;
+  padding: 1px 2px 3px 2px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: #a1a1aa;
+  line-height: 1.2;
+}
+
+.sfc-overlay-pos-badge {
+  color: #00d26a;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.sfc-overlay-shift-chip {
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #fbbf24;
+  border-radius: 3px;
+  padding: 0 3px;
+  font-size: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sfc-overlay-diagram {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
