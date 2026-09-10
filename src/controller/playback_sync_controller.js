@@ -111,6 +111,7 @@
       if (!canonicalResult) {
         return;
       }
+      canonicalResult.source = playbackEvent.source || canonicalResult.mappingStrategy || 'unknown';
 
       // Dispatch to OverlayManager if present
       if (this.overlayManager) {
@@ -163,6 +164,7 @@
 
       const canonicalResult = this.mapper.mapPlaybackEventToCanonical(currentPos, this.normalizedTrack);
       if (canonicalResult) {
+        canonicalResult.source = currentPos.source || canonicalResult.mappingStrategy || 'unknown';
         if (this.overlayManager) {
           this.overlayManager.syncPlayback(canonicalResult, currentPos);
         }

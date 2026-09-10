@@ -413,11 +413,16 @@
       }
     }
 
-    // Phase 3.1A: Initialize PlaybackObserver
+    // Phase 3.1A & 3.1B.1: Initialize PlaybackObserver
     if (typeof PlaybackObserver !== 'undefined' && !currentPlaybackObserver) {
       try {
         currentPlaybackObserver = new PlaybackObserver({ debugLog: true });
         currentPlaybackObserver.start();
+        setTimeout(() => {
+          if (currentPlaybackObserver && typeof currentPlaybackObserver.logDiagnosticDump === 'function') {
+            currentPlaybackObserver.logDiagnosticDump();
+          }
+        }, 1200);
       } catch (obsErr) {
         console.error('[Songsterr Fingering Coach] Failed to start PlaybackObserver:', obsErr);
       }
@@ -467,6 +472,8 @@
     getPlaybackObserver: () => currentPlaybackObserver,
     getPlaybackMapper: () => (typeof PlaybackMapper !== 'undefined' ? PlaybackMapper : null),
     getSyncController: () => currentSyncController,
+    getDiagnostics: () => currentPlaybackObserver?.getDiagnostics() || null,
+    logDiagnostics: () => currentPlaybackObserver?.logDiagnosticDump() || null,
     getCache: () => fingeringCache,
     getRawState: () => {
       try {

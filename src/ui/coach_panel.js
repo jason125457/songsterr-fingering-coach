@@ -61,6 +61,7 @@
       this.mode = options.initialMode || 'follow'; // 'follow' | 'manual'
       this.lastPlaybackConfidence = 'exact';
       this.lastPlaybackState = 'stopped';
+      this.lastPlaybackSource = options.initialSource || 'init';
 
       this.resumeFollowCallback = null;
       this.userActionCallback = null;
@@ -370,17 +371,20 @@
       const targetEvIdx = canonicalResult?.eventIndex || playbackEvent?.eventIndex || 1;
       const confidence = canonicalResult?.confidence || playbackEvent?.confidence || 'exact';
       const playState = playbackEvent?.state || 'playing';
+      const source = canonicalResult?.source || playbackEvent?.source || this.lastPlaybackSource || 'sync';
 
       // Performance dirty-checking: skip identical renders to prevent flicker
       if (targetMIdx === this.currentMeasureIndex && 
           targetEvIdx === this.currentEventIndex && 
           confidence === this.lastPlaybackConfidence &&
-          playState === this.lastPlaybackState) {
+          playState === this.lastPlaybackState &&
+          source === this.lastPlaybackSource) {
         return;
       }
 
       this.lastPlaybackConfidence = confidence;
       this.lastPlaybackState = playState;
+      this.lastPlaybackSource = source;
 
       // Update measure index and active event
       this.currentMeasureIndex = targetMIdx;
@@ -454,12 +458,19 @@
         ? `<span class="sfc-badge sfc-badge-measure-only" title="Playback cursor matched measure boundary">Measure synced</span>`
         : '';
 
+      const sourceBadgeHtml = `
+        <span class="sfc-badge sfc-badge-sync-source" title="Runtime Sync Source and Playback State">
+          ${this.lastPlaybackState === 'playing' ? '▶' : '⏸'} M${mNum} Ev${this.currentEventIndex} · ${this.lastPlaybackSource || 'init'} · ${this.lastPlaybackConfidence}
+        </span>
+      `;
+
       const statusHtml = `
         <div class="sfc-status-badges">
           <span class="sfc-badge sfc-badge-pos">🖐️ ${posLabel}</span>
           ${shiftBadgeHtml}
           ${sigBadgeHtml}
           ${confidenceBadgeHtml}
+          ${sourceBadgeHtml}
         </div>
       `;
 
