@@ -158,7 +158,12 @@
                 top: g.top,
                 bottom: g.bottom,
                 width: g.width,
-                height: g.height
+                height: g.height,
+                stringsTop: g.stringsTop,
+                stringsBottom: g.stringsBottom,
+                notationTop: g.notationTop,
+                notationBottom: g.notationBottom,
+                lineIndex: g.lineIndex
               })
             });
           });

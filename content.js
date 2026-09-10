@@ -564,10 +564,10 @@
             currentOverlayManager = new OverlayManager({
               fingeringResult,
               initialMeasure: 1,
-              density: 'medium'
+              density: 'small'
             });
             window.__sfc_overlay_manager = currentOverlayManager;
-            console.log('%c📐 [Songsterr Fingering Coach] Inline Overlay Manager initialized (Density: Medium Hand Map)', 'color: #3b82f6; font-weight: bold;');
+            console.log('%c📐 [Songsterr Fingering Coach] Inline Overlay Manager initialized (Density: Compact Hand Map)', 'color: #3b82f6; font-weight: bold;');
           } else {
             currentOverlayManager.setFingeringResult(fingeringResult);
             window.__sfc_overlay_manager = currentOverlayManager;

@@ -79,7 +79,7 @@ const svgMedium = ShapeDiagram.renderHandFrameSVG(segSeq, 2, {
 });
 
 assert.ok(svgMedium.includes('class="sfc-shape-svg sfc-shape-compact sfc-density-medium sfc-theme-light"'), 'Must include light theme and medium density classes');
-assert.ok(svgMedium.includes('viewBox="0 0 84 62"'), 'Medium SVG dimensions must be 84x62');
+assert.ok(svgMedium.includes('viewBox="0 0 62 48"'), 'Medium SVG dimensions must be 62x48');
 assert.ok(svgMedium.includes('9fr'), 'Starting fret label must be rendered on left');
 
 // Semantic check: Inactive notes must be hollow (fill="#ffffff"); Active note must be emerald (#00d26a)
@@ -88,7 +88,7 @@ assert.ok(svgMedium.includes('fill="#00d26a"'), 'Active note must be filled with
 assert.ok(svgMedium.includes('fill="rgba(0, 210, 106, 0.32)"'), 'Active note must have outer glowing pulse ring');
 
 console.log('  ✓ Light theme Hand Map SVG renders hollow sequential notes and vibrant emerald active note');
-console.log('  ✓ Dimensions: 84x62 with fret label verified');
+console.log('  ✓ Dimensions: 62x48 with fret label verified');
 console.log('✅ Test 1 Passed: Light-Theme Hand Map SVG for Sequence verified.\n');
 
 // ----------------------------------------------------
@@ -120,7 +120,7 @@ const svgChord = ShapeDiagram.renderSVG(segChord, null, {
   inlineTheme: 'light'
 });
 
-assert.ok(svgChord.includes('viewBox="0 0 98 72"'), 'Large SVG dimensions must be 98x72');
+assert.ok(svgChord.includes('viewBox="0 0 76 56"'), 'Large SVG dimensions must be 76x56');
 assert.ok(svgChord.includes('fill="#1e293b"'), 'Chord notes must be solid dark slate circles');
 assert.ok(!svgChord.includes('barre'), 'Single-string different frets must NOT create fake barres');
 
@@ -164,13 +164,13 @@ const overlay = new MeasureOverlay(seqMeasure, { density: 'medium' });
 assert.ok(overlay.domElement, 'DOM element must exist');
 const html = overlay.domElement.innerHTML;
 
-// Header should be M13 · P9 · 9–12 (simplified, no long finger flow)
-assert.ok(html.includes('M13 · P9 · 9–12'), 'Header must contain M13 · P9 · 9–12');
+// Header should be P9 · 9–12 (simplified, no redundant measure number or long finger flow)
+assert.ok(html.includes('P9 · 9–12'), 'Header must contain P9 · 9–12');
 assert.ok(!html.includes('1➔2➔1➔4'), 'Header must NOT contain full finger sequence flow');
 assert.ok(html.includes('sfc-overlay-diagram'), 'Must contain SVG diagram container');
 assert.ok(html.includes('sfc-theme-light'), 'Inline diagram must use light theme');
 
-console.log('  ✓ Header cleanly formatted as M13 · P9 · 9–12');
+console.log('  ✓ Header cleanly formatted as P9 · 9–12');
 console.log('  ✓ Full finger sequence removed from header');
 console.log('  ✓ Hand Map SVG container present');
 console.log('✅ Test 3 Passed: MeasureOverlay output structure verified.\n');
@@ -217,17 +217,17 @@ console.log('✅ Test 4 Passed: Multi-position layout verified.\n');
 console.log('🧪 Test 5: Sizing Candidates (Medium vs Large)...');
 
 const overlayMed = new MeasureOverlay(seqMeasure, { density: 'medium' });
-assert.strictEqual(overlayMed.svgWidth, 84, 'Medium svgWidth must be 84');
-assert.strictEqual(overlayMed.svgHeight, 62, 'Medium svgHeight must be 62');
-assert.strictEqual(overlayMed.overlayWidth, 92, 'Medium overlayWidth must be 92');
+assert.strictEqual(overlayMed.svgWidth, 62, 'Medium svgWidth must be 62');
+assert.strictEqual(overlayMed.svgHeight, 48, 'Medium svgHeight must be 48');
+assert.strictEqual(overlayMed.overlayWidth, 68, 'Medium overlayWidth must be 68');
 
 const overlayLrg = new MeasureOverlay(seqMeasure, { density: 'large' });
-assert.strictEqual(overlayLrg.svgWidth, 98, 'Large svgWidth must be 98');
-assert.strictEqual(overlayLrg.svgHeight, 72, 'Large svgHeight must be 72');
-assert.strictEqual(overlayLrg.overlayWidth, 106, 'Large overlayWidth must be 106');
+assert.strictEqual(overlayLrg.svgWidth, 76, 'Large svgWidth must be 76');
+assert.strictEqual(overlayLrg.svgHeight, 56, 'Large svgHeight must be 56');
+assert.strictEqual(overlayLrg.overlayWidth, 84, 'Large overlayWidth must be 84');
 
-console.log('  ✓ Medium candidate metrics: 84x62 SVG, 92px card');
-console.log('  ✓ Large candidate metrics: 98x72 SVG, 106px card');
+console.log('  ✓ Medium candidate metrics: 62x48 SVG, 68px card');
+console.log('  ✓ Large candidate metrics: 76x56 SVG, 84px card');
 console.log('✅ Test 5 Passed: Sizing candidate metrics verified.\n');
 
 console.log('====================================================');

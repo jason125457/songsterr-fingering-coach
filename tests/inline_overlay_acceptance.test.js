@@ -618,17 +618,17 @@ const mediumOverlay = new MeasureOverlay(m1Data, { density: 'medium' });
 const largeOverlay = new MeasureOverlay(m1Data, { density: 'large' });
 
 assert(smallOverlay.density === 'small', 'Default or specified density should be small');
-assert(smallOverlay.svgWidth === 68, `Small svgWidth must be 68 (got ${smallOverlay.svgWidth})`);
-assert(smallOverlay.svgHeight === 50, `Small svgHeight must be 50 (got ${smallOverlay.svgHeight})`);
-assert(smallOverlay.overlayWidth === 76, `Small overlayWidth must be 76 (got ${smallOverlay.overlayWidth})`);
+assert(smallOverlay.svgWidth === 52, `Small svgWidth must be 52 (got ${smallOverlay.svgWidth})`);
+assert(smallOverlay.svgHeight === 40, `Small svgHeight must be 40 (got ${smallOverlay.svgHeight})`);
+assert(smallOverlay.overlayWidth === 58, `Small overlayWidth must be 58 (got ${smallOverlay.overlayWidth})`);
 
-assert(mediumOverlay.svgWidth === 84, `Medium svgWidth must be 84 (got ${mediumOverlay.svgWidth})`);
-assert(mediumOverlay.svgHeight === 62, `Medium svgHeight must be 62 (got ${mediumOverlay.svgHeight})`);
-assert(mediumOverlay.overlayWidth === 92, `Medium overlayWidth must be 92 (got ${mediumOverlay.overlayWidth})`);
+assert(mediumOverlay.svgWidth === 62, `Medium svgWidth must be 62 (got ${mediumOverlay.svgWidth})`);
+assert(mediumOverlay.svgHeight === 48, `Medium svgHeight must be 48 (got ${mediumOverlay.svgHeight})`);
+assert(mediumOverlay.overlayWidth === 68, `Medium overlayWidth must be 68 (got ${mediumOverlay.overlayWidth})`);
 
-assert(largeOverlay.svgWidth === 98, `Large svgWidth must be 98 (got ${largeOverlay.svgWidth})`);
-assert(largeOverlay.svgHeight === 72, `Large svgHeight must be 72 (got ${largeOverlay.svgHeight})`);
-assert(largeOverlay.overlayWidth === 106, `Large overlayWidth must be 106 (got ${largeOverlay.overlayWidth})`);
+assert(largeOverlay.svgWidth === 76, `Large svgWidth must be 76 (got ${largeOverlay.svgWidth})`);
+assert(largeOverlay.svgHeight === 56, `Large svgHeight must be 56 (got ${largeOverlay.svgHeight})`);
+assert(largeOverlay.overlayWidth === 84, `Large overlayWidth must be 84 (got ${largeOverlay.overlayWidth})`);
 
 // H.2 Fretboard Rows Compression (3~4 frets in compact mode)
 const seg0 = m1Data; // frets 7, 8, 9

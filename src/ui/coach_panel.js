@@ -57,6 +57,18 @@
       this.activeSegmentIndex = 0;
       this.isMinimized = false;
 
+      // UI Mode: 'compact' (default) or 'expanded'
+      let savedMode = 'compact';
+      let savedSnap = 'right';
+      try {
+        if (typeof localStorage !== 'undefined') {
+          savedMode = localStorage.getItem('sfc_coach_ui_mode') || 'compact';
+          savedSnap = localStorage.getItem('sfc_coach_snap') || 'right';
+        }
+      } catch (e) {}
+      this.uiMode = options.uiMode || savedMode;
+      this.currentSnap = options.snap || savedSnap;
+
       // Song & Track Identity
       this.currentSongId = options.songId || fingeringResult?.song?.songId || null;
       this.isUnsupported = false;
@@ -97,7 +109,16 @@
       // Main floating panel container
       this.panelEl = document.createElement('div');
       this.panelEl.id = 'sfc-coach-panel';
-      this.panelEl.className = 'sfc-panel';
+      this.panelEl.className = `sfc-panel sfc-${this.uiMode}`;
+
+      // Position according to saved snap
+      if (this.currentSnap === 'left') {
+        this.panelEl.style.left = '16px';
+        this.panelEl.style.right = 'auto';
+      } else {
+        this.panelEl.style.left = 'auto';
+        this.panelEl.style.right = '16px';
+      }
 
       // Header
       const header = document.createElement('div');
@@ -106,7 +127,7 @@
         <div class="sfc-title-group">
           <span class="sfc-logo-icon">🎸</span>
           <div class="sfc-title-text">
-            <span class="sfc-app-name">Fingering Coach</span>
+            <span class="sfc-app-name">Coach</span>
             <span class="sfc-track-name" id="sfc-track-info">${this.data.song?.title || 'Song'} (${this.data.track?.name || 'Guitar'})</span>
           </div>
         </div>
@@ -149,8 +170,14 @@
         ? `<span class="sfc-mode-indicator sfc-mode-follow" id="sfc-mode-badge" title="Auto-following live playback">▶ Following</span>`
         : `<button class="sfc-btn-resume" id="sfc-btn-resume-follow" title="Resume following live playback">▶ Resume Follow</button>`;
 
+      const expandIcon = this.uiMode === 'expanded' ? '↙' : '↗';
+      const expandTitle = this.uiMode === 'expanded' ? 'Compact Mode' : 'Expand Mode';
+
       return `
         ${modeHtml}
+        <button class="sfc-btn-icon" id="sfc-btn-snap-left" title="Snap Left">◀</button>
+        <button class="sfc-btn-icon" id="sfc-btn-snap-right" title="Snap Right">▶</button>
+        <button class="sfc-btn-icon" id="sfc-btn-toggle-expand" title="${expandTitle}">${expandIcon}</button>
         <button class="sfc-btn-icon" id="sfc-btn-minimize" title="Minimize Panel">─</button>
       `;
     }
@@ -262,6 +289,57 @@
           this.resumeFollowCallback();
         }
       });
+
+      const snapLeftBtn = this.panelEl?.querySelector('#sfc-btn-snap-left');
+      snapLeftBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.snapLeft();
+      });
+
+      const snapRightBtn = this.panelEl?.querySelector('#sfc-btn-snap-right');
+      snapRightBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.snapRight();
+      });
+
+      const toggleExpandBtn = this.panelEl?.querySelector('#sfc-btn-toggle-expand');
+      toggleExpandBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.toggleExpand();
+      });
+    }
+
+    snapLeft() {
+      if (!this.panelEl) return;
+      this.currentSnap = 'left';
+      this.panelEl.style.left = '16px';
+      this.panelEl.style.right = 'auto';
+      try {
+        if (typeof localStorage !== 'undefined') localStorage.setItem('sfc_coach_snap', 'left');
+      } catch (e) {}
+    }
+
+    snapRight() {
+      if (!this.panelEl) return;
+      this.currentSnap = 'right';
+      this.panelEl.style.left = 'auto';
+      this.panelEl.style.right = '16px';
+      try {
+        if (typeof localStorage !== 'undefined') localStorage.setItem('sfc_coach_snap', 'right');
+      } catch (e) {}
+    }
+
+    toggleExpand() {
+      this.uiMode = this.uiMode === 'expanded' ? 'compact' : 'expanded';
+      if (this.panelEl) {
+        this.panelEl.classList.remove('sfc-compact', 'sfc-expanded');
+        this.panelEl.classList.add(`sfc-${this.uiMode}`);
+      }
+      try {
+        if (typeof localStorage !== 'undefined') localStorage.setItem('sfc_coach_ui_mode', this.uiMode);
+      } catch (e) {}
+      this.updateHeaderActions();
+      this.updateView();
     }
 
     toggleMinimize(minimized) {
@@ -589,38 +667,42 @@
 
       const highlightedEvent = isMeasureOnly ? null : this.currentEventIndex;
 
-      // 4. BLOCK 1: Overview Card (主卡 - Learning Aid / Structural Overview)
-      let overviewCardHtml = '';
-      if (classType === 'sequence') {
-        // Sequence measure: Hand Frame Fretboard SVG + Step Strip / Finger Flow
-        const handFrameSvg = ShapeDiagram.renderHandFrameSVG
-          ? ShapeDiagram.renderHandFrameSVG(activeSegment, highlightedEvent, {
-              width: 260,
-              height: 190,
-              tuningNames,
-              tuning: trackTuning
-            })
-          : ShapeDiagram.renderSVG(activeSegment, highlightedEvent, {
-              width: 260,
-              height: 190,
-              tuningNames,
-              tuning: trackTuning,
-              handFrameMode: true
-            });
+      const isCompactMode = this.uiMode === 'compact';
+      const ovWidth = isCompactMode ? 190 : 260;
+      const ovSeqHeight = isCompactMode ? 135 : 190;
+      const ovChordHeight = isCompactMode ? 145 : 210;
+      const ovMixedHeight = isCompactMode ? 135 : 195;
 
-        // Interactive Step Strip
-        let stepStripHtml = '<div class="sfc-step-strip">';
-        measure.beats.forEach((b) => {
+      // Helper to render Step Strip (Finger Flow)
+      const renderStepStrip = (beats, isMixed = false) => {
+        let stripBeats = beats;
+        if (isCompactMode) {
+          const cur = this.currentEventIndex;
+          stripBeats = beats.filter(b => {
+            const ev = b.eventIndex || b.beatNumber;
+            return ev >= cur - 1 && ev <= cur + 2;
+          });
+          if (stripBeats.length === 0) {
+            stripBeats = beats.slice(0, 4);
+          }
+        }
+
+        let stepStripHtml = `<div class="sfc-step-strip ${isCompactMode ? 'sfc-step-strip-compact' : ''}">`;
+        stripBeats.forEach((b) => {
           const bEv = b.eventIndex || b.beatNumber;
           const isStepActive = !isMeasureOnly && bEv === this.currentEventIndex;
           const activeNotes = (b.notes || []).filter(n => !n.isRest && n.fret >= 0);
           const isRest = activeNotes.length === 0;
+          const isChord = isMixed && activeNotes.length >= 2;
 
           let stepDesc = '';
           let fingerText = '—';
           if (isRest) {
             stepDesc = 'Rest';
             fingerText = '—';
+          } else if (isChord) {
+            stepDesc = 'Chord';
+            fingerText = '和弦';
           } else {
             const firstNote = activeNotes[0];
             stepDesc = `S${firstNote.string + 1}·F${firstNote.fret}`;
@@ -630,12 +712,35 @@
           stepStripHtml += `
             <div class="sfc-step-item ${isStepActive ? 'sfc-step-active' : ''} ${isRest ? 'sfc-step-rest' : ''}" data-event="${bEv}" title="Event ${bEv}: ${stepDesc}">
               <div class="sfc-step-ev">Ev ${bEv}</div>
-              <div class="sfc-step-finger ${fingerText === '0' ? 'sfc-finger-0' : ''}">指 ${fingerText}</div>
+              <div class="sfc-step-finger ${fingerText === '0' ? 'sfc-finger-0' : ''}">${isChord ? fingerText : '指 ' + fingerText}</div>
               <div class="sfc-step-desc">${stepDesc}</div>
             </div>
           `;
         });
         stepStripHtml += '</div>';
+        return stepStripHtml;
+      };
+
+      // 4. BLOCK 1: Overview Card (主卡 - Learning Aid / Structural Overview)
+      let overviewCardHtml = '';
+      if (classType === 'sequence') {
+        // Sequence measure: Hand Frame Fretboard SVG + Step Strip / Finger Flow
+        const handFrameSvg = ShapeDiagram.renderHandFrameSVG
+          ? ShapeDiagram.renderHandFrameSVG(activeSegment, highlightedEvent, {
+              width: ovWidth,
+              height: ovSeqHeight,
+              tuningNames,
+              tuning: trackTuning
+            })
+          : ShapeDiagram.renderSVG(activeSegment, highlightedEvent, {
+              width: ovWidth,
+              height: ovSeqHeight,
+              tuningNames,
+              tuning: trackTuning,
+              handFrameMode: true
+            });
+
+        const stepStripHtml = renderStepStrip(measure.beats, false);
 
         overviewCardHtml = `
           <div class="sfc-overview-card">
@@ -661,8 +766,8 @@
       } else if (classType === 'shape') {
         // Chord shape: Full grip diagram
         const chordSvg = ShapeDiagram.renderSVG(activeSegment, highlightedEvent, {
-          width: 260,
-          height: 210,
+          width: ovWidth,
+          height: ovChordHeight,
           tuningNames,
           tuning: trackTuning,
           singleEventOnly: false
@@ -685,45 +790,14 @@
       } else {
         // Mixed or Multi-shape: Primary shape + sequence cues
         const chordSvg = ShapeDiagram.renderSVG(activeSegment, highlightedEvent, {
-          width: 260,
-          height: 195,
+          width: ovWidth,
+          height: ovMixedHeight,
           tuningNames,
           tuning: trackTuning,
           singleEventOnly: false
         });
 
-        // Sequence hint
-        let stepStripHtml = '<div class="sfc-step-strip">';
-        measure.beats.forEach((b) => {
-          const bEv = b.eventIndex || b.beatNumber;
-          const isStepActive = !isMeasureOnly && bEv === this.currentEventIndex;
-          const activeNotes = (b.notes || []).filter(n => !n.isRest && n.fret >= 0);
-          const isRest = activeNotes.length === 0;
-          const isChord = activeNotes.length >= 2;
-
-          let stepDesc = '';
-          let fingerText = '—';
-          if (isRest) {
-            stepDesc = 'Rest';
-            fingerText = '—';
-          } else if (isChord) {
-            stepDesc = 'Chord';
-            fingerText = '和弦';
-          } else {
-            const firstNote = activeNotes[0];
-            stepDesc = `S${firstNote.string + 1}·F${firstNote.fret}`;
-            fingerText = `指 ${firstNote.recommendedFinger ?? firstNote.finger ?? 1}`;
-          }
-
-          stepStripHtml += `
-            <div class="sfc-step-item ${isStepActive ? 'sfc-step-active' : ''} ${isRest ? 'sfc-step-rest' : ''}" data-event="${bEv}">
-              <div class="sfc-step-ev">Ev ${bEv}</div>
-              <div class="sfc-step-finger">${fingerText}</div>
-              <div class="sfc-step-desc">${stepDesc}</div>
-            </div>
-          `;
-        });
-        stepStripHtml += '</div>';
+        const stepStripHtml = renderStepStrip(measure.beats, true);
 
         overviewCardHtml = `
           <div class="sfc-overview-card">
@@ -865,7 +939,7 @@
       }
 
       // Assemble into body
-      body.innerHTML = navHtml + statusHtml + segmentsHtml + overviewCardHtml + eventsHtml + nowPlayingCardHtml;
+      body.innerHTML = navHtml + statusHtml + segmentsHtml + overviewCardHtml + (isCompactMode ? '' : eventsHtml) + nowPlayingCardHtml;
 
       // Attach DOM handlers
       body.querySelector('#sfc-btn-prev')?.addEventListener('click', () => this.prevMeasure());

@@ -29,6 +29,130 @@
   display: none !important;
 }
 
+/* Compact & Expanded Mode Variants */
+.sfc-panel.sfc-compact {
+  width: 226px;
+  max-height: 52vh;
+}
+
+.sfc-panel.sfc-expanded {
+  width: 290px;
+  max-height: 85vh;
+}
+
+.sfc-panel.sfc-compact .sfc-header {
+  padding: 8px 10px;
+}
+
+.sfc-panel.sfc-compact .sfc-body {
+  max-height: calc(52vh - 44px);
+  padding: 8px 10px;
+  gap: 8px;
+}
+
+.sfc-panel.sfc-expanded .sfc-body {
+  max-height: calc(85vh - 48px);
+  padding: 12px 14px;
+  gap: 10px;
+}
+
+.sfc-panel.sfc-compact .sfc-card-header {
+  padding: 6px 8px;
+}
+
+.sfc-panel.sfc-compact .sfc-card-title {
+  font-size: 11px;
+}
+
+.sfc-panel.sfc-compact .sfc-card-tag {
+  font-size: 7.5px;
+  padding: 1px 4px;
+}
+
+.sfc-panel.sfc-compact .sfc-card-sub {
+  font-size: 9.5px;
+}
+
+.sfc-panel.sfc-compact .sfc-diagram-box {
+  padding: 4px;
+}
+
+.sfc-panel.sfc-compact .sfc-step-strip-wrapper {
+  padding: 4px 6px;
+}
+
+.sfc-panel.sfc-compact .sfc-step-item {
+  padding: 3px 5px;
+  min-width: 34px;
+}
+
+.sfc-panel.sfc-compact .sfc-step-ev {
+  font-size: 8px;
+}
+
+.sfc-panel.sfc-compact .sfc-step-finger {
+  font-size: 10px;
+}
+
+.sfc-panel.sfc-compact .sfc-step-desc {
+  font-size: 7.5px;
+}
+
+.sfc-panel.sfc-compact .sfc-now-playing-card {
+  padding: 6px 8px;
+}
+
+.sfc-panel.sfc-compact .sfc-note-item {
+  padding: 3px 6px;
+}
+
+.sfc-panel.sfc-compact .sfc-note-str {
+  font-size: 10px;
+}
+
+.sfc-panel.sfc-compact .sfc-note-fret {
+  font-size: 9.5px;
+}
+
+.sfc-panel.sfc-compact .sfc-note-finger {
+  width: 18px;
+  height: 18px;
+  font-size: 10.5px;
+}
+
+/* Minimized Floating FAB Button */
+.sfc-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999999;
+  background: #18181b;
+  color: #00d26a;
+  border: 1px solid #27272a;
+  border-radius: 30px;
+  padding: 8px 16px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 210, 106, 0.25);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.sfc-fab:hover {
+  background: #27272a;
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 210, 106, 0.4);
+}
+
+.sfc-fab.sfc-hidden {
+  display: none !important;
+}
+
 /* Header */
 .sfc-header {
   display: flex;
@@ -504,15 +628,15 @@
   flex-direction: column;
   align-items: center;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(203, 213, 225, 0.9);
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
-  padding: 3px 4px 4px 4px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(203, 213, 225, 0.65);
+  border-radius: 5px;
+  box-shadow: none;
+  padding: 2px 3px 3px 3px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   user-select: none;
-  opacity: 0.90;
+  opacity: 0.88;
   transition: opacity 0.15s ease, border-color 0.15s ease, background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   z-index: 99998;
 }
@@ -525,18 +649,20 @@
 /* Hover state */
 .sfc-measure-overlay:hover {
   opacity: 1.0;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.95);
   border-color: #94a3b8;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* Active Playback Highlight - Clean, clear emerald highlight */
+/* Active Playback Highlight - Clean emerald highlight scaled ~15% */
 .sfc-measure-overlay.sfc-overlay-active {
   opacity: 1.0;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.96);
   border-color: #059669;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35), 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-1px);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.28);
+  transform: scale(1.15);
+  transform-origin: bottom left;
+  z-index: 99999;
 }
 
 /* Density Variants */
@@ -877,6 +1003,12 @@
   padding: 2px 1px 4px 1px;
   scrollbar-width: thin;
   scrollbar-color: #3f3f46 transparent;
+}
+
+.sfc-step-strip.sfc-step-strip-compact {
+  gap: 4px;
+  justify-content: flex-start;
+  padding: 1px 0 2px 0;
 }
 
 .sfc-step-strip::-webkit-scrollbar {

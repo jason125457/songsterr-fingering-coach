@@ -203,8 +203,14 @@
 
       markerTexts.sort((a, b) => a.x - b.x);
 
-      // 2. Extract bar line X coordinates from <path data-testid="tab-strings-path">
+      // 2. Extract bar line X coordinates and strings bounds from <path data-testid="tab-strings-path">
       const stringsPath = svg.querySelector ? svg.querySelector('path[data-testid="tab-strings-path"]') : null;
+      const stringsRect = (stringsPath && typeof stringsPath.getBoundingClientRect === 'function')
+        ? stringsPath.getBoundingClientRect()
+        : null;
+      const stringsTop = stringsRect ? Math.round(stringsRect.top) : Math.round(svgRect.top);
+      const stringsBottom = stringsRect ? Math.round(stringsRect.bottom) : Math.round(svgRect.bottom);
+
       const barLinesX = [];
       if (stringsPath) {
         const d = stringsPath.getAttribute('d') || '';
@@ -247,6 +253,10 @@
           bottom: Math.round(svgRect.bottom),
           width: Math.round(width),
           height: Math.round(svgRect.height || (svgRect.bottom - svgRect.top)),
+          stringsTop,
+          stringsBottom,
+          notationTop: stringsTop,
+          notationBottom: stringsBottom,
           svgElement: svg,
           containerElement: line.containerElement,
           markerElement: curM.element
@@ -272,6 +282,10 @@
             bottom: Math.round(rect.bottom),
             width: Math.round(rect.width),
             height: Math.round(rect.height),
+            stringsTop: Math.round(rect.top),
+            stringsBottom: Math.round(rect.bottom),
+            notationTop: Math.round(rect.top),
+            notationBottom: Math.round(rect.bottom),
             svgElement: mt.closest ? mt.closest('svg') : null,
             containerElement: mt.parentElement,
             markerElement: null

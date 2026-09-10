@@ -262,30 +262,30 @@
     const hasFretLabel = !options.omitFretLabel && shape.minFret > 1;
     if (isCompact) {
       if (density === 'large') {
-        width = options.width || 98;
-        height = options.height || 72;
-        margin = { top: 12, left: hasFretLabel ? 18 : 11, right: 10, bottom: 6 };
-        circleRadius = 5.8;
-        fontSize = 8.5;
-        openRadius = 4.0;
-        barreRadius = 6.4;
+        width = options.width || 76;
+        height = options.height || 56;
+        margin = { top: 9, left: hasFretLabel ? 15 : 7, right: 6, bottom: 4 };
+        circleRadius = 4.6;
+        fontSize = 6.8;
+        openRadius = 3.0;
+        barreRadius = 4.8;
       } else if (density === 'medium') {
-        width = options.width || 84;
-        height = options.height || 62;
-        margin = { top: 10, left: hasFretLabel ? 16 : 9, right: 8, bottom: 5 };
-        circleRadius = 5.0;
-        fontSize = 7.4;
-        openRadius = 3.5;
-        barreRadius = 5.5;
+        width = options.width || 62;
+        height = options.height || 48;
+        margin = { top: 8, left: hasFretLabel ? 13 : 6, right: 6, bottom: 4 };
+        circleRadius = 3.8;
+        fontSize = 5.6;
+        openRadius = 2.6;
+        barreRadius = 4.0;
       } else {
-        // default: small
-        width = options.width || 68;
-        height = options.height || 50;
-        margin = { top: 8, left: hasFretLabel ? 14 : 7, right: 7, bottom: 4 };
-        circleRadius = 4.2;
-        fontSize = 6.2;
-        openRadius = 2.8;
-        barreRadius = 4.6;
+        // default: small (Phase 3.4.3 non-occluding compact default)
+        width = options.width || 52;
+        height = options.height || 40;
+        margin = { top: 6, left: hasFretLabel ? 12 : 5, right: 5, bottom: 3 };
+        circleRadius = 3.2;
+        fontSize = 4.8;
+        openRadius = 2.2;
+        barreRadius = 3.4;
       }
     } else {
       // Full CoachPanel diagram
@@ -323,12 +323,12 @@
 
     const isLightTheme = options.inlineTheme === 'light' || options.theme === 'light';
     const bgFill = isLightTheme 
-      ? (options.bgFill || 'rgba(255, 255, 255, 0.96)') 
+      ? (options.bgFill || (isCompact ? 'rgba(255, 255, 255, 0.78)' : 'rgba(255, 255, 255, 0.96)')) 
       : (isCompact ? 'rgba(24, 24, 27, 0.45)' : '#18181b');
-    const nutStroke = isLightTheme ? '#1e293b' : '#f4f4f5';
+    const nutStroke = isLightTheme ? '#475569' : '#f4f4f5';
     const topFretStroke = isLightTheme ? '#94a3b8' : '#52525b';
-    const fretStroke = isLightTheme ? '#cbd5e1' : '#3f3f46';
-    const stringStroke = isLightTheme ? '#64748b' : '#71717a';
+    const fretStroke = isLightTheme ? '#e2e8f0' : '#3f3f46';
+    const stringStroke = isLightTheme ? '#94a3b8' : '#71717a';
     const fretTextFill = isLightTheme ? '#475569' : '#00d26a';
 
     let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" class="sfc-shape-svg${isCompact ? ' sfc-shape-compact' : ''} sfc-density-${density}${isLightTheme ? ' sfc-theme-light' : ''}" width="${isCompact ? width : '100%'}" height="${isCompact ? height : '100%'}">`;

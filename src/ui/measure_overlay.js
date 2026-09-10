@@ -33,7 +33,7 @@
 
       this.measureData = measureData;
       this.options = options;
-      this.density = options.density || 'medium';
+      this.density = options.density || 'small';
       this.measureNumber = measureData.measureNumber || 1;
       this.segments = ShapeDiagram.splitMeasureIntoSegments(measureData);
       this.currentSegmentIndex = 0;
@@ -53,24 +53,24 @@
     applyDensityMetrics() {
       const isMulti = this.segments.length > 1;
       if (this.density === 'large') {
-        this.svgWidth = this.options.svgWidth || 98;
-        this.svgHeight = this.options.svgHeight || 72;
-        this.overlayWidth = this.options.width || (isMulti ? 210 : 106);
-        this.overlayHeight = this.options.height || 90;
-        this.minPerSeg = 98;
-      } else if (this.density === 'medium') {
-        this.svgWidth = this.options.svgWidth || 84;
-        this.svgHeight = this.options.svgHeight || 62;
-        this.overlayWidth = this.options.width || (isMulti ? 180 : 92);
-        this.overlayHeight = this.options.height || 78;
-        this.minPerSeg = 84;
-      } else {
-        // 'small' fallback
-        this.svgWidth = this.options.svgWidth || 68;
-        this.svgHeight = this.options.svgHeight || 50;
-        this.overlayWidth = this.options.width || (isMulti ? 148 : 76);
+        this.svgWidth = this.options.svgWidth || 76;
+        this.svgHeight = this.options.svgHeight || 56;
+        this.overlayWidth = this.options.width || (isMulti ? 164 : 84);
         this.overlayHeight = this.options.height || 66;
-        this.minPerSeg = 68;
+        this.minPerSeg = 76;
+      } else if (this.density === 'medium') {
+        this.svgWidth = this.options.svgWidth || 62;
+        this.svgHeight = this.options.svgHeight || 48;
+        this.overlayWidth = this.options.width || (isMulti ? 136 : 68);
+        this.overlayHeight = this.options.height || 56;
+        this.minPerSeg = 62;
+      } else {
+        // 'small' default (Phase 3.4.3 non-occluding compact default)
+        this.svgWidth = this.options.svgWidth || 52;
+        this.svgHeight = this.options.svgHeight || 40;
+        this.overlayWidth = this.options.width || (isMulti ? 116 : 58);
+        this.overlayHeight = this.options.height || 46;
+        this.minPerSeg = 52;
       }
 
       if (this.domElement) {
@@ -225,9 +225,9 @@
         ? ShapeDiagram.classifyMeasure(this.measureData) 
         : { type: 'shape' };
 
-      // Header with measure number, active position, and hand span / shift chip
+      // Header with position and hand span (omits redundant measure number)
       const spanText = classification.handSpan ? `${classification.handSpan.minFret}–${classification.handSpan.maxFret}` : '';
-      let headerPosText = `M${this.measureNumber} · P${currentSegment.position}`;
+      let headerPosText = `P${currentSegment.position}`;
       if (spanText) {
         headerPosText += ` · ${spanText}`;
       }
@@ -279,18 +279,26 @@
       const overlayW = this.domElement.offsetWidth || this.overlayWidth;
       const overlayH = this.domElement.offsetHeight || this.overlayHeight;
 
-      // Position above the measure target with tight gap
-      let top = anchorRect.top + scrollY - overlayH - 4;
-      let left = anchorRect.left + scrollX + 3; // slight left padding inside the measure
+      // Position strictly above notation lines (overlay.bottom <= notationTop - safeGap)
+      const notationTop = (typeof anchorRect.notationTop === 'number') ? anchorRect.notationTop : (anchorRect.stringsTop || anchorRect.top);
+      const safeGap = 4;
+
+      let top = notationTop + scrollY - overlayH - safeGap;
+      let left = anchorRect.left + scrollX + 2; // slight left padding inside the measure
 
       // Adaptive boundary check: NEVER overlap neighboring measure to the right
       if (left + overlayW > anchorRect.right + scrollX) {
         left = Math.max(anchorRect.left + scrollX, anchorRect.right + scrollX - overlayW - 2);
       }
 
-      // If top space is constrained (e.g. very top of page), adjust below staff
+      // Hard non-occlusion guard: overlay bottom must never cross notationTop - safeGap
+      if (top + overlayH > notationTop + scrollY - safeGap) {
+        top = notationTop + scrollY - safeGap - overlayH;
+      }
+
+      // If at top edge of document
       if (top < 0) {
-        top = Math.max(0, anchorRect.bottom + scrollY + 4);
+        top = 2;
       }
 
       this.domElement.style.top = `${Math.round(top)}px`;

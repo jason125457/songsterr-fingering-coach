@@ -223,9 +223,9 @@ console.log('🧪 Test 5: Glanceable Inline Overlay Output (C1 & C2)...');
 const seqOverlay = new MeasureOverlay(seqMeasureData, { density: 'small' });
 const seqHtml = seqOverlay.domElement.innerHTML;
 assert(seqHtml.includes('sfc-shape-svg'), 'Sequence measure must render visual Hand Map SVG');
-assert(seqHtml.includes('M2 · P9'), 'Sequence overlay must show measure and position');
+assert(seqHtml.includes('P9'), 'Sequence overlay must show position');
 assert(seqHtml.includes('9–11'), 'Sequence overlay must show hand span');
-console.log('  ✓ Sequence overlay renders visual Hand Map (M2 · P9 · 9–11 with ghosted note guides)');
+console.log('  ✓ Sequence overlay renders visual Hand Map (P9 · 9–11 with ghosted note guides)');
 
 // 5.2 Shape Measure Overlay
 const chordMeasureData = fakeFingeringResult.measures[1];
