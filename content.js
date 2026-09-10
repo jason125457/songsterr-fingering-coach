@@ -636,6 +636,8 @@
     getActiveSongId: () => currentActiveSongId,
     getActivePartId: () => currentActivePartId,
     getCache: () => fingeringCache,
+    getScoreGeometry: () => (typeof ScoreGeometry !== 'undefined' ? ScoreGeometry : null),
+    ScoreGeometry: typeof ScoreGeometry !== 'undefined' ? ScoreGeometry : null,
     resolveTrackForPartId,
     isSupportedGuitarTrack,
     extractSongIdentityFromUrl

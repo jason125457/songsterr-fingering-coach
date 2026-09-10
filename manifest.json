@@ -23,6 +23,7 @@
         "src/ui/measure_overlay.js",
         "src/ui/overlay_manager.js",
         "src/ui/coach_panel.js",
+        "src/songsterr/score_geometry.js",
         "src/songsterr/playback_mapper.js",
         "src/songsterr/playback_observer.js",
         "src/controller/playback_sync_controller.js",

@@ -107,6 +107,10 @@
       const bEv = beat.eventIndex || beat.beatNumber;
       const isActiveBeat = activeEventIndex !== null && (bEv === activeEventIndex || beat.beatNumber === activeEventIndex);
 
+      if (options.singleEventOnly && !isActiveBeat) {
+        return;
+      }
+
       (beat.notes || []).forEach((note) => {
         if (note.isRest || note.string < 0) return;
 
@@ -163,29 +167,53 @@
       ? Math.min(4, Math.max(3, maxFret - minFret + 1))
       : Math.min(6, Math.max(4, maxFret - minFret + 1));
 
-    // Detect mini-barres: Same finger pressing the same fret on >= 2 adjacent strings
-    const fretFingerBuckets = new Map();
-    notesMap.forEach((entry) => {
-      const bucketKey = `${entry.fret}_${entry.finger}`;
-      if (!fretFingerBuckets.has(bucketKey)) {
-        fretFingerBuckets.set(bucketKey, []);
+    // True simultaneous mini-barre detection (C1):
+    // Only fretted notes in the SAME canonical event sharing same fret + same finger on >= 2 adjacent strings
+    const trueBarreKeys = new Set();
+    beats.forEach((beat) => {
+      const bEv = beat.eventIndex || beat.beatNumber;
+      if (options.singleEventOnly && activeEventIndex !== null && bEv !== activeEventIndex) {
+        return;
       }
-      fretFingerBuckets.get(bucketKey).push(entry);
+      const fretted = (beat.notes || []).filter(n => !n.isRest && !n.isDead && !n.isMuted && n.fret > 0);
+      const buckets = new Map();
+      fretted.forEach((n) => {
+        const finger = n.recommendedFinger ?? n.finger ?? 1;
+        if (finger <= 0) return;
+        const key = `${n.fret}_${finger}`;
+        if (!buckets.has(key)) buckets.set(key, []);
+        buckets.get(key).push(n);
+      });
+
+      buckets.forEach((notes, key) => {
+        if (notes.length >= 2) {
+          const strList = notes.map(n => n.string).sort((a, b) => a - b);
+          let isAdjacent = false;
+          for (let i = 0; i < strList.length - 1; i++) {
+            if (strList[i + 1] - strList[i] === 1) {
+              isAdjacent = true;
+              break;
+            }
+          }
+          if (isAdjacent) {
+            trueBarreKeys.add(key);
+          }
+        }
+      });
     });
 
+    const allNotes = Array.from(notesMap.values());
     const barres = [];
-    fretFingerBuckets.forEach((entries, key) => {
-      if (entries.length >= 2) {
-        const [fretStr, fingerStr] = key.split('_');
-        const fret = parseInt(fretStr, 10);
-        const finger = parseInt(fingerStr, 10);
+    trueBarreKeys.forEach((key) => {
+      const [fretStr, fingerStr] = key.split('_');
+      const fret = parseInt(fretStr, 10);
+      const finger = parseInt(fingerStr, 10);
 
-        // Sort by column (left to right)
+      const entries = allNotes.filter(n => n.fret === fret && n.finger === finger);
+      if (entries.length >= 2) {
         entries.sort((a, b) => a.col - b.col);
         const minCol = entries[0].col;
         const maxCol = entries[entries.length - 1].col;
-
-        // Check if contiguous or nearly contiguous
         const isBarreActive = entries.some(e => e.activeOnBeats.length > 0);
 
         barres.push({
@@ -199,7 +227,6 @@
       }
     });
 
-    const allNotes = Array.from(notesMap.values());
     const usedFingers = Array.from(new Set(allNotes.map(n => n.finger).filter(f => f > 0))).sort((a, b) => a - b);
 
     return {
@@ -421,10 +448,89 @@
     return svg;
   }
 
+  /**
+   * Classify a measure into:
+   * - 'sequence': predominantly single-note melodic events (riffs, scales)
+   * - 'shape': single stable or highly similar simultaneous grip across events
+   * - 'mixed': combination of melody and simultaneous chord events
+   * - 'multi-shape': multiple materially different simultaneous grips within one measure
+   */
+  function classifyMeasure(measure) {
+    if (!measure || !Array.isArray(measure.beats) || measure.beats.length === 0) {
+      return { type: 'sequence', handSpan: null, fingerSequence: [], gripSignatures: [] };
+    }
+
+    const nonRestBeats = measure.beats.filter(b => 
+      Array.isArray(b.notes) && b.notes.some(n => !n.isRest && n.fret >= 0)
+    );
+
+    if (nonRestBeats.length === 0) {
+      return { type: 'sequence', handSpan: null, fingerSequence: [], gripSignatures: [] };
+    }
+
+    const frettedCounts = nonRestBeats.map(b => 
+      b.notes.filter(n => !n.isRest && !n.isDead && n.fret > 0).length
+    );
+
+    const hasSimultaneous = frettedCounts.some(count => count >= 2);
+    const allSimultaneous = frettedCounts.every(count => count >= 2);
+
+    const frets = [];
+    const fingerSequence = [];
+    nonRestBeats.forEach(b => {
+      const activeNotes = b.notes.filter(n => !n.isRest && !n.isDead && n.fret > 0);
+      activeNotes.forEach(n => {
+        frets.push(n.fret);
+        const f = n.recommendedFinger ?? n.finger;
+        if (f !== undefined && f !== null && f > 0) {
+          fingerSequence.push(f);
+        }
+      });
+    });
+
+    const minFret = frets.length > 0 ? Math.min(...frets) : (measure.recommendedPosition || 1);
+    const maxFret = frets.length > 0 ? Math.max(...frets) : minFret;
+    const handSpan = { minFret, maxFret, text: `Hand ${minFret}–${maxFret}` };
+
+    if (!hasSimultaneous) {
+      return {
+        type: 'sequence',
+        handSpan,
+        fingerSequence,
+        gripSignatures: []
+      };
+    }
+
+    const gripSignatures = new Set();
+    nonRestBeats.forEach(b => {
+      const fNotes = b.notes.filter(n => !n.isRest && !n.isDead && n.fret > 0);
+      if (fNotes.length >= 2) {
+        const sig = fNotes.map(n => `s${n.string}:f${n.fret}`).sort().join('|');
+        gripSignatures.add(sig);
+      }
+    });
+
+    if (allSimultaneous) {
+      if (gripSignatures.size <= 1) {
+        return { type: 'shape', handSpan, fingerSequence, gripSignatures: Array.from(gripSignatures) };
+      } else {
+        return { type: 'multi-shape', handSpan, fingerSequence, gripSignatures: Array.from(gripSignatures) };
+      }
+    }
+
+    return {
+      type: 'mixed',
+      handSpan,
+      fingerSequence,
+      gripSignatures: Array.from(gripSignatures)
+    };
+  }
+
   return {
     stringToCol,
     splitMeasureIntoSegments,
     aggregateSegmentShape,
-    renderSVG
+    renderSVG,
+    classifyMeasure
   };
 });

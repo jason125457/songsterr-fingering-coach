@@ -137,6 +137,34 @@
         }
       }
 
+      // Check presentation classification for single-segment measures
+      const classification = ShapeDiagram.classifyMeasure 
+        ? ShapeDiagram.classifyMeasure(this.measureData) 
+        : { type: 'shape' };
+
+      // Sequence presentation for pure single-note melodic measures without internal position shifts
+      if (numSegments <= 1 && classification.type === 'sequence') {
+        const spanText = classification.handSpan ? classification.handSpan.text : `P${this.measureData.recommendedPosition || 1}`;
+        const seqFlow = (classification.fingerSequence && classification.fingerSequence.length > 0)
+          ? classification.fingerSequence.slice(0, 8).map((f, i) => {
+              const isFActive = this.activeEventIndex !== null && (i + 1 === this.activeEventIndex);
+              return `<span class="sfc-seq-f${isFActive ? ' sfc-seq-f-active' : ''}">${f}</span>`;
+            }).join('<span class="sfc-seq-sep">➔</span>')
+          : `P${this.measureData.recommendedPosition || 1}`;
+
+        return `
+          <div class="sfc-overlay-sequence">
+            <div class="sfc-seq-header">
+              <span class="sfc-seq-span">${spanText}</span>
+              <span class="sfc-seq-pos">P${this.measureData.recommendedPosition || 1}</span>
+            </div>
+            <div class="sfc-seq-flow">
+              ${seqFlow}
+            </div>
+          </div>
+        `;
+      }
+
       if (numSegments <= 1) {
         const seg = this.segments[0];
         const svg = ShapeDiagram.renderSVG(seg, this.activeEventIndex, {

@@ -48,13 +48,11 @@
       return null;
     }
 
-    // Strategy 1: Source Identity Match (exact voiceIndex + beatIndex)
-    const vIdx = typeof playbackEvent.voiceIndex === 'number' ? playbackEvent.voiceIndex : 0;
-    const bIdx = typeof playbackEvent.beatIndex === 'number'
-      ? playbackEvent.beatIndex
-      : (typeof playbackEvent.eventIndex === 'number' ? playbackEvent.eventIndex - 1 : null);
-
-    if (bIdx !== null) {
+    // Strategy 1: Source Identity Match (requires genuine beatIndex, e.g. from cursorMarker)
+    const hasGenuineBeatIndex = typeof playbackEvent.beatIndex === 'number' && playbackEvent.beatIndex !== null;
+    if (hasGenuineBeatIndex) {
+      const vIdx = typeof playbackEvent.voiceIndex === 'number' ? playbackEvent.voiceIndex : 0;
+      const bIdx = playbackEvent.beatIndex;
       const match = measure.beats.find(b => 
         Array.isArray(b.sources) && 
         b.sources.some(s => s.voiceIndex === vIdx && s.beatIndex === bIdx)
@@ -84,11 +82,14 @@
         }
       }
 
+      // Small tolerance for coordinate/floating-point rounding (~1/128 whole note)
+      const EPSILON = 0.008;
+
       let bestEvent = measure.beats[0];
       for (let i = 0; i < measure.beats.length; i++) {
         const b = measure.beats[i];
         const progress = (b.timeOffset?.value ?? ((i) / measure.beats.length)) / measureDuration;
-        if (progress <= targetPos) {
+        if (progress <= targetPos + EPSILON) {
           bestEvent = b;
         } else {
           break;

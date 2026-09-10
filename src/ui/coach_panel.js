@@ -509,6 +509,13 @@
         </div>
       `;
 
+      // Classification for Hand Span & Sequence semantics
+      const classification = ShapeDiagram.classifyMeasure ? ShapeDiagram.classifyMeasure(measure) : null;
+      const handSpanText = classification?.handSpan ? classification.handSpan.text : null;
+      const spanBadgeHtml = handSpanText
+        ? `<span class="sfc-badge sfc-badge-span" title="Hand Fret Span">📐 ${handSpanText}</span>`
+        : '';
+
       // 2. Status badges HTML
       const posLabel = activeSegment.position ? `Pos ${activeSegment.position}` : `Pos ${measure.recommendedPosition || '?'}`;
       const shiftBadgeHtml = hasShiftInMeasure
@@ -532,6 +539,7 @@
       const statusHtml = `
         <div class="sfc-status-badges">
           <span class="sfc-badge sfc-badge-pos">🖐️ ${posLabel}</span>
+          ${spanBadgeHtml}
           ${shiftBadgeHtml}
           ${sigBadgeHtml}
           ${confidenceBadgeHtml}
@@ -582,17 +590,39 @@
 
       // 5. SVG Hand-Shape Diagram (when measure-only, pass null to avoid falsely highlighting arbitrary event)
       const highlightedEvent = isMeasureOnly ? null : this.currentEventIndex;
-      const svgDiagram = ShapeDiagram.renderSVG(activeSegment, highlightedEvent, {
-        width: 260,
-        height: 210,
-        tuningNames,
-        tuning: trackTuning
-      });
-      const diagramHtml = `
-        <div class="sfc-diagram-box">
-          ${svgDiagram}
-        </div>
-      `;
+      const isCurrentEventRest = currentEvent && (currentEvent.notes.length === 0 || currentEvent.notes.every(n => n.isRest || n.fret < 0));
+
+      let diagramHtml = '';
+      if (isCurrentEventRest && !isMeasureOnly) {
+        // Rest state handling (C4): Left hand free, no fake active grip
+        const upcomingEvent = measure.beats.slice(this.currentEventIndex).find(b => b.notes && b.notes.some(n => !n.isRest && n.fret >= 0));
+        const upcomingPos = upcomingEvent ? (upcomingEvent.recommendedPosition || measure.recommendedPosition) : measure.recommendedPosition;
+        const upcomingCue = upcomingPos ? `即將進入 Pos ${upcomingPos}` : '準備下個小節';
+
+        diagramHtml = `
+          <div class="sfc-diagram-box sfc-rest-diagram-box">
+            <div class="sfc-rest-card">
+              <div class="sfc-rest-icon">⏸</div>
+              <div class="sfc-rest-title">休止 / 左手放鬆</div>
+              <div class="sfc-rest-subtitle">Rest / Left Hand Free</div>
+              <div class="sfc-rest-upcoming">✦ ${upcomingCue}</div>
+            </div>
+          </div>
+        `;
+      } else {
+        const svgDiagram = ShapeDiagram.renderSVG(activeSegment, highlightedEvent, {
+          width: 260,
+          height: 210,
+          tuningNames,
+          tuning: trackTuning,
+          singleEventOnly: !isMeasureOnly
+        });
+        diagramHtml = `
+          <div class="sfc-diagram-box">
+            ${svgDiagram}
+          </div>
+        `;
+      }
 
       // 6. Current Canonical Event Details Card (supporting Multi-Voice)
       let eventDetailsHtml = '';

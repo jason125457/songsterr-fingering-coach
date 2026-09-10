@@ -545,7 +545,8 @@
 
         return {
           measureNumber: resolvedMeasure,
-          eventIndex: 1,
+          eventIndex: null,
+          beatIndex: null,
           positionInMeasure: parseFloat(positionInMeasure.toFixed(3)),
           confidence: 'exact'
         };
@@ -568,7 +569,8 @@
           if (closestM !== null) {
             return {
               measureNumber: closestM,
-              eventIndex: 1,
+              eventIndex: null,
+              beatIndex: null,
               positionInMeasure: 0.0,
               confidence: 'measure-only'
             };
@@ -652,9 +654,9 @@
               const mIdx = parseInt(mt.getAttribute('data-measure-index') || '0', 10);
               return {
                 measureNumber: mIdx + 1,
-                eventIndex: 1,
-                voiceIndex: 0,
-                beatIndex: 0,
+                eventIndex: null,
+                voiceIndex: null,
+                beatIndex: null,
                 positionInMeasure: Math.max(0, Math.min(1, (cursorX - x) / w)),
                 currentTime: 0.0,
                 confidence: 'measure-only',
@@ -752,17 +754,23 @@
     updateState(patch) {
       if (!patch) return;
       if (patch.eventIndex !== undefined && patch.beatIndex === undefined) {
-        patch.beatIndex = patch.eventIndex - 1;
+        patch.beatIndex = (typeof patch.eventIndex === 'number' && patch.eventIndex !== null)
+          ? patch.eventIndex - 1
+          : null;
       } else if (patch.beatIndex !== undefined && patch.eventIndex === undefined) {
-        patch.eventIndex = patch.beatIndex + 1;
+        patch.eventIndex = (typeof patch.beatIndex === 'number' && patch.beatIndex !== null)
+          ? patch.beatIndex + 1
+          : null;
       }
 
       const prev = Object.assign({}, this.currentState);
       Object.assign(this.currentState, patch);
 
+      const posDiff = Math.abs((prev.positionInMeasure || 0) - (this.currentState.positionInMeasure || 0));
       const isChanged = prev.state !== this.currentState.state ||
                         prev.measureNumber !== this.currentState.measureNumber ||
-                        prev.eventIndex !== this.currentState.eventIndex;
+                        prev.eventIndex !== this.currentState.eventIndex ||
+                        posDiff >= 0.005;
 
       if (isChanged) {
         this.emit(Object.assign({}, this.currentState));

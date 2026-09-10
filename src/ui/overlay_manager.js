@@ -141,6 +141,32 @@
       this.anchorMap.clear();
       if (typeof document === 'undefined') return;
 
+      // 1. Modern Songsterr DOM: Discover anchors via ScoreGeometry adapter
+      const scoreGeom = (typeof ScoreGeometry !== 'undefined' ? ScoreGeometry : (typeof require === 'function' ? (() => { try { return require('../songsterr/score_geometry'); } catch (e) { return null; } })() : null));
+
+      if (scoreGeom && typeof scoreGeom.getMeasureGeometries === 'function') {
+        const geoms = scoreGeom.getMeasureGeometries(document);
+        if (geoms && geoms.length > 0) {
+          geoms.forEach((g) => {
+            this.anchorMap.set(g.measureNumber, {
+              isGeometry: true,
+              geometry: g,
+              measureNumber: g.measureNumber,
+              getBoundingClientRect: () => ({
+                left: g.left,
+                right: g.right,
+                top: g.top,
+                bottom: g.bottom,
+                width: g.width,
+                height: g.height
+              })
+            });
+          });
+          return;
+        }
+      }
+
+      // 2. Fallback for mock environments / legacy target rects
       const targets = document.querySelectorAll(
         'rect[data-testid="tab-measure-target"][data-measure-index], rect[data-testid="tab-measure-target"][data-measure-number]'
       );

@@ -713,4 +713,131 @@
   border-radius: 4px;
 }
 
+/* Phase 3.4: Hand Span Badge */
+.sfc-badge-span {
+  background: rgba(99, 102, 241, 0.16);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+}
+
+/* Phase 3.4: CoachPanel Rest State Banner */
+.sfc-rest-diagram-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background: #18181b;
+  border-radius: 8px;
+  border: 1px dashed rgba(113, 113, 122, 0.35);
+}
+
+.sfc-rest-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px 16px;
+  gap: 6px;
+}
+
+.sfc-rest-icon {
+  font-size: 26px;
+  opacity: 0.85;
+}
+
+.sfc-rest-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #e4e4e7;
+  letter-spacing: 0.3px;
+}
+
+.sfc-rest-subtitle {
+  font-size: 11px;
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.sfc-rest-upcoming {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+/* Phase 3.4: Inline Overlay Sequence Presentation */
+.sfc-overlay-sequence {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 3px 6px;
+  background: rgba(24, 24, 27, 0.88);
+  border: 1px solid rgba(113, 113, 122, 0.35);
+  border-radius: 5px;
+  backdrop-filter: blur(4px);
+  min-width: 60px;
+}
+
+.sfc-seq-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.sfc-seq-span {
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #a5b4fc;
+}
+
+.sfc-seq-pos {
+  font-size: 8px;
+  font-weight: 600;
+  color: #e4e4e7;
+  background: rgba(63, 63, 70, 0.6);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.sfc-seq-flow {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: nowrap;
+  overflow-x: hidden;
+}
+
+.sfc-seq-f {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 50%;
+  background: #3f3f46;
+  color: #f4f4f5;
+  border: 1px solid #71717a;
+}
+
+.sfc-seq-f-active {
+  background: #00d26a;
+  color: #09090b;
+  border-color: #a7f3d0;
+  box-shadow: 0 0 4px rgba(0, 210, 106, 0.6);
+}
+
+.sfc-seq-sep {
+  font-size: 7px;
+  color: #71717a;
+}
+
+
 
