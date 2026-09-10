@@ -75,7 +75,7 @@
 
       if (this.domElement) {
         this.domElement.className = `sfc-measure-overlay sfc-density-${this.density}${this.isHighlighted ? ' sfc-overlay-active' : ''}`;
-        this.domElement.style.width = `${this.overlayWidth}px`;
+        this.domElement.style.width = 'auto';
       }
     }
 
@@ -102,7 +102,7 @@
       el.setAttribute('data-measure-number', String(this.measureNumber));
       el.style.position = 'absolute';
       el.style.pointerEvents = 'none';
-      el.style.width = `${this.overlayWidth}px`;
+      el.style.width = 'auto';
 
       this.domElement = el;
       this.render();
@@ -229,8 +229,51 @@
 
       const currentSegment = this.segments[this.currentSegmentIndex] || this.segments[0];
       const hasShift = this.segments.length > 1;
+      const classification = ShapeDiagram.classifyMeasure 
+        ? ShapeDiagram.classifyMeasure(this.measureData) 
+        : { type: 'shape' };
 
-      // Header with measure number, active position, and shift transition chip if any
+      // C1: Sequence measures render clean single-row glanceable pill
+      if (this.segments.length <= 1 && classification.type === 'sequence') {
+        const spanText = classification.handSpan ? classification.handSpan.text : `Hand P${currentSegment.position}`;
+        const seqFlow = (classification.fingerSequence && classification.fingerSequence.length > 0)
+          ? classification.fingerSequence.slice(0, 6).map((f, i) => {
+              const isFActive = this.activeEventIndex !== null && (i + 1 === this.activeEventIndex);
+              return `<span class="sfc-seq-f${isFActive ? ' sfc-seq-f-active' : ''}">${f}</span>`;
+            }).join('<span class="sfc-seq-sep">➔</span>')
+          : `P${currentSegment.position}`;
+
+        this.domElement.innerHTML = `
+          <div class="sfc-overlay-glance-seq">
+            <span class="sfc-glance-tag">M${this.measureNumber} · P${currentSegment.position}</span>
+            <span class="sfc-glance-span">${spanText}</span>
+            <span class="sfc-glance-flow">${seqFlow}</span>
+          </div>
+        `;
+        if (this.isHighlighted) {
+          this.domElement.classList.add('sfc-overlay-active');
+        } else {
+          this.domElement.classList.remove('sfc-overlay-active');
+        }
+        return;
+      }
+
+      // Extremely narrow measure micro fallback
+      const availableWidth = this.lastAnchorWidth;
+      const maxAllowedW = availableWidth ? Math.round(availableWidth * 0.8) : this.overlayWidth;
+      const isExtremelyNarrow = maxAllowedW < (this.segments.length > 1 ? 88 : 42);
+      if (isExtremelyNarrow) {
+        const bodyHTML = this.renderDiagramsHTML(this.lastAnchorWidth);
+        this.domElement.innerHTML = bodyHTML;
+        if (this.isHighlighted) {
+          this.domElement.classList.add('sfc-overlay-active');
+        } else {
+          this.domElement.classList.remove('sfc-overlay-active');
+        }
+        return;
+      }
+
+      // C2: Shape measures render header + mini chord SVG diagram
       let headerHTML = `<div class="sfc-overlay-header">`;
       headerHTML += `<span class="sfc-overlay-pos-badge">M${this.measureNumber} · P${currentSegment.position}</span>`;
       

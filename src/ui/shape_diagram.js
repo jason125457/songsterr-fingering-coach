@@ -431,21 +431,42 @@
       const isActive = note.activeOnBeats.length > 0;
 
       const cRadius = circleRadius;
-      const circleFill = isActive ? '#00d26a' : '#3f3f46';
-      const circleStroke = isActive ? '#a7f3d0' : '#71717a';
-      const textFill = isActive ? '#09090b' : '#f4f4f5';
+      let circleFill, circleStroke, textFill, strokeDash;
 
       if (isActive) {
         // Outer glowing pulse ring
-        svg += `<circle cx="${x}" cy="${y}" r="${cRadius + (isCompact ? 2.0 : 4)}" fill="rgba(0, 210, 106, 0.28)" />`;
+        svg += `<circle cx="${x}" cy="${y}" r="${cRadius + (isCompact ? 2.0 : 4)}" fill="rgba(0, 210, 106, 0.32)" />`;
+        circleFill = '#00d26a';
+        circleStroke = '#a7f3d0';
+        textFill = '#09090b';
+        strokeDash = '';
+      } else if (options.handFrameMode) {
+        // Ghosted structural guide for hand frame overview
+        circleFill = 'rgba(39, 39, 42, 0.65)';
+        circleStroke = 'rgba(161, 161, 170, 0.65)';
+        textFill = '#d4d4d8';
+        strokeDash = 'stroke-dasharray="2.5,1.5"';
+      } else {
+        circleFill = '#3f3f46';
+        circleStroke = '#71717a';
+        textFill = '#f4f4f5';
+        strokeDash = '';
       }
 
-      svg += `<circle cx="${x}" cy="${y}" r="${cRadius}" fill="${circleFill}" stroke="${circleStroke}" stroke-width="${isActive ? (isCompact ? 1.2 : 2) : (isCompact ? 0.8 : 1.2)}" />`;
-      svg += `<text x="${x}" y="${y + (isCompact ? (cRadius * 0.45) : 3.5)}" fill="${textFill}" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="${fontSize}" font-weight="bold" text-anchor="middle">${note.finger}</text>`;
+      svg += `<circle cx="${x}" cy="${y}" r="${cRadius}" fill="${circleFill}" stroke="${circleStroke}" stroke-width="${isActive ? (isCompact ? 1.4 : 2) : (isCompact ? 0.8 : 1.2)}" ${strokeDash} />`;
+      svg += `<text x="${x}" y="${y + (isCompact ? (cRadius * 0.45) : 3.5)}" fill="${textFill}" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="${fontSize}" font-weight="${isActive ? 'bold' : '600'}" text-anchor="middle">${note.finger}</text>`;
     });
 
     svg += `</svg>`;
     return svg;
+  }
+
+  /**
+   * Render Hand-Frame Overview SVG for a sequence / melody measure
+   * Shows the structural hand frame with ghosted note guides and active note highlight
+   */
+  function renderHandFrameSVG(segment, activeBeatNumber = null, options = {}) {
+    return renderSVG(segment, activeBeatNumber, Object.assign({}, options, { handFrameMode: true, singleEventOnly: false }));
   }
 
   /**
@@ -457,7 +478,7 @@
    */
   function classifyMeasure(measure) {
     if (!measure || !Array.isArray(measure.beats) || measure.beats.length === 0) {
-      return { type: 'sequence', handSpan: null, fingerSequence: [], gripSignatures: [] };
+      return { type: 'sequence', handSpan: null, fingerSequence: [], eventSteps: [], gripSignatures: [] };
     }
 
     const nonRestBeats = measure.beats.filter(b => 
@@ -465,7 +486,7 @@
     );
 
     if (nonRestBeats.length === 0) {
-      return { type: 'sequence', handSpan: null, fingerSequence: [], gripSignatures: [] };
+      return { type: 'sequence', handSpan: null, fingerSequence: [], eventSteps: [], gripSignatures: [] };
     }
 
     const frettedCounts = nonRestBeats.map(b => 
@@ -477,10 +498,26 @@
 
     const frets = [];
     const fingerSequence = [];
+    const eventSteps = [];
+
     nonRestBeats.forEach(b => {
-      const activeNotes = b.notes.filter(n => !n.isRest && !n.isDead && n.fret > 0);
+      const activeNotes = b.notes.filter(n => !n.isRest && !n.isDead && n.fret >= 0);
+      const evIdx = b.eventIndex || b.beatNumber;
+      if (activeNotes.length > 0) {
+        eventSteps.push({
+          eventIndex: evIdx,
+          timing: b.timing || '',
+          notes: activeNotes.map(n => ({
+            string: n.string,
+            fret: n.fret,
+            finger: n.recommendedFinger ?? n.finger ?? (n.fret === 0 ? 0 : 1),
+            pitch: n.pitch || ''
+          }))
+        });
+      }
+
       activeNotes.forEach(n => {
-        frets.push(n.fret);
+        if (n.fret > 0) frets.push(n.fret);
         const f = n.recommendedFinger ?? n.finger;
         if (f !== undefined && f !== null && f > 0) {
           fingerSequence.push(f);
@@ -497,6 +534,7 @@
         type: 'sequence',
         handSpan,
         fingerSequence,
+        eventSteps,
         gripSignatures: []
       };
     }
@@ -512,9 +550,9 @@
 
     if (allSimultaneous) {
       if (gripSignatures.size <= 1) {
-        return { type: 'shape', handSpan, fingerSequence, gripSignatures: Array.from(gripSignatures) };
+        return { type: 'shape', handSpan, fingerSequence, eventSteps, gripSignatures: Array.from(gripSignatures) };
       } else {
-        return { type: 'multi-shape', handSpan, fingerSequence, gripSignatures: Array.from(gripSignatures) };
+        return { type: 'multi-shape', handSpan, fingerSequence, eventSteps, gripSignatures: Array.from(gripSignatures) };
       }
     }
 
@@ -522,6 +560,7 @@
       type: 'mixed',
       handSpan,
       fingerSequence,
+      eventSteps,
       gripSignatures: Array.from(gripSignatures)
     };
   }
@@ -531,6 +570,7 @@
     splitMeasureIntoSegments,
     aggregateSegmentShape,
     renderSVG,
+    renderHandFrameSVG,
     classifyMeasure
   };
 });

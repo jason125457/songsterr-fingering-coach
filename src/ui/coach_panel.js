@@ -509,14 +509,28 @@
         </div>
       `;
 
-      // Classification for Hand Span & Sequence semantics
-      const classification = ShapeDiagram.classifyMeasure ? ShapeDiagram.classifyMeasure(measure) : null;
+      // 2. Measure presentation classification and badges
+      const classification = ShapeDiagram.classifyMeasure ? ShapeDiagram.classifyMeasure(measure) : { type: 'sequence' };
       const handSpanText = classification?.handSpan ? classification.handSpan.text : null;
       const spanBadgeHtml = handSpanText
         ? `<span class="sfc-badge sfc-badge-span" title="Hand Fret Span">📐 ${handSpanText}</span>`
         : '';
 
-      // 2. Status badges HTML
+      const classType = classification?.type || 'sequence';
+      const classLabels = {
+        sequence: '🎼 Sequence',
+        shape: '🎸 Shape',
+        mixed: '🔀 Mixed',
+        'multi-shape': '⚡ Multi-Shape'
+      };
+      const classBadgeClass = {
+        sequence: 'sfc-badge-seq',
+        shape: 'sfc-badge-shape',
+        mixed: 'sfc-badge-mixed',
+        'multi-shape': 'sfc-badge-multishape'
+      };
+      const classBadgeHtml = `<span class="sfc-badge ${classBadgeClass[classType] || 'sfc-badge-seq'}" title="Measure Classification">${classLabels[classType] || classType}</span>`;
+
       const posLabel = activeSegment.position ? `Pos ${activeSegment.position}` : `Pos ${measure.recommendedPosition || '?'}`;
       const shiftBadgeHtml = hasShiftInMeasure
         ? `<span class="sfc-badge sfc-badge-shift">⚡ Shift${isShiftOnCurrentEvent ? ' (Ev ' + this.currentEventIndex + ')' : ''}</span>`
@@ -540,6 +554,7 @@
         <div class="sfc-status-badges">
           <span class="sfc-badge sfc-badge-pos">🖐️ ${posLabel}</span>
           ${spanBadgeHtml}
+          ${classBadgeHtml}
           ${shiftBadgeHtml}
           ${sigBadgeHtml}
           ${confidenceBadgeHtml}
@@ -564,7 +579,172 @@
         segmentsHtml += `</div>`;
       }
 
-      // 4. Canonical Event Pills
+      // Tuning names
+      const trackTuning = this.data.track?.tuningMidi || this.data.track?.tuning;
+      const tuningNames = Array.isArray(this.data.track?.tuningNames) && this.data.track.tuningNames.length === 6
+        ? this.data.track.tuningNames
+        : (Array.isArray(trackTuning) && trackTuning.length === 6
+            ? trackTuning.map(midiToPitch)
+            : ['E4', 'B3', 'G3', 'D3', 'A2', 'E2']);
+
+      const highlightedEvent = isMeasureOnly ? null : this.currentEventIndex;
+
+      // 4. BLOCK 1: Overview Card (主卡 - Learning Aid / Structural Overview)
+      let overviewCardHtml = '';
+      if (classType === 'sequence') {
+        // Sequence measure: Hand Frame Fretboard SVG + Step Strip / Finger Flow
+        const handFrameSvg = ShapeDiagram.renderHandFrameSVG
+          ? ShapeDiagram.renderHandFrameSVG(activeSegment, highlightedEvent, {
+              width: 260,
+              height: 190,
+              tuningNames,
+              tuning: trackTuning
+            })
+          : ShapeDiagram.renderSVG(activeSegment, highlightedEvent, {
+              width: 260,
+              height: 190,
+              tuningNames,
+              tuning: trackTuning,
+              handFrameMode: true
+            });
+
+        // Interactive Step Strip
+        let stepStripHtml = '<div class="sfc-step-strip">';
+        measure.beats.forEach((b) => {
+          const bEv = b.eventIndex || b.beatNumber;
+          const isStepActive = !isMeasureOnly && bEv === this.currentEventIndex;
+          const activeNotes = (b.notes || []).filter(n => !n.isRest && n.fret >= 0);
+          const isRest = activeNotes.length === 0;
+
+          let stepDesc = '';
+          let fingerText = '—';
+          if (isRest) {
+            stepDesc = 'Rest';
+            fingerText = '—';
+          } else {
+            const firstNote = activeNotes[0];
+            stepDesc = `S${firstNote.string + 1}·F${firstNote.fret}`;
+            fingerText = `${firstNote.recommendedFinger ?? firstNote.finger ?? (firstNote.fret === 0 ? '0' : '1')}`;
+          }
+
+          stepStripHtml += `
+            <div class="sfc-step-item ${isStepActive ? 'sfc-step-active' : ''} ${isRest ? 'sfc-step-rest' : ''}" data-event="${bEv}" title="Event ${bEv}: ${stepDesc}">
+              <div class="sfc-step-ev">Ev ${bEv}</div>
+              <div class="sfc-step-finger ${fingerText === '0' ? 'sfc-finger-0' : ''}">指 ${fingerText}</div>
+              <div class="sfc-step-desc">${stepDesc}</div>
+            </div>
+          `;
+        });
+        stepStripHtml += '</div>';
+
+        overviewCardHtml = `
+          <div class="sfc-overview-card">
+            <div class="sfc-card-header">
+              <div class="sfc-card-title-group">
+                <span class="sfc-card-tag">OVERVIEW</span>
+                <span class="sfc-card-title">Measure ${mNum} Hand Frame</span>
+              </div>
+              <span class="sfc-card-sub">${posLabel}${handSpanText ? ' · ' + handSpanText : ''}</span>
+            </div>
+            <div class="sfc-diagram-box">
+              ${handFrameSvg}
+            </div>
+            <div class="sfc-step-strip-wrapper">
+              <div class="sfc-step-strip-header">
+                <span class="sfc-step-strip-title">Finger Flow</span>
+                <span class="sfc-step-strip-hint">點擊步驟跳轉</span>
+              </div>
+              ${stepStripHtml}
+            </div>
+          </div>
+        `;
+      } else if (classType === 'shape') {
+        // Chord shape: Full grip diagram
+        const chordSvg = ShapeDiagram.renderSVG(activeSegment, highlightedEvent, {
+          width: 260,
+          height: 210,
+          tuningNames,
+          tuning: trackTuning,
+          singleEventOnly: false
+        });
+
+        overviewCardHtml = `
+          <div class="sfc-overview-card">
+            <div class="sfc-card-header">
+              <div class="sfc-card-title-group">
+                <span class="sfc-card-tag">OVERVIEW</span>
+                <span class="sfc-card-title">Measure ${mNum} Chord Grip</span>
+              </div>
+              <span class="sfc-card-sub">${posLabel}</span>
+            </div>
+            <div class="sfc-diagram-box">
+              ${chordSvg}
+            </div>
+          </div>
+        `;
+      } else {
+        // Mixed or Multi-shape: Primary shape + sequence cues
+        const chordSvg = ShapeDiagram.renderSVG(activeSegment, highlightedEvent, {
+          width: 260,
+          height: 195,
+          tuningNames,
+          tuning: trackTuning,
+          singleEventOnly: false
+        });
+
+        // Sequence hint
+        let stepStripHtml = '<div class="sfc-step-strip">';
+        measure.beats.forEach((b) => {
+          const bEv = b.eventIndex || b.beatNumber;
+          const isStepActive = !isMeasureOnly && bEv === this.currentEventIndex;
+          const activeNotes = (b.notes || []).filter(n => !n.isRest && n.fret >= 0);
+          const isRest = activeNotes.length === 0;
+          const isChord = activeNotes.length >= 2;
+
+          let stepDesc = '';
+          let fingerText = '—';
+          if (isRest) {
+            stepDesc = 'Rest';
+            fingerText = '—';
+          } else if (isChord) {
+            stepDesc = 'Chord';
+            fingerText = '和弦';
+          } else {
+            const firstNote = activeNotes[0];
+            stepDesc = `S${firstNote.string + 1}·F${firstNote.fret}`;
+            fingerText = `指 ${firstNote.recommendedFinger ?? firstNote.finger ?? 1}`;
+          }
+
+          stepStripHtml += `
+            <div class="sfc-step-item ${isStepActive ? 'sfc-step-active' : ''} ${isRest ? 'sfc-step-rest' : ''}" data-event="${bEv}">
+              <div class="sfc-step-ev">Ev ${bEv}</div>
+              <div class="sfc-step-finger">${fingerText}</div>
+              <div class="sfc-step-desc">${stepDesc}</div>
+            </div>
+          `;
+        });
+        stepStripHtml += '</div>';
+
+        overviewCardHtml = `
+          <div class="sfc-overview-card">
+            <div class="sfc-card-header">
+              <div class="sfc-card-title-group">
+                <span class="sfc-card-tag">OVERVIEW</span>
+                <span class="sfc-card-title">Measure ${mNum} (${classLabels[classType] || 'Mixed'})</span>
+              </div>
+              <span class="sfc-card-sub">${posLabel}</span>
+            </div>
+            <div class="sfc-diagram-box">
+              ${chordSvg}
+            </div>
+            <div class="sfc-step-strip-wrapper">
+              ${stepStripHtml}
+            </div>
+          </div>
+        `;
+      }
+
+      // 5. Canonical Event Selector Pills
       let eventsHtml = `<div class="sfc-beats-row">`;
       measure.beats.forEach((b) => {
         const evIdx = b.eventIndex || b.beatNumber;
@@ -580,106 +760,112 @@
       });
       eventsHtml += `</div>`;
 
-      // Derive tuning names dynamically from track MIDI tuning
-      const trackTuning = this.data.track?.tuningMidi || this.data.track?.tuning;
-      const tuningNames = Array.isArray(this.data.track?.tuningNames) && this.data.track.tuningNames.length === 6
-        ? this.data.track.tuningNames
-        : (Array.isArray(trackTuning) && trackTuning.length === 6
-            ? trackTuning.map(midiToPitch)
-            : ['E4', 'B3', 'G3', 'D3', 'A2', 'E2']);
-
-      // 5. SVG Hand-Shape Diagram (when measure-only, pass null to avoid falsely highlighting arbitrary event)
-      const highlightedEvent = isMeasureOnly ? null : this.currentEventIndex;
+      // 6. BLOCK 2: Now Playing Card (次卡 - Real-Time Event Monitor)
       const isCurrentEventRest = currentEvent && (currentEvent.notes.length === 0 || currentEvent.notes.every(n => n.isRest || n.fret < 0));
+      let nowPlayingCardHtml = '';
 
-      let diagramHtml = '';
-      if (isCurrentEventRest && !isMeasureOnly) {
-        // Rest state handling (C4): Left hand free, no fake active grip
+      if (isMeasureOnly) {
+        nowPlayingCardHtml = `
+          <div class="sfc-now-playing-card">
+            <div class="sfc-card-header sfc-now-playing-header">
+              <div class="sfc-card-title-group">
+                <span class="sfc-card-tag sfc-tag-now-playing">PLAYBACK</span>
+                <span class="sfc-card-title">Measure ${mNum} Synced</span>
+              </div>
+              <span class="sfc-card-sub">${posLabel}</span>
+            </div>
+            <div style="color: #a1a1aa; font-size: 11.5px; padding: 8px 12px;">Playing in Measure ${mNum} (Measure-synced follow)</div>
+          </div>
+        `;
+      } else if (isCurrentEventRest) {
         const upcomingEvent = measure.beats.slice(this.currentEventIndex).find(b => b.notes && b.notes.some(n => !n.isRest && n.fret >= 0));
+        const upcomingNote = upcomingEvent?.notes?.find(n => !n.isRest && n.fret >= 0);
         const upcomingPos = upcomingEvent ? (upcomingEvent.recommendedPosition || measure.recommendedPosition) : measure.recommendedPosition;
-        const upcomingCue = upcomingPos ? `即將進入 Pos ${upcomingPos}` : '準備下個小節';
+        const upcomingCue = upcomingNote
+          ? `即將進入 Pos ${upcomingPos} (弦 ${upcomingNote.string + 1} 第 ${upcomingNote.fret} 品)`
+          : (upcomingPos ? `即將進入 Pos ${upcomingPos}` : '準備下個小節');
 
-        diagramHtml = `
-          <div class="sfc-diagram-box sfc-rest-diagram-box">
-            <div class="sfc-rest-card">
+        nowPlayingCardHtml = `
+          <div class="sfc-now-playing-card">
+            <div class="sfc-card-header sfc-now-playing-header">
+              <div class="sfc-card-title-group">
+                <span class="sfc-card-tag sfc-tag-now-playing">NOW PLAYING</span>
+                <span class="sfc-card-title">Ev ${this.currentEventIndex} (${currentEvent?.timing || 'Rest'})</span>
+              </div>
+              <span class="sfc-card-sub">${posLabel}</span>
+            </div>
+            <div class="sfc-now-playing-rest-box">
               <div class="sfc-rest-icon">⏸</div>
-              <div class="sfc-rest-title">休止 / 左手放鬆</div>
-              <div class="sfc-rest-subtitle">Rest / Left Hand Free</div>
-              <div class="sfc-rest-upcoming">✦ ${upcomingCue}</div>
+              <div class="sfc-rest-info">
+                <div class="sfc-rest-title">休止 / 左手放鬆 (Rest / Hand Free)</div>
+                <div class="sfc-rest-upcoming">✦ ${upcomingCue}</div>
+              </div>
             </div>
           </div>
         `;
-      } else {
-        const svgDiagram = ShapeDiagram.renderSVG(activeSegment, highlightedEvent, {
-          width: 260,
-          height: 210,
-          tuningNames,
-          tuning: trackTuning,
-          singleEventOnly: !isMeasureOnly
-        });
-        diagramHtml = `
-          <div class="sfc-diagram-box">
-            ${svgDiagram}
-          </div>
-        `;
-      }
-
-      // 6. Current Canonical Event Details Card (supporting Multi-Voice)
-      let eventDetailsHtml = '';
-      if (currentEvent) {
+      } else if (currentEvent) {
         const activeNotes = currentEvent.notes.filter(n => !n.isRest && n.string >= 0);
         const hasMultipleVoices = currentEvent.notes.some(n => n.source && n.source.voiceIndex > 0) || 
                                   (Array.isArray(currentEvent.sources) && currentEvent.sources.length > 1);
 
-        const cardHeaderTitle = isMeasureOnly
-          ? `Measure ${mNum} Overview`
-          : `Event ${this.currentEventIndex} Details (${currentEvent.timing || '1/4'})`;
-
-        eventDetailsHtml = `
-          <div class="sfc-beat-card">
-            <div class="sfc-beat-card-header">
-              <span>${cardHeaderTitle}</span>
-              <span>${currentEvent.recommendedPosition ? 'Pos ' + currentEvent.recommendedPosition : ''}</span>
+        // Next note preview
+        const nextEvent = measure.beats.slice(this.currentEventIndex).find(b => b.notes && b.notes.some(n => !n.isRest && n.fret >= 0));
+        const nextNote = nextEvent?.notes?.find(n => !n.isRest && n.fret >= 0);
+        let nextPreviewHtml = '';
+        if (nextNote) {
+          const nextF = nextNote.recommendedFinger ?? nextNote.finger ?? (nextNote.fret === 0 ? 0 : 1);
+          nextPreviewHtml = `
+            <div class="sfc-next-note-chip" title="Next Note Preview">
+              <span class="sfc-next-label">Next ➔</span>
+              <span class="sfc-next-detail">Ev ${nextEvent.eventIndex || nextEvent.beatNumber}: 弦 ${nextNote.string + 1} 第 ${nextNote.fret} 品 (指 ${nextF})</span>
             </div>
-            <div class="sfc-notes-list">
-        `;
-
-        if (isMeasureOnly) {
-          eventDetailsHtml += `<div style="color: #a1a1aa; font-size: 11.5px; padding: 4px 0;">Playing in Measure ${mNum} (Measure-synced)</div>`;
-        } else if (activeNotes.length === 0) {
-          eventDetailsHtml += `<div style="color: #71717a; font-size: 11.5px; padding: 2px 0;">(Rest / No fretted notes)</div>`;
-        } else {
-          activeNotes.forEach((n) => {
-            const guitarStringNumber = n.string + 1;
-            const strOpenName = tuningNames[n.string] || `Str ${guitarStringNumber}`;
-            const fingerName = FINGER_NAMES[n.recommendedFinger] || `Finger ${n.recommendedFinger}`;
-            const pitchStr = n.pitch ? ` (${n.pitch})` : '';
-            const voiceTag = hasMultipleVoices && n.source
-              ? `<span class="sfc-voice-tag" title="Voice ${n.source.voiceIndex}">V${n.source.voiceIndex}</span>`
-              : '';
-
-            eventDetailsHtml += `
-              <div class="sfc-note-item">
-                <div class="sfc-note-left">
-                  <span class="sfc-note-str">String ${guitarStringNumber} [${strOpenName}]</span>
-                  <span class="sfc-note-fret">Fret ${n.fret}${pitchStr}</span>
-                  ${voiceTag}
-                </div>
-                <div class="sfc-note-right">
-                  <span class="sfc-note-finger ${n.recommendedFinger === 0 ? 'sfc-finger-0' : ''}" title="${fingerName}">
-                    ${n.recommendedFinger === 0 ? 'O' : n.recommendedFinger}
-                  </span>
-                </div>
-              </div>
-            `;
-          });
+          `;
         }
 
-        eventDetailsHtml += `</div></div>`;
+        let notesListHtml = '<div class="sfc-notes-list">';
+        activeNotes.forEach((n) => {
+          const guitarStringNumber = n.string + 1;
+          const strOpenName = tuningNames[n.string] || `Str ${guitarStringNumber}`;
+          const fingerName = FINGER_NAMES[n.recommendedFinger] || `Finger ${n.recommendedFinger}`;
+          const pitchStr = n.pitch ? ` (${n.pitch})` : '';
+          const voiceTag = hasMultipleVoices && n.source
+            ? `<span class="sfc-voice-tag" title="Voice ${n.source.voiceIndex}">V${n.source.voiceIndex}</span>`
+            : '';
+
+          notesListHtml += `
+            <div class="sfc-note-item">
+              <div class="sfc-note-left">
+                <span class="sfc-note-str">String ${guitarStringNumber} [${strOpenName}]</span>
+                <span class="sfc-note-fret">Fret ${n.fret}${pitchStr}</span>
+                ${voiceTag}
+              </div>
+              <div class="sfc-note-right">
+                <span class="sfc-note-finger ${n.recommendedFinger === 0 ? 'sfc-finger-0' : ''}" title="${fingerName}">
+                  ${n.recommendedFinger === 0 ? 'O' : n.recommendedFinger}
+                </span>
+              </div>
+            </div>
+          `;
+        });
+        notesListHtml += '</div>';
+
+        nowPlayingCardHtml = `
+          <div class="sfc-now-playing-card">
+            <div class="sfc-card-header sfc-now-playing-header">
+              <div class="sfc-card-title-group">
+                <span class="sfc-card-tag sfc-tag-now-playing">NOW PLAYING</span>
+                <span class="sfc-card-title">Ev ${this.currentEventIndex} Details (${currentEvent.timing || '1/4'})</span>
+              </div>
+              <span class="sfc-card-sub">${currentEvent.recommendedPosition ? 'Pos ' + currentEvent.recommendedPosition : posLabel}</span>
+            </div>
+            ${notesListHtml}
+            ${nextPreviewHtml}
+          </div>
+        `;
       }
 
       // Assemble into body
-      body.innerHTML = navHtml + statusHtml + segmentsHtml + eventsHtml + diagramHtml + eventDetailsHtml;
+      body.innerHTML = navHtml + statusHtml + segmentsHtml + overviewCardHtml + eventsHtml + nowPlayingCardHtml;
 
       // Attach DOM handlers
       body.querySelector('#sfc-btn-prev')?.addEventListener('click', () => this.prevMeasure());
@@ -698,6 +884,23 @@
           this.selectEvent(evIdx, true);
         });
       });
+
+      body.querySelectorAll('.sfc-step-item').forEach((item) => {
+        item.addEventListener('click', (e) => {
+          const evIdx = parseInt(e.currentTarget.getAttribute('data-event'), 10);
+          if (!isNaN(evIdx)) {
+            this.selectEvent(evIdx, true);
+          }
+        });
+      });
+
+      // Auto scroll active step into view
+      const activeStep = body.querySelector('.sfc-step-item.sfc-step-active');
+      if (activeStep && typeof activeStep.scrollIntoView === 'function') {
+        try {
+          activeStep.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        } catch (e) {}
+      }
 
       // Update FAB text if minimized
       if (this.isMinimized) {

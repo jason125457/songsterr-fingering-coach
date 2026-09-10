@@ -163,6 +163,24 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 transparent;
+}
+
+.sfc-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sfc-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sfc-body::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 3px;
 }
 
 /* Navigation Controls */
@@ -720,122 +738,319 @@
   border: 1px solid rgba(99, 102, 241, 0.35);
 }
 
-/* Phase 3.4: CoachPanel Rest State Banner */
-.sfc-rest-diagram-box {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
+/* Phase 3.4.1: Classification Badges */
+.sfc-badge-seq {
+  background: rgba(59, 130, 246, 0.16);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.sfc-badge-shape {
+  background: rgba(16, 185, 129, 0.16);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.sfc-badge-mixed {
+  background: rgba(245, 158, 11, 0.16);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.sfc-badge-multishape {
+  background: rgba(168, 85, 247, 0.16);
+  color: #d8b4fe;
+  border: 1px solid rgba(168, 85, 247, 0.35);
+}
+
+/* Phase 3.4.1: Dual-Layer CoachPanel Cards */
+.sfc-overview-card,
+.sfc-now-playing-card {
   background: #18181b;
-  border-radius: 8px;
-  border: 1px dashed rgba(113, 113, 122, 0.35);
-}
-
-.sfc-rest-card {
+  border: 1px solid #27272a;
+  border-radius: 10px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 20px 16px;
-  gap: 6px;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.sfc-rest-icon {
-  font-size: 26px;
-  opacity: 0.85;
-}
-
-.sfc-rest-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #e4e4e7;
-  letter-spacing: 0.3px;
-}
-
-.sfc-rest-subtitle {
-  font-size: 11px;
-  color: #71717a;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-}
-
-.sfc-rest-upcoming {
-  margin-top: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.12);
-  padding: 3px 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(56, 189, 248, 0.25);
-}
-
-/* Phase 3.4: Inline Overlay Sequence Presentation */
-.sfc-overlay-sequence {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 3px 6px;
-  background: rgba(24, 24, 27, 0.88);
-  border: 1px solid rgba(113, 113, 122, 0.35);
-  border-radius: 5px;
-  backdrop-filter: blur(4px);
-  min-width: 60px;
-}
-
-.sfc-seq-header {
+.sfc-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 4px;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(63, 63, 70, 0.4);
 }
 
-.sfc-seq-span {
+.sfc-card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sfc-card-tag {
+  font-size: 8.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 1.5px 5px;
+  border-radius: 3px;
+  background: rgba(161, 161, 170, 0.18);
+  color: #d4d4d8;
+  border: 1px solid rgba(161, 161, 170, 0.3);
+}
+
+.sfc-tag-now-playing {
+  background: rgba(0, 210, 106, 0.15);
+  color: #00d26a;
+  border-color: rgba(0, 210, 106, 0.35);
+}
+
+.sfc-card-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f4f4f5;
+  white-space: nowrap;
+}
+
+.sfc-card-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: #a1a1aa;
+}
+
+/* Phase 3.4.1: Sequence Step Strip / Finger Flow */
+.sfc-step-strip-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(63, 63, 70, 0.35);
+}
+
+.sfc-step-strip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sfc-step-strip-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #71717a;
+}
+
+.sfc-step-strip-hint {
+  font-size: 9px;
+  color: #52525b;
+}
+
+.sfc-step-strip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow-x: auto;
+  padding: 2px 1px 4px 1px;
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 transparent;
+}
+
+.sfc-step-strip::-webkit-scrollbar {
+  height: 4px;
+}
+
+.sfc-step-strip::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 2px;
+}
+
+.sfc-step-item {
+  flex-shrink: 0;
+  min-width: 44px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: #27272a;
+  border: 1px solid #3f3f46;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.sfc-step-item:hover {
+  background: #3f3f46;
+  border-color: #52525b;
+  transform: translateY(-1px);
+}
+
+.sfc-step-item.sfc-step-active {
+  background: rgba(0, 210, 106, 0.16);
+  border-color: #00d26a;
+  box-shadow: 0 0 8px rgba(0, 210, 106, 0.4);
+}
+
+.sfc-step-ev {
+  font-size: 8.5px;
+  font-weight: 600;
+  color: #a1a1aa;
+}
+
+.sfc-step-item.sfc-step-active .sfc-step-ev {
+  color: #34d399;
+}
+
+.sfc-step-finger {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 1px 0;
+}
+
+.sfc-step-item.sfc-step-active .sfc-step-finger {
+  color: #00d26a;
+  font-weight: 800;
+}
+
+.sfc-step-desc {
+  font-size: 8px;
+  color: #71717a;
+}
+
+.sfc-step-rest {
+  opacity: 0.55;
+  background: rgba(39, 39, 42, 0.6);
+}
+
+/* Phase 3.4.1: Now Playing Rest & Next Preview */
+.sfc-now-playing-rest-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(24, 24, 27, 0.6);
+  border: 1px dashed rgba(113, 113, 122, 0.35);
+  border-radius: 6px;
+}
+
+.sfc-now-playing-rest-box .sfc-rest-icon {
+  font-size: 20px;
+}
+
+.sfc-rest-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sfc-now-playing-rest-box .sfc-rest-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #e4e4e7;
+}
+
+.sfc-now-playing-rest-box .sfc-rest-upcoming {
+  font-size: 10px;
+  font-weight: 600;
+  color: #38bdf8;
+}
+
+.sfc-next-note-chip {
+  margin-top: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(39, 39, 42, 0.5);
+  border: 1px solid rgba(63, 63, 70, 0.45);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+}
+
+.sfc-next-label {
+  font-weight: 700;
+  color: #a1a1aa;
+}
+
+.sfc-next-detail {
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.sfc-next-chip-end .sfc-next-detail {
+  color: #71717a;
+}
+
+/* Phase 3.4.1: Streamlined Glanceable Inline Overlays */
+.sfc-overlay-glance-seq {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  background: rgba(15, 15, 18, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 4px;
+  backdrop-filter: blur(3px);
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: all 0.15s ease;
+}
+
+.sfc-overlay-active .sfc-overlay-glance-seq {
+  background: rgba(15, 23, 42, 0.88);
+  border-color: #00d26a;
+  box-shadow: 0 0 8px rgba(0, 210, 106, 0.35);
+}
+
+.sfc-glance-tag {
   font-size: 8.5px;
   font-weight: 700;
+  color: #00d26a;
+}
+
+.sfc-glance-span {
+  font-size: 8px;
+  font-weight: 600;
   color: #a5b4fc;
 }
 
-.sfc-seq-pos {
-  font-size: 8px;
-  font-weight: 600;
-  color: #e4e4e7;
-  background: rgba(63, 63, 70, 0.6);
-  padding: 1px 4px;
-  border-radius: 3px;
-}
-
-.sfc-seq-flow {
-  display: flex;
+.sfc-glance-flow {
+  display: inline-flex;
   align-items: center;
-  gap: 3px;
-  flex-wrap: nowrap;
-  overflow-x: hidden;
+  gap: 2px;
+  font-size: 8px;
+  font-weight: 700;
+  color: #e4e4e7;
 }
 
 .sfc-seq-f {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 14px;
-  height: 14px;
-  font-size: 9px;
+  width: 13px;
+  height: 13px;
+  font-size: 8.5px;
   font-weight: 700;
   border-radius: 50%;
-  background: #3f3f46;
+  background: #27272a;
   color: #f4f4f5;
-  border: 1px solid #71717a;
+  border: 1px solid #52525b;
 }
 
 .sfc-seq-f-active {
   background: #00d26a;
   color: #09090b;
   border-color: #a7f3d0;
-  box-shadow: 0 0 4px rgba(0, 210, 106, 0.6);
+  box-shadow: 0 0 5px rgba(0, 210, 106, 0.6);
 }
 
 .sfc-seq-sep {
-  font-size: 7px;
+  font-size: 6px;
   color: #71717a;
 }
 
