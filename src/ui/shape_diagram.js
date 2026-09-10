@@ -56,10 +56,13 @@
 
     measure.beats.forEach((beat) => {
       const pos = beat.recommendedPosition || measure.recommendedPosition || 1;
+      const evNum = beat.eventIndex || beat.beatNumber || 1;
 
       if (!currentSegment || currentSegment.position !== pos) {
         if (currentSegment) {
-          currentSegment.endBeat = currentSegment.beats[currentSegment.beats.length - 1].beatNumber;
+          const lastB = currentSegment.beats[currentSegment.beats.length - 1];
+          currentSegment.endBeat = lastB.beatNumber;
+          currentSegment.endEvent = lastB.eventIndex || lastB.beatNumber;
           segments.push(currentSegment);
         }
         currentSegment = {
@@ -67,7 +70,9 @@
           position: pos,
           beats: [beat],
           startBeat: beat.beatNumber,
-          endBeat: beat.beatNumber
+          endBeat: beat.beatNumber,
+          startEvent: evNum,
+          endEvent: evNum
         };
       } else {
         currentSegment.beats.push(beat);
@@ -75,7 +80,9 @@
     });
 
     if (currentSegment) {
-      currentSegment.endBeat = currentSegment.beats[currentSegment.beats.length - 1].beatNumber;
+      const lastB = currentSegment.beats[currentSegment.beats.length - 1];
+      currentSegment.endBeat = lastB.beatNumber;
+      currentSegment.endEvent = lastB.eventIndex || lastB.beatNumber;
       segments.push(currentSegment);
     }
 
@@ -85,14 +92,15 @@
   /**
    * Extract notes, open strings, and mini-barres for a given segment.
    */
-  function aggregateSegmentShape(segment, activeBeatNumber = null) {
+  function aggregateSegmentShape(segment, activeEventIndex = null) {
     const notesMap = new Map(); // key: `${stringIndex}_${fret}`
     const openStrings = new Map(); // key: stringIndex -> { active: boolean, beats: [] }
     const deadStrings = new Map(); // key: stringIndex -> { active: boolean }
     const fretSet = new Set();
 
     segment.beats.forEach((beat) => {
-      const isActiveBeat = activeBeatNumber !== null && beat.beatNumber === activeBeatNumber;
+      const bEv = beat.eventIndex || beat.beatNumber;
+      const isActiveBeat = activeEventIndex !== null && (bEv === activeEventIndex || beat.beatNumber === activeEventIndex);
 
       beat.notes.forEach((note) => {
         if (note.isRest || note.string < 0) return;

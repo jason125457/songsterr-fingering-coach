@@ -186,7 +186,9 @@ const htmlContent = `<!DOCTYPE html>
   <script src="../src/fingering_engine.js"></script>
   <script src="../src/ui/shape_diagram.js"></script>
   <script src="../src/ui/coach_panel.js"></script>
+  <script src="../src/songsterr/playback_mapper.js"></script>
   <script src="../src/songsterr/playback_observer.js"></script>
+  <script src="../src/controller/playback_sync_controller.js"></script>
 
   <script>
     let coachInstance = null;

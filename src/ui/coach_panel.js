@@ -5,10 +5,13 @@
  * 
  * Responsibilities:
  * - Mounts a sleek, draggable floating widget into Songsterr pages
- * - Provides manual Previous / Next Measure and Beat navigation
+ * - Supports dual modes: 'follow' (Follow Playback) and 'manual' (Manual Navigation)
+ * - Synchronizes with live Songsterr playback via PlaybackSyncController
+ * - Automatically switches to 'manual' on user interaction and provides 'Resume Follow'
  * - Displays recommended position and position shift warnings
  * - Renders compact chord / hand-shape SVG diagrams via ShapeDiagram
- * - Shows current beat's detailed note, string, fret, pitch, and recommended fingers
+ * - Shows current canonical event's detailed notes, strings, frets, pitches, and recommended fingers
+ * - Multi-voice polyphonic note visualization with voice tags
  * - Strictly READ-ONLY: Consumes FingeringResult, never recalculates fingering
  */
 
@@ -49,9 +52,18 @@
       this.totalMeasures = this.measures.length;
 
       this.currentMeasureIndex = options.initialMeasure ? Math.max(0, Math.min(this.totalMeasures - 1, options.initialMeasure - 1)) : 0;
-      this.currentBeatNumber = 1;
+      this.currentEventIndex = options.initialEvent || options.initialBeat || 1;
+      this.currentBeatNumber = this.currentEventIndex; // Alias for backward compatibility
       this.activeSegmentIndex = 0;
       this.isMinimized = false;
+
+      // Playback Sync & Mode states
+      this.mode = options.initialMode || 'follow'; // 'follow' | 'manual'
+      this.lastPlaybackConfidence = 'exact';
+      this.lastPlaybackState = 'stopped';
+
+      this.resumeFollowCallback = null;
+      this.userActionCallback = null;
 
       this.panelEl = null;
       this.fabEl = null;
@@ -66,6 +78,8 @@
      * Build and mount the panel elements into the DOM
      */
     initDOM() {
+      if (typeof document === 'undefined') return;
+
       // Remove any existing instance
       const oldPanel = document.getElementById('sfc-coach-panel');
       if (oldPanel) oldPanel.remove();
@@ -88,8 +102,8 @@
             <span class="sfc-track-name" id="sfc-track-info">${this.data.song?.title || 'Song'} (${this.data.track?.name || 'Guitar'})</span>
           </div>
         </div>
-        <div class="sfc-header-actions">
-          <button class="sfc-btn-icon" id="sfc-btn-minimize" title="Minimize Panel">─</button>
+        <div class="sfc-header-actions" id="sfc-header-actions">
+          ${this.renderHeaderActionsHtml()}
         </div>
       `;
 
@@ -115,21 +129,42 @@
       this.setupEventListeners(header);
     }
 
+    renderHeaderActionsHtml() {
+      const modeHtml = this.mode === 'follow'
+        ? `<span class="sfc-mode-indicator sfc-mode-follow" id="sfc-mode-badge" title="Auto-following live playback">▶ Following</span>`
+        : `<button class="sfc-btn-resume" id="sfc-btn-resume-follow" title="Resume following live playback">▶ Resume Follow</button>`;
+
+      return `
+        ${modeHtml}
+        <button class="sfc-btn-icon" id="sfc-btn-minimize" title="Minimize Panel">─</button>
+      `;
+    }
+
+    updateHeaderActions() {
+      const actionsEl = this.panelEl?.querySelector('#sfc-header-actions');
+      if (actionsEl) {
+        actionsEl.innerHTML = this.renderHeaderActionsHtml();
+        this.attachHeaderActionListeners();
+      }
+    }
+
+    updateHeaderTrackInfo() {
+      const trackInfoEl = this.panelEl?.querySelector('#sfc-track-info');
+      if (trackInfoEl) {
+        trackInfoEl.textContent = `${this.data.song?.title || 'Song'} (${this.data.track?.name || 'Guitar'})`;
+      }
+    }
+
     setupEventListeners(header) {
-      // Header minimize button
-      const minBtn = this.panelEl.querySelector('#sfc-btn-minimize');
-      minBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.toggleMinimize(true);
-      });
+      this.attachHeaderActionListeners();
 
       // FAB click to restore
-      this.fabEl.addEventListener('click', () => {
+      this.fabEl?.addEventListener('click', () => {
         this.toggleMinimize(false);
       });
 
       // Dragging logic
-      header.addEventListener('mousedown', (e) => {
+      header?.addEventListener('mousedown', (e) => {
         if (e.target.closest('button')) return;
         this.isDragging = true;
         const rect = this.panelEl.getBoundingClientRect();
@@ -137,73 +172,222 @@
         this.dragOffset.y = e.clientY - rect.top;
       });
 
-      window.addEventListener('mousemove', (e) => {
-        if (!this.isDragging) return;
-        let x = e.clientX - this.dragOffset.x;
-        let y = e.clientY - this.dragOffset.y;
+      if (typeof window !== 'undefined') {
+        window.addEventListener('mousemove', (e) => {
+          if (!this.isDragging) return;
+          let x = e.clientX - this.dragOffset.x;
+          let y = e.clientY - this.dragOffset.y;
 
-        // Keep within viewport bounds
-        x = Math.max(10, Math.min(window.innerWidth - this.panelEl.offsetWidth - 10, x));
-        y = Math.max(10, Math.min(window.innerHeight - this.panelEl.offsetHeight - 10, y));
+          x = Math.max(10, Math.min(window.innerWidth - this.panelEl.offsetWidth - 10, x));
+          y = Math.max(10, Math.min(window.innerHeight - this.panelEl.offsetHeight - 10, y));
 
-        this.panelEl.style.left = `${x}px`;
-        this.panelEl.style.top = `${y}px`;
-        this.panelEl.style.right = 'auto';
+          this.panelEl.style.left = `${x}px`;
+          this.panelEl.style.top = `${y}px`;
+          this.panelEl.style.right = 'auto';
+        });
+
+        window.addEventListener('mouseup', () => {
+          this.isDragging = false;
+        });
+      }
+    }
+
+    attachHeaderActionListeners() {
+      const minBtn = this.panelEl?.querySelector('#sfc-btn-minimize');
+      minBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.toggleMinimize(true);
       });
 
-      window.addEventListener('mouseup', () => {
-        this.isDragging = false;
+      const resumeBtn = this.panelEl?.querySelector('#sfc-btn-resume-follow');
+      resumeBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.setMode('follow');
+        if (typeof this.resumeFollowCallback === 'function') {
+          this.resumeFollowCallback();
+        }
       });
     }
 
     toggleMinimize(minimized) {
       this.isMinimized = minimized;
       if (this.isMinimized) {
-        this.panelEl.classList.add('sfc-hidden');
-        this.fabEl.classList.remove('sfc-hidden');
+        this.panelEl?.classList.add('sfc-hidden');
+        this.fabEl?.classList.remove('sfc-hidden');
         const mNum = this.currentMeasureIndex + 1;
-        document.getElementById('sfc-fab-text').textContent = `M${mNum} B${this.currentBeatNumber}`;
+        const fabText = document.getElementById('sfc-fab-text');
+        if (fabText) {
+          fabText.textContent = `M${mNum} Ev${this.currentEventIndex}`;
+        }
       } else {
-        this.panelEl.classList.remove('sfc-hidden');
-        this.fabEl.classList.add('sfc-hidden');
+        this.panelEl?.classList.remove('sfc-hidden');
+        this.fabEl?.classList.add('sfc-hidden');
       }
     }
 
-    goToMeasure(measureIndex) {
-      if (measureIndex < 0 || measureIndex >= this.totalMeasures) return;
-      this.currentMeasureIndex = measureIndex;
+    /**
+     * Mode Management
+     */
+    getMode() {
+      return this.mode;
+    }
+
+    setMode(mode) {
+      if (mode !== 'follow' && mode !== 'manual') return;
+      if (this.mode === mode) return;
+      this.mode = mode;
+      this.updateHeaderActions();
+      if (typeof this.options.onModeChange === 'function') {
+        this.options.onModeChange(this.mode);
+      }
+    }
+
+    onResumeFollow(callback) {
+      if (typeof callback === 'function') {
+        this.resumeFollowCallback = callback;
+      }
+    }
+
+    onUserAction(callback) {
+      if (typeof callback === 'function') {
+        this.userActionCallback = callback;
+      }
+    }
+
+    handleManualInteraction() {
+      if (this.mode === 'follow') {
+        this.mode = 'manual';
+        this.updateHeaderActions();
+      }
+      if (typeof this.userActionCallback === 'function') {
+        this.userActionCallback();
+      }
+    }
+
+    /**
+     * Update track data when song or track switches
+     */
+    updateData(newFingeringResult) {
+      if (!newFingeringResult || !Array.isArray(newFingeringResult.measures)) return;
+      this.data = newFingeringResult;
+      this.measures = newFingeringResult.measures;
+      this.totalMeasures = this.measures.length;
+      this.currentMeasureIndex = Math.min(this.currentMeasureIndex, this.totalMeasures - 1);
+      this.currentEventIndex = 1;
       this.currentBeatNumber = 1;
       this.activeSegmentIndex = 0;
+      this.updateHeaderTrackInfo();
+      this.updateView();
+    }
+
+    /**
+     * Manual Navigation Methods
+     */
+    goToMeasure(measureIndex, isManual = true) {
+      if (measureIndex < 0 || measureIndex >= this.totalMeasures) return;
+      if (isManual) this.handleManualInteraction();
+      this.currentMeasureIndex = measureIndex;
+      this.currentEventIndex = 1;
+      this.currentBeatNumber = 1;
+      this.activeSegmentIndex = 0;
+      this.lastPlaybackConfidence = 'exact';
       this.updateView();
     }
 
     prevMeasure() {
-      this.goToMeasure(this.currentMeasureIndex - 1);
+      this.goToMeasure(this.currentMeasureIndex - 1, true);
     }
 
     nextMeasure() {
-      this.goToMeasure(this.currentMeasureIndex + 1);
+      this.goToMeasure(this.currentMeasureIndex + 1, true);
     }
 
-    selectBeat(beatNumber) {
-      this.currentBeatNumber = beatNumber;
-      // Auto-switch segment if beat belongs to a different segment
+    selectEvent(eventIndex, isManual = true) {
+      if (isManual) this.handleManualInteraction();
+      this.currentEventIndex = eventIndex;
+      this.currentBeatNumber = eventIndex;
+      this.lastPlaybackConfidence = 'exact';
+
+      // Auto-switch segment if event belongs to a different segment
       const measure = this.measures[this.currentMeasureIndex];
-      const segments = ShapeDiagram.splitMeasureIntoSegments(measure);
-      const targetSegIdx = segments.findIndex(s => s.beats.some(b => b.beatNumber === beatNumber));
-      if (targetSegIdx !== -1) {
-        this.activeSegmentIndex = targetSegIdx;
+      if (measure) {
+        const segments = ShapeDiagram.splitMeasureIntoSegments(measure);
+        const targetSegIdx = segments.findIndex(s => 
+          s.beats.some(b => (b.eventIndex || b.beatNumber) === eventIndex)
+        );
+        if (targetSegIdx !== -1) {
+          this.activeSegmentIndex = targetSegIdx;
+        }
       }
       this.updateView();
     }
 
-    selectSegment(segmentIndex) {
+    selectBeat(beatNumber) {
+      this.selectEvent(beatNumber, true);
+    }
+
+    selectSegment(segmentIndex, isManual = true) {
+      if (isManual) this.handleManualInteraction();
       this.activeSegmentIndex = segmentIndex;
       const measure = this.measures[this.currentMeasureIndex];
-      const segments = ShapeDiagram.splitMeasureIntoSegments(measure);
-      if (segments[segmentIndex] && segments[segmentIndex].beats.length > 0) {
-        this.currentBeatNumber = segments[segmentIndex].beats[0].beatNumber;
+      if (measure) {
+        const segments = ShapeDiagram.splitMeasureIntoSegments(measure);
+        if (segments[segmentIndex] && segments[segmentIndex].beats.length > 0) {
+          const firstB = segments[segmentIndex].beats[0];
+          this.currentEventIndex = firstB.eventIndex || firstB.beatNumber;
+          this.currentBeatNumber = this.currentEventIndex;
+        }
       }
+      this.lastPlaybackConfidence = 'exact';
+      this.updateView();
+    }
+
+    /**
+     * Synchronize CoachPanel to incoming playback position
+     * @param {Object} canonicalResult Result from PlaybackMapper
+     * @param {Object} playbackEvent Raw event from PlaybackObserver
+     */
+    syncPlayback(canonicalResult, playbackEvent) {
+      if (this.mode === 'manual') {
+        return; // User is in manual browsing mode; do NOT steal UI
+      }
+
+      const targetMNum = canonicalResult?.measureNumber || playbackEvent?.measureNumber;
+      if (!targetMNum || targetMNum < 1 || targetMNum > this.totalMeasures) return;
+
+      const targetMIdx = targetMNum - 1;
+      const targetEvIdx = canonicalResult?.eventIndex || playbackEvent?.eventIndex || 1;
+      const confidence = canonicalResult?.confidence || playbackEvent?.confidence || 'exact';
+      const playState = playbackEvent?.state || 'playing';
+
+      // Performance dirty-checking: skip identical renders to prevent flicker
+      if (targetMIdx === this.currentMeasureIndex && 
+          targetEvIdx === this.currentEventIndex && 
+          confidence === this.lastPlaybackConfidence &&
+          playState === this.lastPlaybackState) {
+        return;
+      }
+
+      this.lastPlaybackConfidence = confidence;
+      this.lastPlaybackState = playState;
+
+      // Update measure index and active event
+      this.currentMeasureIndex = targetMIdx;
+      this.currentEventIndex = targetEvIdx;
+      this.currentBeatNumber = targetEvIdx;
+
+      // Auto-switch segment if event belongs to a different segment
+      const measure = this.measures[this.currentMeasureIndex];
+      if (measure) {
+        const segments = ShapeDiagram.splitMeasureIntoSegments(measure);
+        const targetSegIdx = segments.findIndex(s => 
+          s.beats.some(b => (b.eventIndex || b.beatNumber) === targetEvIdx)
+        );
+        if (targetSegIdx !== -1) {
+          this.activeSegmentIndex = targetSegIdx;
+        }
+      }
+
       this.updateView();
     }
 
@@ -223,10 +407,11 @@
       }
       const activeSegment = segments[this.activeSegmentIndex] || segments[0];
 
-      // Find current beat data
-      const currentBeat = measure.beats.find(b => b.beatNumber === this.currentBeatNumber) || measure.beats[0];
+      // Find current canonical event
+      const currentEvent = measure.beats.find(b => (b.eventIndex || b.beatNumber) === this.currentEventIndex) || measure.beats[0];
       const hasShiftInMeasure = measure.isPositionShift || segments.length > 1;
-      const isShiftOnCurrentBeat = currentBeat?.isPositionShift;
+      const isShiftOnCurrentEvent = currentEvent?.isPositionShift;
+      const isMeasureOnly = this.lastPlaybackConfidence === 'measure-only';
 
       // 1. Navigation bar HTML
       const mNum = measure.measureNumber || (this.currentMeasureIndex + 1);
@@ -247,11 +432,15 @@
       // 2. Status badges HTML
       const posLabel = activeSegment.position ? `Pos ${activeSegment.position}` : `Pos ${measure.recommendedPosition || '?'}`;
       const shiftBadgeHtml = hasShiftInMeasure
-        ? `<span class="sfc-badge sfc-badge-shift">⚡ Shift${isShiftOnCurrentBeat ? ' (Beat ' + this.currentBeatNumber + ')' : ''}</span>`
+        ? `<span class="sfc-badge sfc-badge-shift">⚡ Shift${isShiftOnCurrentEvent ? ' (Ev ' + this.currentEventIndex + ')' : ''}</span>`
         : `<span class="sfc-badge sfc-badge-stable">✓ Stable Pos</span>`;
 
       const sigBadgeHtml = measure.timeSignature
         ? `<span class="sfc-badge sfc-badge-sig">${measure.timeSignature}</span>`
+        : '';
+
+      const confidenceBadgeHtml = isMeasureOnly
+        ? `<span class="sfc-badge sfc-badge-measure-only" title="Playback cursor matched measure boundary">Measure synced</span>`
         : '';
 
       const statusHtml = `
@@ -259,6 +448,7 @@
           <span class="sfc-badge sfc-badge-pos">🖐️ ${posLabel}</span>
           ${shiftBadgeHtml}
           ${sigBadgeHtml}
+          ${confidenceBadgeHtml}
         </div>
       `;
 
@@ -268,31 +458,34 @@
         segmentsHtml = `<div class="sfc-segments-row">`;
         segments.forEach((seg, sIdx) => {
           const isActive = sIdx === this.activeSegmentIndex;
+          const startEv = seg.startEvent || seg.startBeat || 1;
+          const endEv = seg.endEvent || seg.endBeat || 1;
           segmentsHtml += `
             <button class="sfc-segment-tab ${isActive ? 'sfc-active' : ''}" data-segment="${sIdx}">
-              Pos ${seg.position} (B${seg.startBeat}-${seg.endBeat})
+              Pos ${seg.position} (Ev ${startEv}-${endEv})
             </button>
           `;
         });
         segmentsHtml += `</div>`;
       }
 
-      // 4. Beat Pills
-      let beatsHtml = `<div class="sfc-beats-row">`;
+      // 4. Canonical Event Pills
+      let eventsHtml = `<div class="sfc-beats-row">`;
       measure.beats.forEach((b) => {
-        const isActive = b.beatNumber === this.currentBeatNumber;
+        const evIdx = b.eventIndex || b.beatNumber;
+        const isActive = !isMeasureOnly && evIdx === this.currentEventIndex;
         const hasShift = b.isPositionShift;
         const isRest = b.notes.length === 0 || b.notes.every(n => n.isRest);
-        beatsHtml += `
-          <button class="sfc-beat-pill ${isActive ? 'sfc-active' : ''} ${hasShift ? 'sfc-has-shift' : ''}" data-beat="${b.beatNumber}">
-            <span>B${b.beatNumber}</span>
+        eventsHtml += `
+          <button class="sfc-beat-pill ${isActive ? 'sfc-active' : ''} ${hasShift ? 'sfc-has-shift' : ''}" data-event="${evIdx}">
+            <span>Ev ${evIdx}</span>
             <span style="font-size: 8.5px; opacity: 0.7;">${isRest ? 'Rest' : (b.timing || '')}</span>
           </button>
         `;
       });
-      beatsHtml += `</div>`;
+      eventsHtml += `</div>`;
 
-      // Derive tuning names dynamically from track MIDI tuning (never hardcode)
+      // Derive tuning names dynamically from track MIDI tuning
       const trackTuning = this.data.track?.tuningMidi || this.data.track?.tuning;
       const tuningNames = Array.isArray(this.data.track?.tuningNames) && this.data.track.tuningNames.length === 6
         ? this.data.track.tuningNames
@@ -300,8 +493,9 @@
             ? trackTuning.map(midiToPitch)
             : ['E4', 'B3', 'G3', 'D3', 'A2', 'E2']);
 
-      // 5. SVG Hand-Shape Diagram (passing dynamic tuning)
-      const svgDiagram = ShapeDiagram.renderSVG(activeSegment, this.currentBeatNumber, {
+      // 5. SVG Hand-Shape Diagram (when measure-only, pass null to avoid falsely highlighting arbitrary event)
+      const highlightedEvent = isMeasureOnly ? null : this.currentEventIndex;
+      const svgDiagram = ShapeDiagram.renderSVG(activeSegment, highlightedEvent, {
         width: 260,
         height: 210,
         tuningNames,
@@ -313,35 +507,46 @@
         </div>
       `;
 
-      // 6. Current Beat Details Card
-      let beatDetailsHtml = '';
-      if (currentBeat) {
-        const activeNotes = currentBeat.notes.filter(n => !n.isRest && n.string >= 0);
+      // 6. Current Canonical Event Details Card (supporting Multi-Voice)
+      let eventDetailsHtml = '';
+      if (currentEvent) {
+        const activeNotes = currentEvent.notes.filter(n => !n.isRest && n.string >= 0);
+        const hasMultipleVoices = currentEvent.notes.some(n => n.source && n.source.voiceIndex > 0) || 
+                                  (Array.isArray(currentEvent.sources) && currentEvent.sources.length > 1);
 
-        beatDetailsHtml = `
+        const cardHeaderTitle = isMeasureOnly
+          ? `Measure ${mNum} Overview`
+          : `Event ${this.currentEventIndex} Details (${currentEvent.timing || '1/4'})`;
+
+        eventDetailsHtml = `
           <div class="sfc-beat-card">
             <div class="sfc-beat-card-header">
-              <span>Beat ${currentBeat.beatNumber} Details (${currentBeat.timing || '1/4'})</span>
-              <span>${currentBeat.recommendedPosition ? 'Pos ' + currentBeat.recommendedPosition : ''}</span>
+              <span>${cardHeaderTitle}</span>
+              <span>${currentEvent.recommendedPosition ? 'Pos ' + currentEvent.recommendedPosition : ''}</span>
             </div>
             <div class="sfc-notes-list">
         `;
 
-        if (activeNotes.length === 0) {
-          beatDetailsHtml += `<div style="color: #71717a; font-size: 11.5px; padding: 2px 0;">(Rest / No fretted notes)</div>`;
+        if (isMeasureOnly) {
+          eventDetailsHtml += `<div style="color: #a1a1aa; font-size: 11.5px; padding: 4px 0;">Playing in Measure ${mNum} (Measure-synced)</div>`;
+        } else if (activeNotes.length === 0) {
+          eventDetailsHtml += `<div style="color: #71717a; font-size: 11.5px; padding: 2px 0;">(Rest / No fretted notes)</div>`;
         } else {
           activeNotes.forEach((n) => {
-            // Guitar standard: String 1 = High E (normalized string 0), String 6 = Low E (normalized string 5)
             const guitarStringNumber = n.string + 1;
             const strOpenName = tuningNames[n.string] || `Str ${guitarStringNumber}`;
             const fingerName = FINGER_NAMES[n.recommendedFinger] || `Finger ${n.recommendedFinger}`;
             const pitchStr = n.pitch ? ` (${n.pitch})` : '';
+            const voiceTag = hasMultipleVoices && n.source
+              ? `<span class="sfc-voice-tag" title="Voice ${n.source.voiceIndex}">V${n.source.voiceIndex}</span>`
+              : '';
 
-            beatDetailsHtml += `
+            eventDetailsHtml += `
               <div class="sfc-note-item">
                 <div class="sfc-note-left">
                   <span class="sfc-note-str">String ${guitarStringNumber} [${strOpenName}]</span>
                   <span class="sfc-note-fret">Fret ${n.fret}${pitchStr}</span>
+                  ${voiceTag}
                 </div>
                 <div class="sfc-note-right">
                   <span class="sfc-note-finger ${n.recommendedFinger === 0 ? 'sfc-finger-0' : ''}" title="${fingerName}">
@@ -353,11 +558,11 @@
           });
         }
 
-        beatDetailsHtml += `</div></div>`;
+        eventDetailsHtml += `</div></div>`;
       }
 
       // Assemble into body
-      body.innerHTML = navHtml + statusHtml + segmentsHtml + beatsHtml + diagramHtml + beatDetailsHtml;
+      body.innerHTML = navHtml + statusHtml + segmentsHtml + eventsHtml + diagramHtml + eventDetailsHtml;
 
       // Attach DOM handlers
       body.querySelector('#sfc-btn-prev')?.addEventListener('click', () => this.prevMeasure());
@@ -366,20 +571,23 @@
       body.querySelectorAll('.sfc-segment-tab').forEach((tab) => {
         tab.addEventListener('click', (e) => {
           const segIdx = parseInt(e.currentTarget.getAttribute('data-segment'), 10);
-          this.selectSegment(segIdx);
+          this.selectSegment(segIdx, true);
         });
       });
 
       body.querySelectorAll('.sfc-beat-pill').forEach((pill) => {
         pill.addEventListener('click', (e) => {
-          const bNum = parseInt(e.currentTarget.getAttribute('data-beat'), 10);
-          this.selectBeat(bNum);
+          const evIdx = parseInt(e.currentTarget.getAttribute('data-event'), 10);
+          this.selectEvent(evIdx, true);
         });
       });
 
       // Update FAB text if minimized
       if (this.isMinimized) {
-        document.getElementById('sfc-fab-text').textContent = `M${mNum} B${this.currentBeatNumber}`;
+        const fabText = document.getElementById('sfc-fab-text');
+        if (fabText) {
+          fabText.textContent = `M${mNum} Ev${this.currentEventIndex}`;
+        }
       }
     }
 

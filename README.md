@@ -16,9 +16,8 @@
 | **Phase 2.6: Human Optimization** | 消除不自然提早換把、重複 Riff 指法一致性、開放手型聚合、可解釋成本 | 樂句邊界獎勵、重複動機記憶、開放和弦手型、成本透明化輸出 | **已完成 (Completed)** ✅ |
 | **Phase 3.0: Full Pipeline & UI** | 完整樂曲串接、Session 快取、極速非阻塞運算、浮動指型 Coach 面板、Mini-Barre 向量圖 | `src/ui/coach_panel.js`、`shape_diagram.js`、`coach.css`、M1-M20 瀏覽 | **已完成 (Completed)** ✅ |
 | **Phase 3.0.1: QA Fix** | 吉他弦編號校正（String 1=High E, String 6=Low E）、全動態調弦名稱解析（Drop D, D Std） | 修正 `coach_panel.js`、`shape_diagram.js`、動態 Tuning 回歸測試 | **已完成 (Completed)** ✅ |
-| **Phase 3.1A: Playback Feasibility** | Songsterr 播放游標技術可行性驗證、多聲部（Multi-Voice）時間軸對齊研究、獨立 Observer | `src/songsterr/playback_observer.js`、Romanza 多聲部樣本、游標事件流 | **已完成 (Completed)** ✅ |
 | **Phase 3.1A.1: Multi-Voice & Playback Validation** | 有理數時間軸聚合（Rational Fraction Timeline）、Canonical 多聲部事件模型、PlaybackMapper 轉接器、多行五線譜座標隔離 | `src/normalizer.js`、`src/songsterr/playback_mapper.js`、`tests/multi_voice_acceptance.test.js` | **已完成 (Completed)** ✅ |
-| **Phase 3.1B: Playback Sync UI** | 將 PlaybackObserver 正式連動 CoachPanel 實現自動切換與小節跟隨 | 播放自動滾動、拍點高亮同步、使用者暫停/Seek 恢復 | **規劃中 (Next Up)** 🎯 |
+| **Phase 3.1B: Live Playback Sync UI** | 將 PlaybackObserver + PlaybackMapper 透過 PlaybackSyncController 正式連動 CoachPanel 實現即時播放跟隨 | `src/controller/playback_sync_controller.js`、雙模式切換、Multi-Voice 同步高亮、Pause/Seek/速度自適應 | **已完成 (Completed)** ✅ |
 | **Phase 4: Advanced Shapes** | CAGED 五大和弦音階型態比對、自訂偏好指型庫 | 爵士/藍調/金屬自訂手型偏好、進階調弦指板映射 | **待評估 (Backlog)** 📋 |
 
 
@@ -356,6 +355,30 @@ node tests/run_all_tests.js
 - ✅ **Chrome MV3 執行環境隔離特徵確認**：
   - 確認 Content Script 於 Isolated World 執行，無法直接讀取頁面主世界的 `window.__store__`。系統以 DOM SVG 游標 (`dom-playhead`) 與 `#cursorMarker` 作為高可用核心策略，保證 100% 穩定擷取。
 
+#### 7. Phase 3.1B 即時播放跟隨全功能驗證 (`tests/playback_sync_acceptance.test.js`)
+- ✅ **解耦架構編排器 (`src/controller/playback_sync_controller.js`)**：
+  - 嚴格維持 `PlaybackObserver ➔ PlaybackMapper ➔ Canonical Event ➔ CoachPanel` 之單向解耦管線。
+  - CoachPanel 絕不讀取 Songsterr DOM，PlaybackObserver 亦不直接操控 UI，由控制器集中調度。
+- ✅ **《傍晚去太子灣嗎》全曲播放跟隨 (Playback Follow)**：
+  - Songsterr 播放時，面板小節（M1 ➔ M2 ➔ M3）自動平順前進。
+  - **M3 內部把位段落自動切換**：前半段（Beats 1-5）高亮 Segment 0（Pos 8），第 6 拍換把時自動切換至 Segment 1（Pos 10）。
+  - **M4 迷你橫按（Mini-Barre）高亮**：精準高亮食指橫跨 B/G 弦第 10 品膠囊，並同時呈現 12 品無名指。
+- ✅ **Romanza 多聲部同時發聲視覺化 (Multi-Voice Dual-Voice Display)**：
+  - M1 Event 1 同步完整呈現高音旋律（第 1 弦 7 品，指 1，`V0`）與低音根音（第 6 弦 0 品，指 0，`V1`），附帶清晰 Voice 標籤。
+  - SVG 弦枕上方圓圈（空弦）與品格實心圓點同時綠色高亮發光。
+- ✅ **Smoke On The Water 雙音（Double-Stop）即時同步**：
+  - 同時發聲的四度雙音於 Event Details 卡片與指型圖中無縫同步高亮。
+- ✅ **即時跳轉（Seek）與暫停/繼續（Pause & Resume）**：
+  - 任意拖動進度條或點擊音符，面板瞬間同步至目標小節與 Canonical Event。
+  - 播放器暫停時，面板精準凍結於當前 Event（絕不跳回小節第一拍），繼續播放時自暫停點無縫推進。
+- ✅ **播放倍速自適應（0.5x / 1.25x Speed Invariance）**：
+  - 依拍號與時間比例自適應解析，變更速度時時序毫不脫節。
+- ✅ **手動瀏覽與防游標搶奪機制（Manual ➔ Resume Follow UX）**：
+  - 播放中若使用者手動點擊 `Prev / Next`、某 Event 或某 Segment，面板自動轉為 **Manual 模式**，播放游標不再搶奪畫面。
+  - 面板頂部即時顯示顯目的 **`▶ Resume Follow`** 按鈕，點擊後瞬間重新對齊最新播放進度並切回 Follow 模式。
+- ✅ **效能與防閃爍控制 (Flicker Control & Dirty-Checking)**：
+  - 實施嚴格狀態 Dirty-Checking，60ms 高頻取樣下，同小節同拍點完全不重繪 DOM（0 冗餘渲染），杜絕畫面閃爍與主執行緒卡頓。
+
 ---
 
 ## 5. Chrome Extension 載入與使用
@@ -364,10 +387,10 @@ node tests/run_all_tests.js
 2. 開啟右上角 **「開發人員模式」**。
 3. 點擊 **「載入未封裝項目」**，選取此專案根目錄。
 4. 開啟任何 Songsterr 樂譜頁面（例如 [Schoolgirl byebye - 傍晚去太子灣嗎](https://www.songsterr.com/a/wsa/schoolgirl-byebye-tab-s6557798)）。
-5. 頁面右側將自動浮現 **Fingering Coach 浮動面板**：
-   - 點擊 `◀ Prev` / `Next ▶` 手動瀏覽小節（M1～M146）。
-   - 點擊小節內各拍點（B1、B2...）高亮當前按弦音符。
-   - 檢視 Compact Chord Shape 向量圖、Mini-Barre 膠囊、當前弦/品/手指詳細卡片。
+5. 點擊播放器播放按鈕（Space 鍵或 Play 鍵）：
+   - 頁面右側的 **Fingering Coach 浮動面板** 預設處於 **`▶ Following`** 模式，將自動跟隨 Songsterr 游標小節與發聲事件即時推進高亮！
+   - 若使用者手動點擊 `◀ Prev` / `Next ▶` 或點選特定 Event，面板將貼心地自動暫停自動推進（切為 Manual 模式），讓您能靜心研讀指法。
+   - 研讀完畢後，點擊面板右上角的 **`▶ Resume Follow`**，面板立即飛速跳回最新播放進度！
    - 點擊面板右上角 `─` 可最小化為右下角吉他浮動按鈕（FAB），點擊隨時還原。
 
 ---

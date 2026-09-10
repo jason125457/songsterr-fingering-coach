@@ -667,13 +667,17 @@
             pitch,
             isRest: !!n.isRest,
             isTie: !!n.isTie,
-            isSlide: !!n.isSlide
+            isSlide: !!n.isSlide,
+            source: n.source || null
           };
         });
 
         return {
+          eventIndex: b.eventIndex || b.beatNumber,
           beatNumber: b.beatNumber,
           timing: b.timing,
+          timeOffset: b.timeOffset,
+          sources: b.sources || [],
           recommendedPosition: currentPos,
           isPositionShift: isShift,
           costBreakdown: chosen.costBreakdown,

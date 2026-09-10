@@ -445,6 +445,13 @@
      * Update internal state and emit if changed
      */
     updateState(patch) {
+      if (!patch) return;
+      if (patch.eventIndex !== undefined && patch.beatIndex === undefined) {
+        patch.beatIndex = patch.eventIndex - 1;
+      } else if (patch.beatIndex !== undefined && patch.eventIndex === undefined) {
+        patch.eventIndex = patch.beatIndex + 1;
+      }
+
       const prev = Object.assign({}, this.currentState);
       Object.assign(this.currentState, patch);
 

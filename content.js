@@ -29,9 +29,13 @@
   let lastExtractedData = null;
   let lastFingeringResult = null;
   let currentCoachPanel = null;
+  let currentPlaybackObserver = null;
+  let currentSyncController = null;
+  let currentNormalizedTrack = null;
 
   // Session cache to prevent redundant recalculation across track switches or re-renders
   const fingeringCache = new Map(); // key: `${songId}-${revisionId}-${partId}` -> FingeringResult
+  const normalizedCache = new Map(); // key: `${songId}-${revisionId}-${partId}` -> NormalizedTrack
 
   /**
    * Build the CloudFront CDN URL using Songsterr's internal routing logic
@@ -227,17 +231,20 @@
     console.log('Track Summary:', extractedOutput.track);
     console.groupEnd();
 
-    // Check Fingering Cache
+    // Check Fingering & Normalized Cache
     let fingeringResult = null;
-    if (fingeringCache.has(cacheKey)) {
+    let normalizedTrack = null;
+
+    if (fingeringCache.has(cacheKey) && normalizedCache.has(cacheKey)) {
       console.log(`%c⚡ [Songsterr Fingering Coach] Loaded fingering analysis from session cache (${cacheKey})`, 'color: #06b6d4;');
       fingeringResult = fingeringCache.get(cacheKey);
+      normalizedTrack = normalizedCache.get(cacheKey);
     } else if (typeof TabNormalizer !== 'undefined' && typeof FingeringEngine !== 'undefined') {
       try {
         const startTime = performance.now();
 
         // 1. Normalize full track data
-        const normalizedTrack = TabNormalizer.normalizeSongsterrPart(partData, {
+        normalizedTrack = TabNormalizer.normalizeSongsterrPart(partData, {
           title,
           artist,
           songId,
@@ -255,6 +262,7 @@
 
         // Store in session cache
         fingeringCache.set(cacheKey, fingeringResult);
+        normalizedCache.set(cacheKey, normalizedTrack);
 
         console.log(
           `%c⏱️ [Songsterr Fingering Coach] Full track fingering analysis for ${normalizedTrack.measures.length} measures completed in ${durationMs}ms (Non-blocking)`,
@@ -273,21 +281,23 @@
     }
 
     lastFingeringResult = fingeringResult;
+    currentNormalizedTrack = normalizedTrack;
 
     // Mount or update Floating Coach Panel UI
     if (fingeringResult && typeof CoachPanel !== 'undefined') {
       try {
-        if (currentCoachPanel) {
-          currentCoachPanel.destroy();
+        if (!currentCoachPanel) {
+          currentCoachPanel = new CoachPanel(fingeringResult, { initialMeasure: 1 });
+          console.log('%c🎨 [Songsterr Fingering Coach] Coach Panel UI successfully mounted to page', 'color: #8b5cf6; font-weight: bold;');
+        } else {
+          currentCoachPanel.updateData(fingeringResult);
         }
-        currentCoachPanel = new CoachPanel(fingeringResult, { initialMeasure: 1 });
-        console.log('%c🎨 [Songsterr Fingering Coach] Coach Panel UI successfully mounted to page', 'color: #8b5cf6; font-weight: bold;');
       } catch (uiErr) {
         console.error('[Songsterr Fingering Coach] Failed to initialize Coach Panel UI:', uiErr);
       }
     }
 
-    // Phase 3.1A: Initialize PlaybackObserver in debug mode (logging to console, no CoachPanel manipulation)
+    // Phase 3.1A: Initialize PlaybackObserver
     if (typeof PlaybackObserver !== 'undefined' && !currentPlaybackObserver) {
       try {
         currentPlaybackObserver = new PlaybackObserver({ debugLog: true });
@@ -297,10 +307,35 @@
       }
     }
 
-    return { extractedOutput, fingeringResult, coachPanel: currentCoachPanel, playbackObserver: currentPlaybackObserver };
-  }
+    // Phase 3.1B: Initialize or update PlaybackSyncController (Wiring observer -> mapper -> canonical -> coachPanel)
+    if (typeof PlaybackSyncController !== 'undefined' && normalizedTrack && currentCoachPanel) {
+      try {
+        if (!currentSyncController) {
+          currentSyncController = new PlaybackSyncController({
+            observer: currentPlaybackObserver,
+            mapper: typeof PlaybackMapper !== 'undefined' ? PlaybackMapper : null,
+            coachPanel: currentCoachPanel,
+            normalizedTrack: normalizedTrack,
+            autoStart: true
+          });
+          console.log('%c⚡ [Songsterr Fingering Coach] Live Playback Sync Controller activated (Follow Mode)', 'color: #10b981; font-weight: bold;');
+        } else {
+          currentSyncController.coachPanel = currentCoachPanel;
+          currentSyncController.setTrack(normalizedTrack, fingeringResult);
+        }
+      } catch (ctlErr) {
+        console.error('[Songsterr Fingering Coach] Failed to initialize PlaybackSyncController:', ctlErr);
+      }
+    }
 
-  let currentPlaybackObserver = null;
+    return { 
+      extractedOutput, 
+      fingeringResult, 
+      coachPanel: currentCoachPanel, 
+      playbackObserver: currentPlaybackObserver,
+      syncController: currentSyncController 
+    };
+  }
 
   // Expose global debug object on window for developer testing
   window.__SONGSTERR_FINGERING_COACH__ = {
@@ -311,6 +346,7 @@
     getCoachPanel: () => currentCoachPanel,
     getPlaybackObserver: () => currentPlaybackObserver,
     getPlaybackMapper: () => (typeof PlaybackMapper !== 'undefined' ? PlaybackMapper : null),
+    getSyncController: () => currentSyncController,
     getCache: () => fingeringCache,
     getRawState: () => {
       try {

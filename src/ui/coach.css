@@ -103,6 +103,60 @@
   color: #ffffff;
 }
 
+.sfc-mode-indicator {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sfc-mode-follow {
+  background: rgba(0, 210, 106, 0.15);
+  color: #00d26a;
+  border: 1px solid rgba(0, 210, 106, 0.4);
+}
+
+.sfc-btn-resume {
+  background: #00d26a;
+  color: #09090b;
+  border: none;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  box-shadow: 0 0 8px rgba(0, 210, 106, 0.3);
+}
+
+.sfc-btn-resume:hover {
+  background: #10b981;
+  transform: scale(1.03);
+}
+
+.sfc-badge-measure-only {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.35);
+}
+
+.sfc-voice-tag {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  margin-left: 4px;
+}
+
 /* Body */
 .sfc-body {
   padding: 12px 14px;
