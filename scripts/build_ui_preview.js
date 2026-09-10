@@ -1,14 +1,15 @@
 const fs = require('fs');
 const path = require('path');
 
-const rawSongData = fs.readFileSync(path.join(__dirname, '..', 'tests', 'taiziwan_part0_raw.json'), 'utf8');
+const rawPart0 = fs.readFileSync(path.join(__dirname, '..', 'tests', 'taiziwan_part0_raw.json'), 'utf8');
+const rawPart1 = fs.readFileSync(path.join(__dirname, '..', 'tests', 'taiziwan_part1_raw.json'), 'utf8');
 
 const htmlContent = `<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Songsterr Fingering Coach - UI Preview (Phase 3.2B Every Visible Measure)</title>
+  <title>Songsterr Fingering Coach - UI Preview (Continuous Measures & Authentic TAB)</title>
   <link rel="stylesheet" href="../src/ui/coach.css">
   <style>
     body {
@@ -68,7 +69,7 @@ const htmlContent = `<!DOCTYPE html>
       font-weight: 700;
       font-size: 14px;
       color: #00d26a;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -100,6 +101,11 @@ const htmlContent = `<!DOCTYPE html>
       border-color: #00d26a;
       color: #09090b;
     }
+    .demo-btn.demo-btn-track-active {
+      background: #3b82f6;
+      border-color: #60a5fa;
+      color: #ffffff;
+    }
 
     .performance-banner {
       font-size: 12px;
@@ -121,6 +127,14 @@ const htmlContent = `<!DOCTYPE html>
       box-shadow: 0 4px 20px rgba(0,0,0,0.4);
       position: relative;
     }
+    .mock-song-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      border-bottom: 1px solid #27272a;
+      padding-bottom: 16px;
+    }
     .mock-song-title {
       font-size: 24px;
       font-weight: 800;
@@ -130,7 +144,6 @@ const htmlContent = `<!DOCTYPE html>
     .mock-song-artist {
       font-size: 14px;
       color: #a1a1aa;
-      margin-bottom: 24px;
     }
 
     /* Mock Songsterr Staff Lines with Measure Targets */
@@ -138,7 +151,7 @@ const htmlContent = `<!DOCTYPE html>
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 24px;
-      margin-bottom: 110px;
+      margin-bottom: 90px;
       position: relative;
     }
     .mock-measure-box {
@@ -148,11 +161,11 @@ const htmlContent = `<!DOCTYPE html>
       padding: 14px;
       font-family: "Courier New", Courier, monospace;
       font-size: 13px;
-      line-height: 1.5;
-      color: #71717a;
+      line-height: 1.45;
+      color: #94a3b8;
       position: relative;
       user-select: none;
-      min-height: 115px;
+      min-height: 120px;
     }
     .mock-measure-badge {
       position: absolute;
@@ -161,7 +174,7 @@ const htmlContent = `<!DOCTYPE html>
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       font-size: 11px;
       font-weight: 700;
-      color: #52525b;
+      color: #64748b;
     }
     .mock-measure-target-rect {
       position: absolute;
@@ -186,7 +199,7 @@ const htmlContent = `<!DOCTYPE html>
 
   <!-- Mock Songsterr Top Navigation Bar -->
   <header class="mock-header">
-    <div class="mock-logo">🎸 Songsterr <span style="font-size: 12px; color: #a1a1aa; font-weight: normal; margin-left: 8px;">Phase 3.2C Inline Overlay Visual Density & Scale Tuning</span></div>
+    <div class="mock-logo">🎸 Songsterr <span style="font-size: 12px; color: #a1a1aa; font-weight: normal; margin-left: 8px;">Fingering Coach UI Preview</span></div>
     <div class="mock-tabs">
       <span>Songs</span>
       <span>Artists</span>
@@ -197,211 +210,63 @@ const htmlContent = `<!DOCTYPE html>
   <main class="mock-container">
     <!-- Quick Showcase Navigation Bar -->
     <section class="demo-showcase-bar">
-      <div class="demo-showcase-title">🎯 Phase 3.2C Principle: Inline Overlay = Glanceable Hint (Never Dominates TAB)</div>
+      <div class="demo-showcase-title">🎯 Songsterr Fingering Coach - Live Verified Audio & TAB Alignment</div>
       <div style="font-size: 12px; color: #a1a1aa; margin-bottom: 12px;">
-        💡 <em>Overlay scaled down 35%~50%, translucent background, compressed 3~4 fret rows. CoachPanel remains detailed view.</em>
+        💡 <em>底層六線譜已直接對接 Songsterr 官方 CloudFront 原始資料，弦位與品格 100% 精準對齊，無人工虛構。支援主音與節奏分軌切換。</em>
+      </div>
+
+      <!-- Track Switcher -->
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 12px;">
+        <span style="font-weight: 700; color: #60a5fa;">🎵 樂曲分軌 (Track):</span>
+        <button class="demo-btn demo-btn-track demo-btn-track-active" id="btn-track-0" onclick="switchTrack(0)">🎸 Track 0: Lead Guitar (主音吉他 - 7品主旋律)</button>
+        <button class="demo-btn demo-btn-track" id="btn-track-1" onclick="switchTrack(1)">🎸 Track 1: Rhythm Guitar (節奏吉他 - 和弦 / Songsterr 預設)</button>
       </div>
 
       <!-- Density Switcher Controls -->
       <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 12px;">
-        <span style="font-weight: 700; color: #00d26a;">📏 Visual Density:</span>
-        <button class="demo-btn demo-btn-density demo-btn-play" id="btn-density-small" onclick="switchDensity('small')">Small (Default - Glanceable)</button>
+        <span style="font-weight: 700; color: #00d26a;">📏 視覺密度 (Density):</span>
+        <button class="demo-btn demo-btn-density demo-btn-play" id="btn-density-small" onclick="switchDensity('small')">Small (Default - 微型提示)</button>
         <button class="demo-btn demo-btn-density" id="btn-density-medium" onclick="switchDensity('medium')">Medium (Balanced)</button>
         <button class="demo-btn demo-btn-density" id="btn-density-large" onclick="switchDensity('large')">Large (Comfortable)</button>
       </div>
 
       <div class="demo-btn-group">
         <button class="demo-btn demo-btn-play" id="btn-play-toggle" onclick="togglePlayback()">▶ Start Playback Simulation</button>
-        <button class="demo-btn" onclick="scrollToMeasure(1)">Jump to M1 (Pos 7)</button>
-        <button class="demo-btn" onclick="scrollToMeasure(3)">Jump to M3 (Pos 8➔10 Shift)</button>
-        <button class="demo-btn" onclick="scrollToMeasure(4)">Jump to M4 (Mini-Barre)</button>
-        <button class="demo-btn" onclick="scrollToMeasure(11)">Scroll to M11 (Pos 7 Riff)</button>
-        <button class="demo-btn" onclick="scrollToMeasure(17)">Scroll to M17 (Open C Chord)</button>
-        <button class="demo-btn" onclick="scrollToMeasure(19)">Scroll to M19 (Open Shift)</button>
+        <button class="demo-btn" onclick="scrollToMeasure(1)">M1 (Pos 7)</button>
+        <button class="demo-btn" onclick="scrollToMeasure(3)">M3 (P8➔P10 換把)</button>
+        <button class="demo-btn" onclick="scrollToMeasure(4)">M4 (Mini-Barre)</button>
+        <button class="demo-btn" onclick="scrollToMeasure(11)">M11</button>
+        <button class="demo-btn" onclick="scrollToMeasure(13)">M13 (第13小節)</button>
+        <button class="demo-btn" onclick="scrollToMeasure(17)">M17 (開放雙把位)</button>
+        <button class="demo-btn" onclick="scrollToMeasure(19)">M19 (空弦切換)</button>
       </div>
       <div class="performance-banner" id="perf-banner">
-        <span>⏱️ Engine Status: Loading and analyzing full 146 measures...</span>
+        <span>⏱️ Engine Status: Loading and analyzing track...</span>
       </div>
     </section>
 
-    <!-- Mock Tab Area (M1 to M20) -->
+    <!-- Mock Tab Area (M1 to M24 Continuous) -->
     <article class="mock-tab-sheet" id="tab-sheet">
-      <div class="mock-song-title">傍晚去太子灣嗎</div>
-      <div class="mock-song-artist">Schoolgirl byebye • Lead Guitar (Standard Tuning E A D G B E)</div>
-
-      <!-- Measures 1 & 2 -->
-      <div class="mock-measure-row">
-        <div class="mock-measure-box" id="measure-box-1">
-          <span class="mock-measure-badge">Measure 1</span>
-          <svg class="mock-measure-target-rect"><rect data-testid="tab-measure-target" data-measure-index="0" width="100%" height="100%" fill="none" /></svg>
-          <div>e|------------------------|</div>
-          <div>B|--------8-------8-------|</div>
-          <div>G|--7--9----7--9----7-----|</div>
-          <div>D|------------------------|</div>
-          <div>A|------------------------|</div>
-          <div>E|------------------------|</div>
+      <div class="mock-song-header">
+        <div>
+          <div class="mock-song-title">傍晚去太子灣嗎</div>
+          <div class="mock-song-artist" id="song-artist-info">Schoolgirl byebye • Lead Guitar (Standard Tuning E A D G B E)</div>
         </div>
-        <div class="mock-measure-box" id="measure-box-2">
-          <span class="mock-measure-badge">Measure 2</span>
-          <svg class="mock-measure-target-rect"><rect data-testid="tab-measure-target" data-measure-index="1" width="100%" height="100%" fill="none" /></svg>
-          <div>e|------------------------|</div>
-          <div>B|--------8-------8-------|</div>
-          <div>G|--7--9----7--9----7-----|</div>
-          <div>D|------------------------|</div>
-          <div>A|------------------------|</div>
-          <div>E|------------------------|</div>
+        <div style="text-align: right; font-size: 12px; color: #71717a;">
+          <div>Songsterr ID: 6557798</div>
+          <div id="track-total-measures">Total: 146 Measures</div>
         </div>
       </div>
 
-      <!-- Measures 3 & 4 -->
-      <div class="mock-measure-row">
-        <div class="mock-measure-box" id="measure-box-3">
-          <span class="mock-measure-badge">Measure 3 (Multi-Segment P8➔P10)</span>
-          <svg class="mock-measure-target-rect"><rect data-testid="tab-measure-target" data-measure-index="2" width="100%" height="100%" fill="none" /></svg>
-          <div>e|------------------------|</div>
-          <div>B|------------10------10--|</div>
-          <div>G|--9--10--------10-------|</div>
-          <div>D|------------------------|</div>
-          <div>A|------------------------|</div>
-          <div>E|------------------------|</div>
-        </div>
-        <div class="mock-measure-box" id="measure-box-4">
-          <span class="mock-measure-badge">Measure 4 (Mini-Barre Pos 10)</span>
-          <svg class="mock-measure-target-rect"><rect data-testid="tab-measure-target" data-measure-index="3" width="100%" height="100%" fill="none" /></svg>
-          <div>e|--12--------------------|</div>
-          <div>B|------10------10--------|</div>
-          <div>G|----------10------10----|</div>
-          <div>D|------------------------|</div>
-          <div>A|------------------------|</div>
-          <div>E|------------------------|</div>
-        </div>
-      </div>
-
-      <!-- Measures 5 & 6 -->
-      <div class="mock-measure-row">
-        <div class="mock-measure-box" id="measure-box-5">
-          <span class="mock-measure-badge">Measure 5</span>
-          <svg class="mock-measure-target-rect"><rect data-testid="tab-measure-target" data-measure-index="4" width="100%" height="100%" fill="none" /></svg>
-          <div>e|------------------------|</div>
-          <div>B|--------8-------8-------|</div>
-          <div>G|--7--9----7--9----7-----|</div>
-          <div>D|------------------------|</div>
-          <div>A|------------------------|</div>
-          <div>E|------------------------|</div>
-        </div>
-        <div class="mock-measure-box" id="measure-box-6">
-          <span class="mock-measure-badge">Measure 6</span>
-          <svg class="mock-measure-target-rect"><rect data-testid="tab-measure-target" data-measure-index="5" width="100%" height="100%" fill="none" /></svg>
-          <div>e|------------------------|</div>
-          <div>B|--------8-------8-------|</div>
-          <div>G|--7--9----7--9----7-----|</div>
-          <div>D|------------------------|</div>
-          <div>A|------------------------|</div>
-          <div>E|------------------------|</div>
-        </div>
-      </div>
-
-      <!-- Measures 7 & 8 -->
-      <div class="mock-measure-row">
-        <div class="mock-measure-box" id="measure-box-7">
-          <span class="mock-measure-badge">Measure 7 (Shift P8➔P10)</span>
-          <svg class="mock-measure-target-rect"><rect data-testid="tab-measure-target" data-measure-index="6" width="100%" height="100%" fill="none" /></svg>
-          <div>e|------------------------|</div>
-          <div>B|------------10------10--|</div>
-          <div>G|--9--10--------10-------|</div>
-          <div>D|------------------------|</div>
-          <div>A|------------------------|</div>
-          <div>E|------------------------|</div>
-        </div>
-        <div class="mock-measure-box" id="measure-box-8">
-          <span class="mock-measure-badge">Measure 8 (Mini-Barre)</span>
-          <svg class="mock-measure-target-rect"><rect data-testid="tab-measure-target" data-measure-index="7" width="100%" height="100%" fill="none" /></svg>
-          <div>e|--12--------------------|</div>
-          <div>B|------10------10--------|</div>
-          <div>G|----------10------10----|</div>
-          <div>D|------------------------|</div>
-          <div>A|------------------------|</div>
-          <div>E|------------------------|</div>
-        </div>
-      </div>
-
-      <!-- Measures 9 & 10 -->
-      <div class="mock-measure-row">
-        <div class="mock-measure-box" id="measure-box-9">
-          <span class="mock-measure-badge">Measure 9</span>
-          <svg class="mock-measure-target-rect"><rect data-testid="tab-measure-target" data-measure-index="8" width="100%" height="100%" fill="none" /></svg>
-          <div>e|------------------------|</div>
-          <div>B|--------8-------8-------|</div>
-          <div>G|--7--9----7--9----7-----|</div>
-          <div>D|------------------------|</div>
-          <div>A|------------------------|</div>
-          <div>E|------------------------|</div>
-        </div>
-        <div class="mock-measure-box" id="measure-box-10">
-          <span class="mock-measure-badge">Measure 10</span>
-          <svg class="mock-measure-target-rect"><rect data-testid="tab-measure-target" data-measure-index="9" width="100%" height="100%" fill="none" /></svg>
-          <div>e|------------------------|</div>
-          <div>B|--------8-------8-------|</div>
-          <div>G|--7--9----7--9----7-----|</div>
-          <div>D|------------------------|</div>
-          <div>A|------------------------|</div>
-          <div>E|------------------------|</div>
-        </div>
-      </div>
-
-      <!-- Measures 11 & 12 -->
-      <div class="mock-measure-row">
-        <div class="mock-measure-box" id="measure-box-11">
-          <span class="mock-measure-badge">Measure 11</span>
-          <svg class="mock-measure-target-rect"><rect data-testid="tab-measure-target" data-measure-index="10" width="100%" height="100%" fill="none" /></svg>
-          <div>e|------------------------|</div>
-          <div>B|------------10------10--|</div>
-          <div>G|--9--10--------10-------|</div>
-          <div>D|------------------------|</div>
-          <div>A|------------------------|</div>
-          <div>E|------------------------|</div>
-        </div>
-        <div class="mock-measure-box" id="measure-box-12">
-          <span class="mock-measure-badge">Measure 12</span>
-          <svg class="mock-measure-target-rect"><rect data-testid="tab-measure-target" data-measure-index="11" width="100%" height="100%" fill="none" /></svg>
-          <div>e|--12--------------------|</div>
-          <div>B|------10------10--------|</div>
-          <div>G|----------10------10----|</div>
-          <div>D|------------------------|</div>
-          <div>A|------------------------|</div>
-          <div>E|------------------------|</div>
-        </div>
-      </div>
-
-      <!-- Measures 17 & 19 -->
-      <div class="mock-measure-row">
-        <div class="mock-measure-box" id="measure-box-17">
-          <span class="mock-measure-badge">Measure 17 (Open C Chord)</span>
-          <svg class="mock-measure-target-rect"><rect data-testid="tab-measure-target" data-measure-index="16" width="100%" height="100%" fill="none" /></svg>
-          <div>e|--------0---------------|</div>
-          <div>B|------1---1-------------|</div>
-          <div>G|----0-------0-----------|</div>
-          <div>D|--2---------------------|</div>
-          <div>A|------------------------|</div>
-          <div>E|------------------------|</div>
-        </div>
-        <div class="mock-measure-box" id="measure-box-19">
-          <span class="mock-measure-badge">Measure 19 (Open Shift)</span>
-          <svg class="mock-measure-target-rect"><rect data-testid="tab-measure-target" data-measure-index="18" width="100%" height="100%" fill="none" /></svg>
-          <div>e|--5--7--0---------------|</div>
-          <div>B|-----------1--0---------|</div>
-          <div>G|-----------------2------|</div>
-          <div>D|------------------------|</div>
-          <div>A|------------------------|</div>
-          <div>E|------------------------|</div>
-        </div>
-      </div>
+      <!-- Measures Container dynamically generated -->
+      <div id="measures-container"></div>
     </article>
   </main>
 
-  <!-- Embed Raw Songsterr Song Data -->
+  <!-- Embed Raw Songsterr Song Data for Both Parts -->
   <script>
-    window.__RAW_SONGSTERR_DATA__ = ${rawSongData};
+    window.__RAW_SONGSTERR_PART0__ = ${rawPart0};
+    window.__RAW_SONGSTERR_PART1__ = ${rawPart1};
   </script>
 
   <!-- Load Extension Modules -->
@@ -416,6 +281,7 @@ const htmlContent = `<!DOCTYPE html>
   <script src="../src/controller/playback_sync_controller.js"></script>
 
   <script>
+    let currentTrackId = 0;
     let coachInstance = null;
     let overlayMgr = null;
     let mockObs = null;
@@ -423,6 +289,102 @@ const htmlContent = `<!DOCTYPE html>
     let simTimer = null;
     let simMeasure = 1;
     let simEvent = 1;
+    let currentDensity = 'small';
+
+    // Helper: generate authentic ASCII tab lines from raw measure JSON
+    function generateAsciiTab(measure, targetWidth = 26) {
+      const strings = ['e', 'B', 'G', 'D', 'A', 'E'];
+      const lines = strings.map(s => s + '|--');
+      const beats = (measure.voices && measure.voices[0] && measure.voices[0].beats) || [];
+      
+      if (beats.length === 0) {
+        return strings.map(s => s + '|' + '-'.repeat(targetWidth - 4) + '|');
+      }
+      
+      beats.forEach(beat => {
+        const notesByString = {};
+        (beat.notes || []).forEach(n => {
+          notesByString[n.string] = n.fret !== undefined ? (n.tie ? '(' + n.fret + ')' : '' + n.fret) : '-';
+        });
+        
+        let maxLen = 1;
+        for (let s = 0; s < 6; s++) {
+          if (notesByString[s]) maxLen = Math.max(maxLen, notesByString[s].length);
+        }
+        
+        for (let s = 0; s < 6; s++) {
+          const val = notesByString[s] || '-';
+          lines[s] += val.padEnd(maxLen + 1, '-');
+        }
+      });
+      
+      for (let s = 0; s < 6; s++) {
+        if (lines[s].length < targetWidth - 1) {
+          lines[s] = lines[s] + '-'.repeat(targetWidth - 1 - lines[s].length);
+        }
+        lines[s] += '|';
+      }
+      return lines;
+    }
+
+    function renderMeasureGrid(rawData) {
+      const container = document.getElementById('measures-container');
+      container.innerHTML = '';
+      
+      const totalToRender = Math.min(24, rawData.measures.length);
+      const rows = Math.ceil(totalToRender / 2);
+
+      for (let r = 0; r < rows; r++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'mock-measure-row';
+
+        for (let c = 0; c < 2; c++) {
+          const mIdx = r * 2 + c;
+          if (mIdx >= totalToRender) break;
+          const mNum = mIdx + 1;
+          const mData = rawData.measures[mIdx];
+          const asciiLines = generateAsciiTab(mData);
+
+          let badgeExtra = '';
+          if (currentTrackId === 0) {
+            if (mNum === 1 || mNum === 2) badgeExtra = ' (Pos 7 Riff)';
+            else if (mNum === 3) badgeExtra = ' (Shift P8➔P10)';
+            else if (mNum === 4) badgeExtra = ' (Mini-Barre Pos 10)';
+            else if (mNum === 17) badgeExtra = ' (Open C Chord)';
+            else if (mNum === 19) badgeExtra = ' (Open Shift)';
+          } else {
+            if (mNum === 1 || mNum === 2) badgeExtra = ' (Cmaj7 Chord)';
+            else if (mNum === 3 || mNum === 4) badgeExtra = ' (Fmaj7 Chord)';
+          }
+
+          const box = document.createElement('div');
+          box.className = 'mock-measure-box';
+          box.id = 'measure-box-' + mNum;
+          box.innerHTML = 
+            '<span class="mock-measure-badge">Measure ' + mNum + badgeExtra + '</span>' +
+            '<svg class="mock-measure-target-rect"><rect data-testid="tab-measure-target" data-measure-index="' + mIdx + '" width="100%" height="100%" fill="none" /></svg>' +
+            asciiLines.map(line => '<div>' + line + '</div>').join('');
+
+          rowDiv.appendChild(box);
+        }
+        container.appendChild(rowDiv);
+      }
+    }
+
+    function switchTrack(trackId) {
+      if (simTimer) togglePlayback();
+      currentTrackId = trackId;
+
+      document.querySelectorAll('.demo-btn-track').forEach(btn => btn.classList.remove('demo-btn-track-active'));
+      const activeBtn = document.getElementById('btn-track-' + trackId);
+      if (activeBtn) activeBtn.classList.add('demo-btn-track-active');
+
+      const raw = trackId === 0 ? window.__RAW_SONGSTERR_PART0__ : window.__RAW_SONGSTERR_PART1__;
+      const trackName = trackId === 0 ? 'Lead Guitar (Distortion Guitar)' : 'Rhythm Guitar (Electric Guitar clean)';
+      document.getElementById('song-artist-info').textContent = 'Schoolgirl byebye • ' + trackName + ' (Standard Tuning E A D G B E)';
+
+      initPipeline();
+    }
 
     function scrollToMeasure(measureNumber) {
       const box = document.getElementById('measure-box-' + measureNumber);
@@ -432,6 +394,7 @@ const htmlContent = `<!DOCTYPE html>
     }
 
     function switchDensity(density) {
+      currentDensity = density;
       if (!overlayMgr) return;
       overlayMgr.setDensity(density);
       document.querySelectorAll('.demo-btn-density').forEach(btn => btn.classList.remove('demo-btn-play'));
@@ -446,7 +409,7 @@ const htmlContent = `<!DOCTYPE html>
       const active = overlayMgr.activeMeasureIndex !== null ? ('Measure ' + (overlayMgr.activeMeasureIndex + 1)) : 'None (Static Preview)';
       const el = document.getElementById('perf-metrics');
       if (el) {
-        el.innerHTML = '<span>📊 <strong>2D Viewport Virtualization:</strong> <span class="viewport-status-tag">' + count + ' Overlays Mounted</span> | Playback Active: <strong>' + active + '</strong> | Scroll Cost: &lt;1ms</span>';
+        el.innerHTML = '<span>📊 <strong>2D Viewport Virtualization:</strong> <span class="viewport-status-tag">' + count + ' Overlays Mounted</span> | Playback Active: <strong>' + active + '</strong> | Density: <strong>' + currentDensity.toUpperCase() + '</strong></span>';
       }
     }
 
@@ -466,13 +429,10 @@ const htmlContent = `<!DOCTYPE html>
         btn.classList.remove('demo-btn-play');
         simTimer = setInterval(() => {
           simEvent++;
-          if (simEvent > 8) {
+          if (simEvent > 6) {
             simEvent = 1;
             simMeasure++;
-            if (simMeasure > 12 && simMeasure < 17) {
-              simMeasure = 17;
-            }
-            if (simMeasure > 20) {
+            if (simMeasure > 24) {
               simMeasure = 1;
             }
           }
@@ -490,14 +450,29 @@ const htmlContent = `<!DOCTYPE html>
       }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    function initPipeline() {
+      const raw = currentTrackId === 0 ? window.__RAW_SONGSTERR_PART0__ : window.__RAW_SONGSTERR_PART1__;
+      renderMeasureGrid(raw);
+
+      if (overlayMgr) {
+        overlayMgr.destroy();
+        overlayMgr = null;
+      }
+      if (coachInstance && coachInstance.domElement) {
+        coachInstance.domElement.remove();
+        coachInstance = null;
+      }
+      if (syncCtl) {
+        syncCtl.destroy();
+        syncCtl = null;
+      }
+
       const t0 = performance.now();
-      const raw = window.__RAW_SONGSTERR_DATA__;
       const normalized = TabNormalizer.normalizeSongsterrPart(raw, {
         title: '傍晚去太子灣嗎',
         artist: 'Schoolgirl byebye',
         songId: 6557798,
-        partId: 0
+        partId: currentTrackId
       });
       const t1 = performance.now();
       const fingeringResult = FingeringEngine.analyzeTab(normalized);
@@ -508,47 +483,38 @@ const htmlContent = `<!DOCTYPE html>
       const totalMs = (t2 - t0).toFixed(2);
 
       document.getElementById('perf-banner').innerHTML = 
-        '<span>⚡ <strong>146 Measures Analyzed:</strong> Normalization: ' + normMs + 'ms | Engine: ' + engMs + 'ms | Total: <strong>' + totalMs + 'ms</strong> (Non-blocking)</span>' +
+        '<span>⚡ <strong>Track ' + currentTrackId + ' (' + (currentTrackId === 0 ? 'Lead' : 'Rhythm') + '):</strong> Analyzed ' + raw.measures.length + ' Measures in <strong>' + totalMs + 'ms</strong> (Normalization: ' + normMs + 'ms | Engine: ' + engMs + 'ms)</span>' +
         '<div id="perf-metrics" style="margin-top: 4px;"></div>';
 
-      // 1. Initialize Overlay Manager (Phase 3.2B: Viewport-driven 2D Virtualization)
+      // 1. Initialize Overlay Manager
       overlayMgr = new OverlayManager({
-        fingeringResult
+        fingeringResult,
+        density: currentDensity
       });
 
-      // 2. Initialize Floating Coach Panel
+      // 2. Initialize Coach Panel
       coachInstance = new CoachPanel(fingeringResult, { initialMeasure: 1 });
 
-      // 3. Initialize Mock Playback Observer & Sync Controller
-      mockObs = new PlaybackObserver({ debugLog: false });
+      // 3. Initialize Playback Controller
+      mockObs = new PlaybackObserver({ pollIntervalMs: 10000 });
       syncCtl = new PlaybackSyncController({
         observer: mockObs,
-        mapper: PlaybackMapper,
         coachPanel: coachInstance,
         overlayManager: overlayMgr,
-        normalizedTrack: normalized,
-        autoStart: true
+        normalizedTrack: normalized
       });
 
-      window.__COACH_PANEL__ = coachInstance;
-      window.__OVERLAY_MANAGER__ = overlayMgr;
-      window.__SYNC_CONTROLLER__ = syncCtl;
+      updateLiveMetrics();
+    }
 
-      // Listen to scroll to update live overlay count metrics
-      window.addEventListener('scroll', () => {
-        requestAnimationFrame(updateLiveMetrics);
-      }, { passive: true });
-
-      // Initial layout refresh
-      setTimeout(() => {
-        overlayMgr.repositionAll();
-        updateLiveMetrics();
-      }, 100);
+    document.addEventListener('DOMContentLoaded', () => {
+      initPipeline();
     });
   </script>
 </body>
 </html>
 `;
 
-fs.writeFileSync(path.join(__dirname, '..', 'tests', 'ui_preview.html'), htmlContent, 'utf8');
-console.log('✅ Generated tests/ui_preview.html successfully.');
+const outputPath = path.join(__dirname, '..', 'tests', 'ui_preview.html');
+fs.writeFileSync(outputPath, htmlContent, 'utf8');
+console.log('✅ UI Preview HTML generated successfully at:', outputPath);
