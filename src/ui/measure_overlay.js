@@ -24,7 +24,7 @@
   class MeasureOverlay {
     /**
      * @param {Object} measureData Normalized measure with fingering analysis
-     * @param {Object} options Configuration options (tuning, dimensions, etc.)
+     * @param {Object} options Configuration options (tuning, dimensions, density, etc.)
      */
     constructor(measureData, options = {}) {
       if (!measureData) {
@@ -33,6 +33,7 @@
 
       this.measureData = measureData;
       this.options = options;
+      this.density = options.density || 'small';
       this.measureNumber = measureData.measureNumber || 1;
       this.segments = ShapeDiagram.splitMeasureIntoSegments(measureData);
       this.currentSegmentIndex = 0;
@@ -42,12 +43,54 @@
       this.anchorRect = null;
       this.lastAnchorWidth = null;
 
-      this.overlayWidth = options.width || (this.segments.length > 1 ? 156 : 88);
-      this.overlayHeight = options.height || 88;
-      this.svgWidth = options.svgWidth || 80;
-      this.svgHeight = options.svgHeight || 66;
-
+      this.applyDensityMetrics();
       this.createElement();
+    }
+
+    /**
+     * Configure dimensions and layout parameters based on density mode
+     */
+    applyDensityMetrics() {
+      const isMulti = this.segments.length > 1;
+      if (this.density === 'large') {
+        this.svgWidth = this.options.svgWidth || 64;
+        this.svgHeight = this.options.svgHeight || 48;
+        this.overlayWidth = this.options.width || (isMulti ? 148 : 72);
+        this.overlayHeight = this.options.height || 56;
+        this.minPerSeg = 64;
+      } else if (this.density === 'medium') {
+        this.svgWidth = this.options.svgWidth || 52;
+        this.svgHeight = this.options.svgHeight || 38;
+        this.overlayWidth = this.options.width || (isMulti ? 122 : 58);
+        this.overlayHeight = this.options.height || 46;
+        this.minPerSeg = 52;
+      } else {
+        // 'small' default: scaled down ~35-50% for subtle, glanceable hint
+        this.svgWidth = this.options.svgWidth || 44;
+        this.svgHeight = this.options.svgHeight || 32;
+        this.overlayWidth = this.options.width || (isMulti ? 104 : 50);
+        this.overlayHeight = this.options.height || 40;
+        this.minPerSeg = 44;
+      }
+
+      if (this.domElement) {
+        this.domElement.className = `sfc-measure-overlay sfc-density-${this.density}${this.isHighlighted ? ' sfc-overlay-active' : ''}`;
+        this.domElement.style.width = `${this.overlayWidth}px`;
+      }
+    }
+
+    /**
+     * Dynamically update overlay density mode
+     * @param {'small'|'medium'|'large'} density 
+     */
+    setDensity(density) {
+      if (this.density === density) return;
+      this.density = density;
+      this.applyDensityMetrics();
+      this.render();
+      if (this.anchorRect) {
+        this.updatePosition(this.anchorRect);
+      }
     }
 
     /**
@@ -55,10 +98,11 @@
      */
     createElement() {
       const el = document.createElement('div');
-      el.className = 'sfc-measure-overlay';
+      el.className = `sfc-measure-overlay sfc-density-${this.density}`;
       el.setAttribute('data-measure-number', String(this.measureNumber));
       el.style.position = 'absolute';
       el.style.pointerEvents = 'none';
+      el.style.width = `${this.overlayWidth}px`;
 
       this.domElement = el;
       this.render();
@@ -66,16 +110,38 @@
     }
 
     /**
-     * Render diagrams for arbitrary N segments
+     * Render diagrams for arbitrary N segments with adaptive sizing and narrow fallback
      * @param {number|null} availableWidth 
      * @returns {string} HTML string
      */
     renderDiagramsHTML(availableWidth) {
       const numSegments = this.segments.length;
+      // Adaptive sizing constraint: maxWidth <= anchorWidth * 0.8
+      const maxAllowedW = availableWidth ? Math.round(availableWidth * 0.8) : this.overlayWidth;
+
+      // Tier 3: Extremely narrow measure fallback (e.g. anchorWidth < 110px or maxAllowedW < 88px for multi-segment)
+      const isExtremelyNarrow = maxAllowedW < (numSegments > 1 ? 88 : 42);
+      if (isExtremelyNarrow) {
+        if (numSegments > 1) {
+          const shiftSummary = this.segments.map(seg => {
+            const sh = ShapeDiagram.aggregateSegmentShape(seg, null, { compact: true, density: this.density });
+            const fingers = sh.usedFingers && sh.usedFingers.length > 0 ? sh.usedFingers.join('') : '0';
+            return `P${seg.position} [${fingers}]`;
+          }).join(' ➔ ');
+          return `<div class="sfc-overlay-micro-summary" title="Micro Fingering Summary"><span class="sfc-micro-shift">${shiftSummary}</span></div>`;
+        } else {
+          const seg = this.segments[0];
+          const sh = ShapeDiagram.aggregateSegmentShape(seg, null, { compact: true, density: this.density });
+          const fingers = sh.usedFingers && sh.usedFingers.length > 0 ? sh.usedFingers.join('') : '0';
+          return `<div class="sfc-overlay-micro-summary"><span class="sfc-micro-shift">P${seg.position} [${fingers}]</span></div>`;
+        }
+      }
+
       if (numSegments <= 1) {
         const seg = this.segments[0];
         const svg = ShapeDiagram.renderSVG(seg, this.activeEventIndex, {
           compact: true,
+          density: this.density,
           width: this.svgWidth,
           height: this.svgHeight,
           tuning: this.options.tuning,
@@ -85,9 +151,9 @@
       }
 
       // Generalized Multi-Segment (N >= 2)
-      const minPerSeg = 66;
-      const totalSideBySideW = numSegments * minPerSeg + (numSegments - 1) * 14;
-      const canFitSideBySide = !availableWidth || availableWidth >= totalSideBySideW;
+      const minPerSeg = this.minPerSeg;
+      const totalSideBySideW = numSegments * minPerSeg + (numSegments - 1) * 6;
+      const canFitSideBySide = maxAllowedW >= totalSideBySideW;
 
       if (canFitSideBySide) {
         let html = `<div class="sfc-overlay-multi-segments">`;
@@ -99,8 +165,9 @@
           const segActiveEv = isSegActive ? this.activeEventIndex : null;
           const svg = ShapeDiagram.renderSVG(seg, segActiveEv, {
             compact: true,
-            width: 68,
-            height: 56,
+            density: this.density,
+            width: this.svgWidth,
+            height: this.svgHeight,
             tuning: this.options.tuning,
             tuningNames: this.options.tuningNames
           });
@@ -112,11 +179,12 @@
         html += `</div>`;
         return html;
       } else {
-        // Constrained width fallback: render active segment with compact dimensions
+        // Space constrained: render active segment with compact dimensions and shift indicator in header
         const activeSeg = this.segments[this.currentSegmentIndex] || this.segments[0];
         const svg = ShapeDiagram.renderSVG(activeSeg, this.activeEventIndex, {
           compact: true,
-          width: Math.min(this.svgWidth, Math.max(60, availableWidth - 12)),
+          density: this.density,
+          width: Math.min(this.svgWidth, Math.max(34, maxAllowedW - 10)),
           height: this.svgHeight,
           tuning: this.options.tuning,
           tuningNames: this.options.tuningNames
@@ -169,6 +237,10 @@
       const scrollX = typeof scrollOffset.scrollX === 'number' ? scrollOffset.scrollX : (typeof window !== 'undefined' ? (window.scrollX || window.pageXOffset || 0) : 0);
       const scrollY = typeof scrollOffset.scrollY === 'number' ? scrollOffset.scrollY : (typeof window !== 'undefined' ? (window.scrollY || window.pageYOffset || 0) : 0);
 
+      // Adaptive sizing constraint: maximum width <= anchorWidth * 0.8
+      const maxAllowedW = Math.round(anchorW * 0.8);
+      this.domElement.style.maxWidth = `${maxAllowedW}px`;
+
       // Re-render if anchor width changed significantly to adapt multi-segment layout
       if (this.lastAnchorWidth !== anchorW) {
         this.lastAnchorWidth = anchorW;
@@ -178,13 +250,13 @@
       const overlayW = this.domElement.offsetWidth || this.overlayWidth;
       const overlayH = this.domElement.offsetHeight || this.overlayHeight;
 
-      // Position above the measure target
-      let top = anchorRect.top + scrollY - overlayH - 6;
-      let left = anchorRect.left + scrollX + 4; // slight left padding inside the measure
+      // Position above the measure target with tight gap
+      let top = anchorRect.top + scrollY - overlayH - 4;
+      let left = anchorRect.left + scrollX + 3; // slight left padding inside the measure
 
       // Adaptive boundary check: NEVER overlap neighboring measure to the right
       if (left + overlayW > anchorRect.right + scrollX) {
-        left = Math.max(anchorRect.left + scrollX, anchorRect.right + scrollX - overlayW - 4);
+        left = Math.max(anchorRect.left + scrollX, anchorRect.right + scrollX - overlayW - 2);
       }
 
       // If top space is constrained (e.g. very top of page), adjust below staff

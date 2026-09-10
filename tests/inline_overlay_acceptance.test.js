@@ -40,6 +40,12 @@ function setupMockDom() {
     constructor(tagName) {
       this.tagName = tagName.toUpperCase();
       this.id = '';
+      this.classList = {
+        _classes: new Set(),
+        add: (...cls) => cls.forEach(c => this.classList._classes.add(c)),
+        remove: (...cls) => cls.forEach(c => this.classList._classes.delete(c)),
+        contains: (c) => this.classList._classes.has(c)
+      };
       this.className = '';
       this._innerHTML = '';
       this.children = [];
@@ -50,12 +56,17 @@ function setupMockDom() {
       this.offsetWidth = 88;
       this.offsetHeight = 88;
       this._clientRect = { top: 200, left: 100, width: 220, height: 75, bottom: 275, right: 320 };
-      this.classList = {
-        _classes: new Set(),
-        add: (...cls) => cls.forEach(c => this.classList._classes.add(c)),
-        remove: (...cls) => cls.forEach(c => this.classList._classes.delete(c)),
-        contains: (c) => this.classList._classes.has(c)
-      };
+    }
+
+    get className() {
+      return Array.from(this.classList._classes).join(' ');
+    }
+
+    set className(val) {
+      this.classList._classes.clear();
+      if (typeof val === 'string') {
+        val.split(/\s+/).filter(Boolean).forEach(c => this.classList._classes.add(c));
+      }
     }
 
     get innerHTML() {
@@ -595,9 +606,76 @@ console.log(`  • Average Scroll Reconcile Time:       ${avgScrollMs} ms per fr
 console.log(`  • 146-Measure Track DOM Overhead:      0% DOM bloat (only ~${count8} nodes in DOM instead of 146*20)`);
 console.log('✅ Performance Benchmark Passed: Silky smooth 60 FPS verified.\n');
 
+// ----------------------------------------------------
+// Test H: Visual Density & Scale Tuning (Phase 3.2C)
+// ----------------------------------------------------
+console.log('🧪 Test H: Visual Density & Scale Tuning (Phase 3.2C)...');
+
+// H.1 Density Modes Dimension & Scaling Verification
+const m1Data = taiziwanResult.measures[0];
+const smallOverlay = new MeasureOverlay(m1Data, { density: 'small' });
+const mediumOverlay = new MeasureOverlay(m1Data, { density: 'medium' });
+const largeOverlay = new MeasureOverlay(m1Data, { density: 'large' });
+
+assert(smallOverlay.density === 'small', 'Default or specified density should be small');
+assert(smallOverlay.svgWidth === 44, `Small svgWidth must be 44 (got ${smallOverlay.svgWidth})`);
+assert(smallOverlay.svgHeight === 32, `Small svgHeight must be 32 (got ${smallOverlay.svgHeight})`);
+assert(smallOverlay.overlayWidth === 50, `Small overlayWidth must be 50 (got ${smallOverlay.overlayWidth})`);
+
+// Linear dimension reduction: 44 vs 80 in Phase 3.2B is 45% smaller; 50 vs 88 is 43% smaller!
+const linearRatio = (88 - smallOverlay.overlayWidth) / 88;
+assert(linearRatio >= 0.35 && linearRatio <= 0.55, `Small must be 35%~50% scaled down (got ${(linearRatio * 100).toFixed(1)}%)`);
+
+// H.2 Fretboard Rows Compression (3~4 frets in compact mode)
+const seg0 = m1Data; // frets 7, 8, 9
+const compactShape = ShapeDiagram.aggregateSegmentShape(seg0, null, { compact: true });
+assert(compactShape.fretCount >= 3 && compactShape.fretCount <= 4, `Compact shape must compress to 3~4 frets (got ${compactShape.fretCount})`);
+
+// H.3 Omit Bulky 7fr / 8fr Label in Compact Mode
+const smallSVG = ShapeDiagram.renderSVG(seg0, null, { compact: true, density: 'small' });
+assert(!smallSVG.includes('>7fr<') && !smallSVG.includes('>8fr<'), 'Compact SVG must NOT render bulky 7fr text on left');
+assert(smallOverlay.domElement.innerHTML.includes('P7'), 'Header must concisely display P7 badge');
+
+// H.4 Adaptive Sizing Constraint (maxWidth <= anchorWidth * 0.8)
+const testAnchor = { top: 200, left: 100, width: 200, height: 75, bottom: 275, right: 300 };
+smallOverlay.updatePosition(testAnchor, { scrollX: 0, scrollY: 0 });
+assert(smallOverlay.domElement.style.maxWidth === '160px', 'maxWidth must be exactly 200 * 0.8 = 160px');
+
+// H.5 Extremely Narrow Measure Micro Fallback
+const microNarrowAnchor = { top: 200, left: 100, width: 90, height: 75, bottom: 275, right: 190 }; // 90 * 0.8 = 72px < 88px
+const multiNarrowOverlay = new MeasureOverlay(m3Data, { density: 'small' });
+multiNarrowOverlay.updatePosition(microNarrowAnchor, { scrollX: 0, scrollY: 0 });
+const narrowHTML = multiNarrowOverlay.domElement.innerHTML;
+assert(narrowHTML.includes('sfc-overlay-micro-summary'), 'Narrow measure must downgrade to micro-summary');
+assert(narrowHTML.includes('P8') && narrowHTML.includes('P10'), 'Micro-summary must retain P8 and P10 shift info');
+
+// H.6 OverlayManager setDensity Switcher
+const omTest = new OverlayManager({ fingeringResult: taiziwanResult, density: 'small' });
+omTest.scanAnchors();
+omTest.reconcileOverlays();
+assert(omTest.density === 'small', 'OverlayManager initial density is small');
+
+omTest.setDensity('medium');
+assert(omTest.density === 'medium', 'OverlayManager density switched to medium');
+omTest.getActiveOverlays().forEach((ov) => {
+  assert(ov.density === 'medium', 'Active overlay density must update to medium');
+  assert(ov.domElement.classList.contains('sfc-density-medium'), 'DOM element must have sfc-density-medium class');
+});
+
+omTest.setDensity('large');
+assert(omTest.density === 'large', 'OverlayManager density switched to large');
+omTest.getActiveOverlays().forEach((ov) => {
+  assert(ov.density === 'large', 'Active overlay density must update to large');
+  assert(ov.domElement.classList.contains('sfc-density-large'), 'DOM element must have sfc-density-large class');
+});
+
+omTest.destroy();
+
+console.log('✅ Test H Passed: Phase 3.2C Visual density, scaling, 3-4 fret compression, and narrow fallback verified.\n');
+
 // Cleanup
 overlayManager.destroy();
 
 console.log('====================================================');
-console.log('🎉 ALL PHASE 3.2B ACCEPTANCE TESTS PASSED SUCCESSFULLY!');
+console.log('🎉 ALL PHASE 3.2B & 3.2C ACCEPTANCE TESTS PASSED SUCCESSFULLY!');
 console.log('====================================================\n');

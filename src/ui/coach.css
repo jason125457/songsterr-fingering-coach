@@ -476,52 +476,99 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: rgba(24, 24, 27, 0.94);
-  border: 1px solid #3f3f46;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
-  padding: 3px 4px 4px 4px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  box-sizing: border-box;
+  background: rgba(18, 18, 22, 0.45);
+  border: 1px solid rgba(63, 63, 70, 0.25);
+  border-radius: 5px;
+  box-shadow: none;
+  padding: 2px 3px 3px 3px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   user-select: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  opacity: 0.65;
+  transition: opacity 0.15s ease, border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
   z-index: 99998;
 }
 
+.sfc-shape-compact {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* Hover state */
+.sfc-measure-overlay:hover {
+  opacity: 0.95;
+  background: rgba(24, 24, 28, 0.85);
+  border-color: rgba(113, 113, 122, 0.5);
+}
+
+/* Active Playback Highlight - Clean, clear emerald highlight */
 .sfc-measure-overlay.sfc-overlay-active {
+  opacity: 1.0;
+  background: rgba(20, 20, 24, 0.94);
   border-color: #00d26a;
-  box-shadow: 0 0 14px rgba(0, 210, 106, 0.45), 0 4px 16px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 10px rgba(0, 210, 106, 0.4), 0 2px 8px rgba(0, 0, 0, 0.5);
   transform: translateY(-1px);
 }
 
+/* Density Variants */
+.sfc-measure-overlay.sfc-density-small {
+  padding: 1px 2px 2px 2px;
+  border-radius: 4px;
+}
+
+.sfc-measure-overlay.sfc-density-medium {
+  padding: 2px 3px 3px 3px;
+  border-radius: 5px;
+}
+
+.sfc-measure-overlay.sfc-density-large {
+  padding: 3px 4px 4px 4px;
+  border-radius: 6px;
+  opacity: 0.75;
+}
+
+/* Overlay Header */
 .sfc-overlay-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  gap: 4px;
-  padding: 1px 2px 3px 2px;
+  gap: 3px;
+  padding: 0 1px 1px 1px;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 10px;
+  font-size: 8.5px;
   font-weight: 700;
   color: #a1a1aa;
-  line-height: 1.2;
+  line-height: 1.1;
+}
+
+.sfc-density-large .sfc-overlay-header {
+  font-size: 9.5px;
+}
+
+.sfc-density-small .sfc-overlay-header {
+  font-size: 8px;
 }
 
 .sfc-overlay-pos-badge {
   color: #00d26a;
-  font-size: 9.5px;
+  font-size: 8px;
   font-weight: 700;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.1px;
+}
+
+.sfc-density-large .sfc-overlay-pos-badge {
+  font-size: 9px;
 }
 
 .sfc-overlay-shift-chip {
-  background: rgba(245, 158, 11, 0.18);
-  border: 1px solid rgba(245, 158, 11, 0.45);
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.35);
   color: #fbbf24;
-  border-radius: 3px;
-  padding: 0 3px;
-  font-size: 8px;
+  border-radius: 2px;
+  padding: 0 2px;
+  font-size: 7.5px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -533,12 +580,12 @@
   width: 100%;
 }
 
-/* Generalized Multi-Segment Layout (Phase 3.2B) */
+/* Multi-Segment Minimalist Layout */
 .sfc-overlay-multi-segments {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   width: 100%;
   max-width: 100%;
 }
@@ -547,25 +594,25 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 1px solid rgba(63, 63, 70, 0.6);
-  border-radius: 6px;
-  padding: 2px;
-  background: rgba(24, 24, 27, 0.7);
+  border: 1px solid rgba(63, 63, 70, 0.3);
+  border-radius: 4px;
+  padding: 1px;
+  background: rgba(24, 24, 27, 0.4);
   transition: all 0.15s ease;
 }
 
 .sfc-overlay-segment.sfc-segment-active {
   border-color: #00d26a;
-  box-shadow: 0 0 8px rgba(0, 210, 106, 0.4);
+  box-shadow: 0 0 6px rgba(0, 210, 106, 0.35);
   background: rgba(0, 210, 106, 0.08);
 }
 
 .sfc-segment-badge {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 8px;
+  font-size: 7.5px;
   font-weight: 700;
   color: #a1a1aa;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
   line-height: 1;
 }
 
@@ -574,14 +621,34 @@
 }
 
 .sfc-segment-arrow {
-  font-size: 9px;
+  font-size: 8px;
   color: #fbbf24;
-  font-weight: 800;
+  font-weight: 700;
   user-select: none;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+/* Micro-Summary Fallback for extremely narrow measures */
+.sfc-overlay-micro-summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 5px;
+  background: rgba(24, 24, 28, 0.85);
+  border: 1px solid rgba(113, 113, 122, 0.4);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.sfc-micro-shift {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 8px;
+  font-weight: 700;
+  color: #e4e4e7;
+  letter-spacing: 0.2px;
 }
 
 

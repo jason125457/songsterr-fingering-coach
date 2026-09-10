@@ -186,7 +186,7 @@ const htmlContent = `<!DOCTYPE html>
 
   <!-- Mock Songsterr Top Navigation Bar -->
   <header class="mock-header">
-    <div class="mock-logo">🎸 Songsterr <span style="font-size: 12px; color: #a1a1aa; font-weight: normal; margin-left: 8px;">Phase 3.2B Every Visible Measure Overlays</span></div>
+    <div class="mock-logo">🎸 Songsterr <span style="font-size: 12px; color: #a1a1aa; font-weight: normal; margin-left: 8px;">Phase 3.2C Inline Overlay Visual Density & Scale Tuning</span></div>
     <div class="mock-tabs">
       <span>Songs</span>
       <span>Artists</span>
@@ -197,10 +197,19 @@ const htmlContent = `<!DOCTYPE html>
   <main class="mock-container">
     <!-- Quick Showcase Navigation Bar -->
     <section class="demo-showcase-bar">
-      <div class="demo-showcase-title">🎯 Phase 3.2B Principle: Every Visible Measure Has Its Fingering Shape</div>
+      <div class="demo-showcase-title">🎯 Phase 3.2C Principle: Inline Overlay = Glanceable Hint (Never Dominates TAB)</div>
       <div style="font-size: 12px; color: #a1a1aa; margin-bottom: 12px;">
-        💡 <em>No playback required. Scroll down to see on-demand 2D viewport mounting. Playback only highlights active measure/event without hiding others.</em>
+        💡 <em>Overlay scaled down 35%~50%, translucent background, compressed 3~4 fret rows. CoachPanel remains detailed view.</em>
       </div>
+
+      <!-- Density Switcher Controls -->
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 12px;">
+        <span style="font-weight: 700; color: #00d26a;">📏 Visual Density:</span>
+        <button class="demo-btn demo-btn-density demo-btn-play" id="btn-density-small" onclick="switchDensity('small')">Small (Default - Glanceable)</button>
+        <button class="demo-btn demo-btn-density" id="btn-density-medium" onclick="switchDensity('medium')">Medium (Balanced)</button>
+        <button class="demo-btn demo-btn-density" id="btn-density-large" onclick="switchDensity('large')">Large (Comfortable)</button>
+      </div>
+
       <div class="demo-btn-group">
         <button class="demo-btn demo-btn-play" id="btn-play-toggle" onclick="togglePlayback()">▶ Start Playback Simulation</button>
         <button class="demo-btn" onclick="scrollToMeasure(1)">Jump to M1 (Pos 7)</button>
@@ -420,6 +429,15 @@ const htmlContent = `<!DOCTYPE html>
       if (box) {
         box.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
+    }
+
+    function switchDensity(density) {
+      if (!overlayMgr) return;
+      overlayMgr.setDensity(density);
+      document.querySelectorAll('.demo-btn-density').forEach(btn => btn.classList.remove('demo-btn-play'));
+      const activeBtn = document.getElementById('btn-density-' + density);
+      if (activeBtn) activeBtn.classList.add('demo-btn-play');
+      updateLiveMetrics();
     }
 
     function updateLiveMetrics() {

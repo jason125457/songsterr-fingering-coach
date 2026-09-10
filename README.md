@@ -20,6 +20,7 @@
 | **Phase 3.1B: Live Playback Sync UI** | 將 PlaybackObserver + PlaybackMapper 透過 PlaybackSyncController 正式連動 CoachPanel 實現即時播放跟隨 | `src/controller/playback_sync_controller.js`、雙模式切換、Multi-Voice 同步高亮、Pause/Seek/速度自適應 | **已完成 (Completed)** ✅ |
 | **Phase 3.2A: Inline Measure Overlay Prototype** | 行內小節微型指法形狀懸浮層（Inline Measure Overlay）定位與生命週期驗證 | `src/ui/measure_overlay.js`、`src/ui/overlay_manager.js`、換把段落切換、Scroll/Resize 座標防飄移、零遮擋 | **已完成 (Completed)** ✅ |
 | **Phase 3.2B: Every Visible Measure Shapes** | 視口驅動 2D 虛擬化（2D Viewport Virtualization）、所有可見小節預先算好指型、靜態多段換把全覽、播放高亮完全解耦 | 2D 視口判定、零點擊即時掛載、廣義多段並排/自適應、寬度自適應防碰撞、極低耗能 60 FPS | **已完成 (Completed)** ✅ |
+| **Phase 3.2C: Visual Density & Scale Tuning** | 行內指法覆蓋層視覺密度微型化（縮小約 45%~50%）、通透次要層次、3~4 品格壓縮、Small/Medium/Large 三段密度切換 | `shape_diagram.js`、`measure_overlay.js`、`coach.css`、無干擾 TAB 體驗、真實 Chromium 截圖驗收 | **已完成 (Completed)** ✅ |
 | **Phase 4: Advanced Shapes** | CAGED 五大和弦音階型態比對、自訂偏好指型庫 | 爵士/藍調/金屬自訂手型偏好、進階調弦指板映射 | **待評估 (Backlog)** 📋 |
 
 
@@ -448,6 +449,39 @@ Phase 3.2B 實現了真正的視口驅動虛擬化，徹底擺脫播放器狀態
   - **寬螢幕全展開視口（Expanded Viewport）**：掛載 20 個 Overlays。
   - **捲動重繪更新耗時**：平均每次捲動幀更新僅 **1.276 ms**（遠低於 60 FPS 的 16.6ms 門檻）。
   - **記憶體與 DOM 節點開銷**：全曲 146 小節僅常駐視口約 16 個節點（**0% DOM 膨脹**，杜絕一次塞入數千節點導致的瀏覽器掉幀）。
+
+---
+
+## 4.5 行內覆蓋層視覺密度微型化與尺寸調校 (Phase 3.2C Visual Density & Scale Tuning)
+
+Phase 3.2C 針對使用者長時間閱讀六線譜的真實痛點，重新校準視覺層級（Visual Hierarchy）：
+
+> 🎯 **核心產品原則 (Core Product Principle)**：  
+> **Inline Overlay = glanceable hint**（一瞥即知、微型提示、輕量通透、絕不搶過 Songsterr TAB 數字）  
+> **CoachPanel = detailed fingering view**（詳盡指法視圖、完整把位與音符詳情）
+
+- 🤏 **整體手型縮小約 45%～50% (Default Small Density)**：
+  - 單段微型覆蓋層寬度由原本的 88px 壓縮至 **50px**，高度僅約 **40px**，面積減少近 74%。
+  - 指法圓點半徑縮小至 3.4px（字體 5.4px），空弦圈半徑 2.4px，精緻洗鍊。
+- 🎸 **壓縮為 3～4 品格 (3–4 Fret Rows Compression)**：
+  - 緊湊模式下若音符僅涵蓋 1~2 品，只繪製 3 個品格行；最多僅繪製 4 行（非原 4~6 行），大幅釋放垂直空間。
+- 🚫 **去除龐大 `7fr` 側標 (No Bulky Fret Label)**：
+  - 省略左側大型綠色 `7fr / 8fr / 10fr` 文字，改於標頭精巧標註 `P7`、`P8`、`P10`，左側空白邊界從 22px 縮減至 6px，省下大量水平空間。
+- 🌫️ **通透非作用中小節 (Lightweight Inactive Overlay)**：
+  - 非播放進行中的小節：移除厚重卡片黑色背景、移除 Drop Shadow、移除粗邊框，透明度設為 `opacity: 0.65`。
+  - 平時自然退居為背景中的輕量提示，讓 Songsterr 原始吉他 TAB 譜線與音符數字始終維持視覺第一焦點。
+  - 當滑鼠 Hover 經過時，自動輕微加深（`opacity: 0.95`）以供細讀。
+- ❇️ **清楚祖母綠播放高亮 (Active Playback Emerald Highlight)**：
+  - 當播放器推進至該小節時，自動點亮清晰祖母綠邊框（`border-color: #00d26a`）與柔和發光，不透明度躍升至 `1.0`。
+- 📏 **自適應小節寬度約束與極窄降級 (Adaptive Sizing & Micro Fallback)**：
+  - 強制執行 `maxWidth <= anchorWidth * 0.8`，Overlay 寬度嚴格受限於小節寬度。
+  - **極窄小節微型降級**：若小節極窄（如 `anchorWidth < 110px`），自動降級為極簡摘要晶片：
+    `P8 [F1,2] ➔ P10 [F1,3]`，不硬塞完整手型圖。
+- 🎛️ **三種密度自由切換 (Small / Medium / Large Modes)**：
+  - **`Small` (預設 Default)**：最不干擾 TAB 閱讀，44px × 32px SVG，通透極簡。
+  - **`Medium` (Balanced)**：52px × 38px SVG，平衡清晰度。
+  - **`Large` (Comfortable)**：64px × 48px SVG，高對比舒適視圖。
+  - 支援 `overlayManager.setDensity('small'|'medium'|'large')` 即時動態切換。
 
 ---
 

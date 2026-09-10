@@ -31,6 +31,7 @@
      */
     constructor(options = {}) {
       this.options = options;
+      this.density = options.density || 'small';
       this.activePlaybackMeasure = options.initialMeasure || null;
       this.activePlaybackEventIndex = null;
 
@@ -116,6 +117,20 @@
         this.container = existing;
       }
       return this.container;
+    }
+
+    /**
+     * Number of currently mounted overlays in 2D viewport
+     */
+    get mountedCount() {
+      return this.activeOverlays.size;
+    }
+
+    /**
+     * Active measure index (0-indexed) or null
+     */
+    get activeMeasureIndex() {
+      return this.activePlaybackMeasure !== null ? (this.activePlaybackMeasure - 1) : null;
     }
 
     /**
@@ -214,7 +229,8 @@
           if (mData) {
             const overlay = new MeasureOverlay(mData, {
               tuning: this.tuning,
-              tuningNames: this.tuningNames
+              tuningNames: this.tuningNames,
+              density: this.density
             });
             overlay.mount(container);
             this.activeOverlays.set(mNum, overlay);
@@ -292,6 +308,22 @@
      */
     repositionAll() {
       this.reconcileOverlays();
+    }
+
+    /**
+     * Switch density mode for all mounted and future overlays
+     * @param {'small'|'medium'|'large'} density 
+     */
+    setDensity(density) {
+      if (!density || this.density === density) return;
+      this.density = density;
+      this.options.density = density;
+      this.activeOverlays.forEach(overlay => {
+        if (overlay && typeof overlay.setDensity === 'function') {
+          overlay.setDensity(density);
+        }
+      });
+      this.repositionAll();
     }
 
     /**
