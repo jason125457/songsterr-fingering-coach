@@ -10,6 +10,12 @@
  * - Adaptive sizing against actual measure width (zero overlap with neighboring measures)
  * - Active playback highlight and active note dot pulse
  * - Zero occlusion design: sits above staff lines with pointer-events: none
+ * - Presentations, chosen by OverlayManager from the free space above the staff:
+ *   'map'  chord/hand diagram without the header row (the diagram's own "8fr" label and the
+ *          per-segment "P7"/"P10" badges carry the position) - the default on Songsterr
+ *   'card' diagram with a "P7 · 8–10" header, used when the free space is unknown
+ *   'chip' one-line "P7 8–10" / "P7→P10" label, only where even the diagram cannot fit
+ * - Emphasis 'change' marks a new hand position; 'continue' is a quiet line-start reminder
  */
 
 (function (root, factory) {
@@ -41,7 +47,12 @@
       this.isHighlighted = false;
       this.domElement = null;
       this.anchorRect = null;
-      this.lastAnchorWidth = null;
+      // Known anchor width lets the first render pick the right layout, avoiding a second render
+      // on the first updatePosition() (which uses the same `width || 200` fallback)
+      this.lastAnchorWidth = typeof options.anchorWidth === 'number' ? (options.anchorWidth || 200) : null;
+      this.variant = MeasureOverlay.VARIANTS.includes(options.variant) ? options.variant : 'card';
+      this.emphasis = options.emphasis === 'continue' ? 'continue' : 'change';
+      this.theme = options.theme === 'dark' ? 'dark' : 'light';
 
       this.applyDensityMetrics();
       this.createElement();
@@ -74,9 +85,29 @@
       }
 
       if (this.domElement) {
-        this.domElement.className = `sfc-measure-overlay sfc-density-${this.density}${this.isHighlighted ? ' sfc-overlay-active' : ''}`;
+        this.domElement.className = this.composeClassName();
         this.domElement.style.width = 'auto';
       }
+    }
+
+    composeClassName() {
+      return `sfc-measure-overlay sfc-density-${this.density} sfc-variant-${this.variant}` +
+        (this.emphasis === 'continue' ? ' sfc-emphasis-continue' : '') +
+        (this.isHighlighted ? ' sfc-overlay-active' : '');
+    }
+
+    /**
+     * Switch presentation (card/chip), emphasis or theme; re-renders only on an actual change
+     * @param {{variant?: 'card'|'chip', emphasis?: 'change'|'continue', theme?: 'light'|'dark'}} presentation
+     */
+    setPresentation({ variant = this.variant, emphasis = this.emphasis, theme = this.theme } = {}) {
+      if (variant === this.variant && emphasis === this.emphasis && theme === this.theme) return;
+      const themeOrVariantChanged = variant !== this.variant || theme !== this.theme;
+      this.variant = variant;
+      this.emphasis = emphasis;
+      this.theme = theme;
+      if (this.domElement) this.domElement.className = this.composeClassName();
+      if (themeOrVariantChanged || variant === 'chip') this.render();
     }
 
     /**
@@ -93,7 +124,7 @@
       this.applyDensityMetrics();
       this.render();
       if (this.anchorRect) {
-        this.updatePosition(this.anchorRect);
+        this.updatePosition(this.anchorRect, this.lastScrollOffset || undefined);
       }
     }
 
@@ -102,7 +133,7 @@
      */
     createElement() {
       const el = document.createElement('div');
-      el.className = `sfc-measure-overlay sfc-density-${this.density}`;
+      el.className = this.composeClassName();
       el.setAttribute('data-measure-number', String(this.measureNumber));
       el.style.position = 'absolute';
       el.style.pointerEvents = 'none';
@@ -146,13 +177,14 @@
         : { type: 'shape' };
 
       const isSequence = classification.type === 'sequence';
+      const isMapMulti = this.variant === 'map' && numSegments > 1;
       const baseRenderOptions = {
         compact: true,
         density: this.density,
-        inlineTheme: 'light',
+        inlineTheme: this.theme,
         showFretLabel: true,
         width: this.svgWidth,
-        height: this.svgHeight,
+        height: isMapMulti ? Math.round(this.svgHeight * MeasureOverlay.MAP_MULTI_SCALE) : this.svgHeight,
         tuning: this.options.tuning,
         tuningNames: this.options.tuningNames
       };
@@ -189,6 +221,9 @@
         });
         html += `</div>`;
         return html;
+      } else if (this.variant === 'map') {
+        // A vertical stack would be twice as tall as the free space above the staff
+        return `<div class="sfc-overlay-map-fallback">${this.renderChipHTML(maxAllowedW)}</div>`;
       } else {
         // Space constrained horizontally: stack vertically in a column
         let html = `<div class="sfc-overlay-multi-stacked">`;
@@ -214,10 +249,37 @@
     }
 
     /**
+     * One-line label: hand position, then fret span, or the shift path for multi-position measures.
+     * Narrow measures drop the span so the chip never spills into the next measure.
+     */
+    renderChipHTML(availableWidth) {
+      const narrow = typeof availableWidth === 'number' && availableWidth < 72;
+      const positions = MeasureOverlay.frettedPositions(this.measureData);
+      if (positions.length > 1) {
+        const shown = narrow ? positions.slice(0, 2) : positions;
+        return `<span class="sfc-chip-pos sfc-chip-shift" title="Position shift">${shown.map(p => `P${p}`).join('→')}</span>`;
+      }
+      const classification = ShapeDiagram.classifyMeasure ? ShapeDiagram.classifyMeasure(this.measureData) : {};
+      const span = classification.handSpan ? `${classification.handSpan.minFret}–${classification.handSpan.maxFret}` : '';
+      const pos = `<span class="sfc-chip-pos">P${positions[0] || this.segments[0].position}</span>`;
+      return narrow || !span ? pos : `${pos}<span class="sfc-chip-span">${span}</span>`;
+    }
+
+    /**
      * Render or refresh inner HTML of the overlay
      */
     render() {
       if (!this.domElement) return;
+
+      if (this.variant === 'chip') {
+        this.domElement.innerHTML = this.renderChipHTML(this.lastAnchorWidth ? this.lastAnchorWidth * 0.8 : null);
+        return;
+      }
+
+      if (this.variant === 'map') {
+        this.domElement.innerHTML = this.renderDiagramsHTML(this.lastAnchorWidth);
+        return;
+      }
 
       const currentSegment = this.segments[this.currentSegmentIndex] || this.segments[0];
       const hasShift = this.segments.length > 1;
@@ -261,6 +323,7 @@
     updatePosition(anchorRect, scrollOffset = { scrollX: 0, scrollY: 0 }) {
       if (!this.domElement || !anchorRect) return;
       this.anchorRect = anchorRect;
+      this.lastScrollOffset = scrollOffset;
 
       const anchorW = anchorRect.width || 200;
       const scrollX = typeof scrollOffset.scrollX === 'number' ? scrollOffset.scrollX : (typeof window !== 'undefined' ? (window.scrollX || window.pageXOffset || 0) : 0);
@@ -268,7 +331,7 @@
 
       // Adaptive sizing constraint: maximum width <= anchorWidth * 0.8
       const maxAllowedW = Math.round(anchorW * 0.8);
-      this.domElement.style.maxWidth = `${maxAllowedW}px`;
+      this.setStyleIfChanged('maxWidth', `${maxAllowedW}px`);
 
       // Re-render if anchor width changed significantly to adapt multi-segment layout
       if (this.lastAnchorWidth !== anchorW) {
@@ -284,7 +347,9 @@
       const safeGap = 4;
 
       let top = notationTop + scrollY - overlayH - safeGap;
-      let left = anchorRect.left + scrollX + 2; // slight left padding inside the measure
+      // Start after the measure number when known, else with slight padding inside the measure
+      const startX = typeof anchorRect.contentLeft === 'number' ? anchorRect.contentLeft + 4 : anchorRect.left + 2;
+      let left = startX + scrollX;
 
       // Adaptive boundary check: NEVER overlap neighboring measure to the right
       if (left + overlayW > anchorRect.right + scrollX) {
@@ -301,8 +366,18 @@
         top = 2;
       }
 
-      this.domElement.style.top = `${Math.round(top)}px`;
-      this.domElement.style.left = `${Math.round(left)}px`;
+      this.setStyleIfChanged('top', `${Math.round(top)}px`);
+      this.setStyleIfChanged('left', `${Math.round(left)}px`);
+    }
+
+    /**
+     * Write an inline style only when it differs, avoiding style recalcs and mutation records
+     * on the many reconciles that leave an overlay where it already is
+     */
+    setStyleIfChanged(prop, value) {
+      if (this.domElement.style[prop] !== value) {
+        this.domElement.style[prop] = value;
+      }
     }
 
     /**
@@ -311,7 +386,10 @@
      * @param {number|null} eventIndex 
      */
     setActiveEvent(eventIndex) {
+      // The manager re-applies the active event on every reconcile; skip redundant re-renders
+      if (eventIndex === this.activeEventIndex && this.domElement && this.domElement.innerHTML) return;
       this.activeEventIndex = eventIndex;
+      if (this.variant === 'chip') return;
 
       if (eventIndex !== null && this.segments.length > 1) {
         // Find matching segment for this event
@@ -389,6 +467,42 @@
       this.options = null;
     }
   }
+
+  /**
+   * Hand positions a measure actually frets in, in order, with repeats collapsed (e.g. [7, 10]).
+   * Rest and open-string beats are skipped: they carry a position but do not move the hand.
+   */
+  MeasureOverlay.frettedPositions = (measure) => {
+    const positions = [];
+    (measure && Array.isArray(measure.beats) ? measure.beats : []).forEach((b) => {
+      if (!Array.isArray(b.notes) || !b.notes.some(n => !n.isRest && n.fret > 0)) return;
+      const pos = b.recommendedPosition || measure.recommendedPosition || 1;
+      if (positions[positions.length - 1] !== pos) positions.push(pos);
+    });
+    return positions;
+  };
+
+  /** Position sequence of a measure, e.g. "7>10" */
+  MeasureOverlay.positionSignature = (measure) => MeasureOverlay.frettedPositions(measure).join('>');
+
+  /**
+   * Chord/grip identity used by 'smart' mode: positions plus every fretted string/fret/finger.
+   * Two measures with the same signature need the same hand shape, so the repeat can be skipped;
+   * a new chord at the same position still counts as a change.
+   */
+  MeasureOverlay.gripSignature = (measure) => {
+    const notes = new Set();
+    (measure && Array.isArray(measure.beats) ? measure.beats : []).forEach((b) => {
+      (Array.isArray(b.notes) ? b.notes : []).forEach((n) => {
+        if (!n.isRest && n.fret > 0) notes.add(n.string + ':' + n.fret + ':' + (n.recommendedFinger ?? ''));
+      });
+    });
+    return MeasureOverlay.positionSignature(measure) + '|' + Array.from(notes).sort().join(',');
+  };
+
+  MeasureOverlay.VARIANTS = ['card', 'map', 'chip'];
+  // Diagram height factor for two-segment maps (keeps them as short as a single diagram)
+  MeasureOverlay.MAP_MULTI_SCALE = 0.68;
 
   return MeasureOverlay;
 });

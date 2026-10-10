@@ -32,7 +32,8 @@
     constructor(options = {}) {
       this.options = Object.assign({
         debugLog: true,        // Log "▶ M1 event 1" to console
-        pollIntervalMs: 60,    // Sampling interval
+        pollIntervalMs: 60,    // Sampling interval while playing
+        idlePollIntervalMs: 400, // Sampling interval while paused/stopped (seeks arrive via #cursorMarker observer)
         targetWindow: typeof window !== 'undefined' ? window : null
       }, options);
 
@@ -60,6 +61,7 @@
       this.markerRebindObserver = null;
       this.boundCursorMarkerEl = null;
       this.lastCursorMarkerTimestamp = 0;
+      this.lastSampleAt = 0;
       this.lastPlayheadTransforms = new Map();
     }
 
@@ -106,7 +108,13 @@
       this.setupDomObservers();
 
       // 2. Setup periodic polling loop for playhead coordinates
+      // Each sample reads computed styles and walks the score SVG, so back off while idle
       this.pollTimer = setInterval(() => {
+        const now = Date.now();
+        if (this.currentState.state !== 'playing' && now - this.lastSampleAt < this.options.idlePollIntervalMs) {
+          return;
+        }
+        this.lastSampleAt = now;
         this.samplePlaybackPosition();
       }, this.options.pollIntervalMs);
 
@@ -149,6 +157,7 @@
       this.lastCandidatesSample = [];
       this.lastEmittedEvent = null;
       this.recentMotionHistory = [];
+      this.lastPlayheadTransforms.clear();
       return this;
     }
 
@@ -185,9 +194,6 @@
       this.initCursorMarkerTracking();
     }
 
-    /**
-     * Bind MutationObserver directly to #cursorMarker without watching whole body attributes
-     */
     /**
      * Bind MutationObserver directly to #cursorMarker without watching whole body attributes
      */

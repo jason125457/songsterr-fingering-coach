@@ -460,6 +460,13 @@
         circleStroke = isLightTheme ? '#059669' : '#a7f3d0';
         textFill = '#09090b';
         strokeDash = '';
+      } else if (isCompact && !isLightTheme) {
+        // Inline diagrams on Songsterr's dark theme are read at a glance while playing:
+        // solid light dot + dark finger number (mirror of the light theme's dark dots)
+        circleFill = '#e4e4e7';
+        circleStroke = '#f4f4f5';
+        textFill = '#09090b';
+        strokeDash = '';
       } else if (options.handFrameMode) {
         // Ghosted/hollow structural guide for sequence / melody notes
         circleFill = isLightTheme ? '#ffffff' : 'rgba(39, 39, 42, 0.65)';

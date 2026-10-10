@@ -23,6 +23,18 @@
   transition: opacity 0.2s ease, transform 0.2s ease;
   overflow: hidden;
   backdrop-filter: blur(12px);
+  /* Column layout: the body takes whatever height the (possibly wrapped) header leaves */
+  display: flex;
+  flex-direction: column;
+}
+
+.sfc-panel > .sfc-header {
+  flex-shrink: 0;
+}
+
+.sfc-panel > .sfc-body {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .sfc-panel.sfc-hidden {
@@ -45,13 +57,13 @@
 }
 
 .sfc-panel.sfc-compact .sfc-body {
-  max-height: calc(52vh - 44px);
+  max-height: none;
   padding: 8px 10px;
   gap: 8px;
 }
 
 .sfc-panel.sfc-expanded .sfc-body {
-  max-height: calc(85vh - 48px);
+  max-height: none;
   padding: 12px 14px;
   gap: 10px;
 }
@@ -156,6 +168,8 @@
 /* Header */
 .sfc-header {
   display: flex;
+  flex-wrap: wrap; /* actions drop to a second row instead of crushing the title */
+  row-gap: 6px;
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
@@ -172,7 +186,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-width: 120px;
 }
 
 .sfc-logo-icon {
@@ -206,6 +221,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  margin-left: auto;
 }
 
 .sfc-btn-icon {
@@ -607,6 +623,60 @@
   box-shadow: 0 12px 35px rgba(0, 210, 106, 0.5);
 }
 
+/* Inline cue mode switch (精簡 / 全部 / 關閉) */
+.sfc-overlay-mode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #27272a;
+}
+
+.sfc-overlay-mode-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #a1a1aa;
+}
+
+.sfc-segmented {
+  display: inline-flex;
+  background: #18181b;
+  border: 1px solid #3f3f46;
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.sfc-seg-btn {
+  min-height: 24px;
+  min-width: 40px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #d4d4d8;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sfc-seg-btn:hover {
+  background: #27272a;
+  color: #ffffff;
+}
+
+.sfc-seg-btn.sfc-active {
+  background: #00d26a;
+  color: #09090b;
+}
+
+.sfc-seg-btn:focus-visible {
+  outline: 2px solid #34d399;
+  outline-offset: 1px;
+}
+
 /* ==================================================== */
 /* Inline Measure Fingering Overlays (Phase 3.2A)       */
 /* ==================================================== */
@@ -618,7 +688,33 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 99998;
+  /* Set at runtime to just above the score's stacking level (see OverlayManager.syncContainerStacking) */
+  z-index: 1;
+
+  /* Inline cue tokens, light theme (contrast on the surface: text 12:1, accent 5.5:1, shift 5:1) */
+  --sfc-ov-surface: rgba(255, 255, 255, 0.92);
+  --sfc-ov-surface-soft: rgba(248, 250, 252, 0.85);
+  --sfc-ov-border: rgba(148, 163, 184, 0.55);
+  --sfc-ov-text: #1e293b;
+  --sfc-ov-muted: #475569;
+  --sfc-ov-accent: #047857;
+  --sfc-ov-shift: #b45309;
+  --sfc-ov-shift-bg: rgba(245, 158, 11, 0.12);
+  --sfc-ov-ring: rgba(16, 185, 129, 0.45);
+}
+
+/* Dark theme follows Songsterr's dark score background (OverlayManager.syncTheme):
+   tonal dark surface instead of white cards, lighter accents for contrast */
+.sfc-overlay-container.sfc-theme-dark {
+  --sfc-ov-surface: rgba(24, 24, 27, 0.92);
+  --sfc-ov-surface-soft: rgba(39, 39, 42, 0.85);
+  --sfc-ov-border: rgba(255, 255, 255, 0.14);
+  --sfc-ov-text: #e4e4e7;
+  --sfc-ov-muted: #a1a1aa;
+  --sfc-ov-accent: #34d399;
+  --sfc-ov-shift: #fbbf24;
+  --sfc-ov-shift-bg: rgba(251, 191, 36, 0.14);
+  --sfc-ov-ring: rgba(52, 211, 153, 0.55);
 }
 
 .sfc-measure-overlay {
@@ -628,17 +724,14 @@
   flex-direction: column;
   align-items: center;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(203, 213, 225, 0.65);
+  background: var(--sfc-ov-surface);
+  border: 1px solid var(--sfc-ov-border);
   border-radius: 5px;
   box-shadow: none;
   padding: 2px 3px 3px 3px;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   user-select: none;
-  opacity: 0.88;
-  transition: opacity 0.15s ease, border-color 0.15s ease, background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
-  z-index: 99998;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  z-index: 1;
 }
 
 .sfc-shape-compact {
@@ -646,23 +739,72 @@
   flex-shrink: 0;
 }
 
-/* Hover state */
-.sfc-measure-overlay:hover {
-  opacity: 1.0;
-  background: rgba(255, 255, 255, 0.95);
-  border-color: #94a3b8;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+/* Active playback measure: ring only. Scaling the cue up would cover more of the score. */
+.sfc-measure-overlay.sfc-overlay-active {
+  border-color: var(--sfc-ov-accent);
+  box-shadow: 0 0 0 2px var(--sfc-ov-ring);
+  z-index: 2;
 }
 
-/* Active Playback Highlight - Clean emerald highlight scaled ~15% */
-.sfc-measure-overlay.sfc-overlay-active {
-  opacity: 1.0;
-  background: rgba(255, 255, 255, 0.96);
-  border-color: #059669;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.28);
-  transform: scale(1.15);
-  transform-origin: bottom left;
-  z-index: 99999;
+/* One-line chip: used where a hand-map card does not fit above the staff */
+/* Container-scoped so it outranks the later .sfc-density-* padding/radius rules */
+.sfc-overlay-container .sfc-measure-overlay.sfc-variant-chip {
+  flex-direction: row;
+  gap: 4px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 9px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.sfc-chip-pos {
+  color: var(--sfc-ov-accent);
+  font-weight: 700;
+}
+
+.sfc-chip-pos.sfc-chip-shift {
+  color: var(--sfc-ov-shift);
+}
+
+.sfc-chip-span {
+  color: var(--sfc-ov-muted);
+  font-weight: 600;
+}
+
+/* Shift measure too narrow for two side-by-side diagrams: one-line label inside the frame */
+.sfc-overlay-map-fallback {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 16px;
+  padding: 0 3px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Line-start reminder in smart mode: same position as before, so visually quiet
+   (dashed outline, no fill) while text keeps full contrast */
+.sfc-measure-overlay.sfc-emphasis-continue {
+  background: transparent;
+  border-style: dashed;
+}
+
+.sfc-measure-overlay.sfc-emphasis-continue .sfc-chip-pos,
+.sfc-measure-overlay.sfc-emphasis-continue .sfc-overlay-pos-badge {
+  color: var(--sfc-ov-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sfc-measure-overlay {
+    transition: none;
+  }
 }
 
 /* Density Variants */
@@ -693,7 +835,7 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 9px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--sfc-ov-text);
   line-height: 1.2;
 }
 
@@ -706,7 +848,7 @@
 }
 
 .sfc-overlay-pos-badge {
-  color: #059669;
+  color: var(--sfc-ov-accent);
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.15px;
@@ -717,9 +859,9 @@
 }
 
 .sfc-overlay-shift-chip {
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  color: #b45309;
+  background: var(--sfc-ov-shift-bg);
+  border: 1px solid var(--sfc-ov-shift);
+  color: var(--sfc-ov-shift);
   border-radius: 3px;
   padding: 0 3px;
   font-size: 8px;
@@ -757,35 +899,34 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 1px solid rgba(203, 213, 225, 0.7);
+  border: 1px solid var(--sfc-ov-border);
   border-radius: 4px;
   padding: 1px;
-  background: rgba(248, 250, 252, 0.8);
+  background: var(--sfc-ov-surface-soft);
   transition: all 0.15s ease;
 }
 
 .sfc-overlay-segment.sfc-segment-active {
-  border-color: #059669;
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.3);
-  background: rgba(236, 253, 245, 0.9);
+  border-color: var(--sfc-ov-accent);
+  box-shadow: 0 0 0 1px var(--sfc-ov-ring);
 }
 
 .sfc-segment-badge {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 8px;
   font-weight: 700;
-  color: #475569;
+  color: var(--sfc-ov-muted);
   margin-bottom: 1px;
   line-height: 1;
 }
 
 .sfc-overlay-segment.sfc-segment-active .sfc-segment-badge {
-  color: #059669;
+  color: var(--sfc-ov-accent);
 }
 
 .sfc-segment-arrow {
   font-size: 9px;
-  color: #b45309;
+  color: var(--sfc-ov-shift);
   font-weight: 800;
   user-select: none;
   display: flex;
@@ -796,7 +937,7 @@
 
 .sfc-segment-arrow-v {
   font-size: 8px;
-  color: #b45309;
+  color: var(--sfc-ov-shift);
   font-weight: 800;
   user-select: none;
   line-height: 1;

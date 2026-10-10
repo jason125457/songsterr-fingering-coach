@@ -32,6 +32,22 @@
     return `${note}${oct}`;
   }
 
+  /**
+   * Song titles, track names and instruments come from user-submitted Songsterr metadata,
+   * so they must be escaped before being interpolated into innerHTML
+   */
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[ch]);
+  }
+
+  const OVERLAY_MODES = [
+    { id: 'smart', label: '精簡', title: '和弦指型改變時才顯示；與上一小節相同的不重複顯示，每行開頭會再提示一次' },
+    { id: 'all', label: '全部', title: '每個小節都顯示和弦指型' },
+    { id: 'off', label: '關閉', title: '不在譜上標示' }
+  ];
+
   const FINGER_NAMES = {
     0: 'Open (0)',
     1: 'Index (1)',
@@ -85,6 +101,10 @@
       this.resumeFollowCallback = null;
       this.userActionCallback = null;
 
+      // How the inline score cues are shown ('smart' | 'all' | 'off'); owned by OverlayManager,
+      // the panel only offers the switch and reports changes
+      this.overlayMode = OVERLAY_MODES.some(m => m.id === options.overlayMode) ? options.overlayMode : 'smart';
+
       this.panelEl = null;
       this.fabEl = null;
       this.dragOffset = { x: 0, y: 0 };
@@ -128,7 +148,7 @@
           <span class="sfc-logo-icon">🎸</span>
           <div class="sfc-title-text">
             <span class="sfc-app-name">Coach</span>
-            <span class="sfc-track-name" id="sfc-track-info">${this.data.song?.title || 'Song'} (${this.data.track?.name || 'Guitar'})</span>
+            <span class="sfc-track-name" id="sfc-track-info">${escapeHtml(this.data.song?.title || 'Song')} (${escapeHtml(this.data.track?.name || 'Guitar')})</span>
           </div>
         </div>
         <div class="sfc-header-actions" id="sfc-header-actions">
@@ -198,7 +218,7 @@
         body.innerHTML = `
           <div class="sfc-loading-card">
             <div class="sfc-loading-icon">⏳</div>
-            <div class="sfc-loading-title">${message}</div>
+            <div class="sfc-loading-title">${escapeHtml(message)}</div>
           </div>
         `;
       }
@@ -223,17 +243,10 @@
           <div class="sfc-unsupported-card">
             <div class="sfc-unsupported-icon">⚠️</div>
             <div class="sfc-unsupported-title">音軌暫不支援 (Unsupported Track)</div>
-            <p class="sfc-unsupported-desc">${reason}</p>
+            <p class="sfc-unsupported-desc">${escapeHtml(reason)}</p>
             <p class="sfc-unsupported-hint">左手指法教練第一版僅支援標準 6 弦吉他音軌。請切換至吉他軌以查看指法指引。</p>
           </div>
         `;
-      }
-    }
-
-    updateHeaderTrackInfo() {
-      const trackInfoEl = this.panelEl?.querySelector('#sfc-track-info');
-      if (trackInfoEl) {
-        trackInfoEl.textContent = `${this.data.song?.title || 'Song'} (${this.data.track?.name || 'Guitar'})`;
       }
     }
 
@@ -342,6 +355,16 @@
       this.updateView();
     }
 
+    /**
+     * Hide the panel and its FAB entirely on pages without a score (artist, search, home).
+     * Separate from minimize so the user's minimized state survives navigation.
+     */
+    setPageVisible(visible) {
+      const display = visible ? '' : 'none';
+      if (this.panelEl) this.panelEl.style.display = display;
+      if (this.fabEl) this.fabEl.style.display = display;
+    }
+
     toggleMinimize(minimized) {
       this.isMinimized = minimized;
       if (this.isMinimized) {
@@ -385,6 +408,32 @@
       if (typeof callback === 'function') {
         this.userActionCallback = callback;
       }
+    }
+
+    /**
+     * Change the inline cue mode from the panel's switch
+     * @param {'smart'|'all'|'off'} mode
+     */
+    setOverlayMode(mode) {
+      if (!OVERLAY_MODES.some(m => m.id === mode) || mode === this.overlayMode) return;
+      this.overlayMode = mode;
+      if (typeof this.options.onOverlayModeChange === 'function') {
+        this.options.onOverlayModeChange(mode);
+      }
+      this.updateView();
+    }
+
+    renderOverlayModeHtml() {
+      const buttons = OVERLAY_MODES.map(m => {
+        const active = m.id === this.overlayMode;
+        return `<button type="button" class="sfc-seg-btn${active ? ' sfc-active' : ''}" data-overlay-mode="${m.id}" aria-pressed="${active}" title="${m.title}">${m.label}</button>`;
+      }).join('');
+      return `
+        <div class="sfc-overlay-mode" role="group" aria-label="譜上指型提示">
+          <span class="sfc-overlay-mode-label">譜上指型</span>
+          <div class="sfc-segmented">${buttons}</div>
+        </div>
+      `;
     }
 
     handleManualInteraction() {
@@ -939,7 +988,7 @@
       }
 
       // Assemble into body
-      body.innerHTML = navHtml + statusHtml + segmentsHtml + overviewCardHtml + (isCompactMode ? '' : eventsHtml) + nowPlayingCardHtml;
+      body.innerHTML = navHtml + statusHtml + segmentsHtml + overviewCardHtml + (isCompactMode ? '' : eventsHtml) + nowPlayingCardHtml + this.renderOverlayModeHtml();
 
       // Attach DOM handlers
       body.querySelector('#sfc-btn-prev')?.addEventListener('click', () => this.prevMeasure());
@@ -959,6 +1008,12 @@
         });
       });
 
+      body.querySelectorAll('.sfc-seg-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          this.setOverlayMode(e.currentTarget.getAttribute('data-overlay-mode'));
+        });
+      });
+
       body.querySelectorAll('.sfc-step-item').forEach((item) => {
         item.addEventListener('click', (e) => {
           const evIdx = parseInt(e.currentTarget.getAttribute('data-event'), 10);
@@ -968,12 +1023,17 @@
         });
       });
 
-      // Auto scroll active step into view
+      // Keep the active step visible by scrolling only the strip horizontally.
+      // scrollIntoView would also scroll the panel body and the Songsterr page on every event.
       const activeStep = body.querySelector('.sfc-step-item.sfc-step-active');
-      if (activeStep && typeof activeStep.scrollIntoView === 'function') {
-        try {
-          activeStep.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-        } catch (e) {}
+      const strip = activeStep?.parentElement;
+      if (activeStep && strip && strip.clientWidth > 0) {
+        const stepLeft = activeStep.offsetLeft - strip.offsetLeft;
+        const stepRight = stepLeft + activeStep.offsetWidth;
+        if (stepLeft < strip.scrollLeft || stepRight > strip.scrollLeft + strip.clientWidth) {
+          // Instant: the strip is rebuilt on every render, so a smooth scroll would restart from 0 each time
+          strip.scrollLeft = Math.max(0, stepLeft - 8);
+        }
       }
 
       // Update FAB text if minimized

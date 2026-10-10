@@ -37,9 +37,97 @@
   let currentSyncController = null;
   let currentNormalizedTrack = null;
 
-  // Session cache to prevent redundant recalculation across track switches or re-renders
+  // Session cache to prevent redundant recalculation across track switches or re-renders.
+  // Bounded LRU (Map keeps insertion order) so long browsing sessions do not grow memory forever.
+  const MAX_CACHED_TRACKS = 12;
   const fingeringCache = new Map(); // key: `${songId}-${revisionId}-${partId}` -> FingeringResult
   const normalizedCache = new Map(); // key: `${songId}-${revisionId}-${partId}` -> NormalizedTrack
+
+  function cacheTrack(key, fingeringResult, normalizedTrack) {
+    fingeringCache.delete(key);
+    normalizedCache.delete(key);
+    fingeringCache.set(key, fingeringResult);
+    normalizedCache.set(key, normalizedTrack);
+    while (fingeringCache.size > MAX_CACHED_TRACKS) {
+      const oldestKey = fingeringCache.keys().next().value;
+      fingeringCache.delete(oldestKey);
+      normalizedCache.delete(oldestKey);
+    }
+  }
+
+  // Failed network loads back off exponentially; otherwise the 400ms track poll
+  // would re-request the Songsterr API / CDN continuously while a load keeps failing.
+  let consecutiveLoadFailures = 0;
+  let nextLoadRetryAt = 0;
+  let failedLoadPartId = null; // null = failure not tied to one part (e.g. song metadata)
+
+  function recordLoadFailure(partId = null) {
+    consecutiveLoadFailures++;
+    failedLoadPartId = partId;
+    nextLoadRetryAt = Date.now() + Math.min(60000, 2000 * 2 ** (consecutiveLoadFailures - 1));
+  }
+
+  function resetLoadBackoff() {
+    consecutiveLoadFailures = 0;
+    nextLoadRetryAt = 0;
+    failedLoadPartId = null;
+  }
+
+  /**
+   * True when the URL no longer points at the song this extraction started for
+   * (the user navigated to another song or a non-song page while a fetch was in flight)
+   */
+  function isStaleExtraction(songId) {
+    const identity = extractSongIdentityFromUrl();
+    return !identity || !identity.songId || identity.songId !== songId;
+  }
+
+  // Inline score cue mode chosen in the Coach panel, remembered across sessions
+  const OVERLAY_MODE_KEY = 'sfc_overlay_mode';
+  function loadOverlayMode() {
+    try {
+      const saved = localStorage.getItem(OVERLAY_MODE_KEY);
+      if (saved === 'smart' || saved === 'all' || saved === 'off') return saved;
+    } catch (e) {}
+    return 'smart';
+  }
+
+  function coachPanelOptions() {
+    return {
+      initialMeasure: 1,
+      overlayMode: loadOverlayMode(),
+      onOverlayModeChange: (mode) => {
+        try { localStorage.setItem(OVERLAY_MODE_KEY, mode); } catch (e) {}
+        if (currentOverlayManager) currentOverlayManager.setDisplayMode(mode);
+      }
+    };
+  }
+
+  /**
+   * Artist, search and home pages have no score: hide the coach and its overlays, and forget the
+   * displayed track so that returning to the same song pushes its fingerings again
+   */
+  function deactivateForNonSongPage() {
+    if (currentSyncController) currentSyncController.stop();
+    if (currentOverlayManager) currentOverlayManager.clearAll();
+    if (currentCoachPanel) currentCoachPanel.setPageVisible(false);
+    lastProcessedKey = '';
+    currentActivePartId = null;
+  }
+
+  /**
+   * Make sure a panel exists to show loading / unsupported / error states,
+   * even when the very first track opened cannot be analyzed
+   */
+  function ensureCoachPanel(title) {
+    if (currentCoachPanel || typeof CoachPanel === 'undefined') return currentCoachPanel;
+    try {
+      currentCoachPanel = new CoachPanel({ song: { title }, track: {}, measures: [] }, coachPanelOptions());
+    } catch (e) {
+      console.error('[Songsterr Fingering Coach] Failed to mount Coach Panel:', e);
+    }
+    return currentCoachPanel;
+  }
 
   /**
    * Build the CloudFront CDN URL using Songsterr's internal routing logic
@@ -307,7 +395,6 @@
   }
 
   /**
-  /**
    * Detect current active partId directly from live Songsterr DOM / markers / URL
    */
   function detectCurrentPartId(meta = null) {
@@ -370,22 +457,42 @@
       const songIdentity = extractSongIdentityFromUrl();
       if (!songIdentity || !songIdentity.songId) {
         console.warn('[Songsterr Fingering Coach] No songId found in URL pathname.');
+        deactivateForNonSongPage();
         return null;
       }
 
       const urlSongId = songIdentity.songId;
+      if (currentCoachPanel) currentCoachPanel.setPageVisible(true);
 
       // 2. If song switched via SPA, perform atomic reset immediately
       if (currentActiveSongId !== null && currentActiveSongId !== urlSongId) {
         atomicResetRuntime(urlSongId);
+        resetLoadBackoff();
       } else {
         currentActiveSongId = urlSongId;
       }
 
       // 3. Resolve verified metadata (detects and rejects stale SSR state)
-      const { meta, isStaleSsr } = await resolveSongMetadata(urlSongId);
+      let meta;
+      try {
+        ({ meta } = await resolveSongMetadata(urlSongId));
+      } catch (metaErr) {
+        console.error('[Songsterr Fingering Coach] Failed to resolve song metadata:', metaErr);
+        recordLoadFailure();
+        lastProcessedKey = '';
+        currentActivePartId = null;
+        // Hide the previous track's fingerings instead of leaving them on the new track's score
+        if (currentSyncController) currentSyncController.stop();
+        if (currentOverlayManager) currentOverlayManager.clearAll();
+        if (!isStaleExtraction(urlSongId)) {
+          ensureCoachPanel('Song')?.showUnsupported(null, `無法載入歌曲資訊 (${metaErr.message})`);
+        }
+        return null;
+      }
+      if (isStaleExtraction(urlSongId)) return null;
       if (!meta || !meta.songId) {
         console.warn('[Songsterr Fingering Coach] Metadata could not be resolved for song:', urlSongId);
+        recordLoadFailure();
         return null;
       }
 
@@ -411,7 +518,8 @@
           console.warn(`%c⚠️ [Songsterr Fingering Coach] Unsupported track selected: ${prelimCheck.reason}`, 'color: #f59e0b; font-weight: bold;');
           if (currentSyncController) currentSyncController.stop();
           if (currentOverlayManager) currentOverlayManager.clearAll();
-          if (currentCoachPanel) currentCoachPanel.showUnsupported(prelimTrack, prelimCheck.reason);
+          ensureCoachPanel(title)?.showUnsupported(prelimTrack, prelimCheck.reason);
+          lastProcessedKey = ''; // panel no longer shows this track's fingerings
           currentActivePartId = targetPartId;
           return { unsupported: true, reason: prelimCheck.reason };
         }
@@ -419,6 +527,14 @@
 
       // 6. Fast-path: Check memory session cache
       const cacheKey = `${songId}-${revisionId}-${targetPartId}`;
+
+      // Already displaying exactly this track (e.g. the init timer and the track poll both fired):
+      // re-pushing it would rebuild the panel and every inline overlay for nothing
+      if (cacheKey === lastProcessedKey && lastFingeringResult && fingeringCache.get(cacheKey) === lastFingeringResult) {
+        currentActivePartId = targetPartId;
+        return { fingeringResult: lastFingeringResult };
+      }
+
       if (fingeringCache.has(cacheKey) && normalizedCache.has(cacheKey)) {
         const cachedResult = fingeringCache.get(cacheKey);
         const cachedNormalized = normalizedCache.get(cacheKey);
@@ -429,17 +545,18 @@
 
         console.log(`%c⚡ [Songsterr Fingering Coach] Serving track "${prelimTrack?.name || targetPartId}" from memory cache (${cacheKey})`, 'color: #10b981; font-weight: bold;');
 
-        if (currentCoachPanel) {
-          currentCoachPanel.updateData(cachedResult);
-        }
-        if (currentOverlayManager) {
-          currentOverlayManager.setFingeringResult(cachedResult);
-        }
+        // Refresh LRU recency
+        cacheTrack(cacheKey, cachedResult, cachedNormalized);
+
         if (currentSyncController) {
+          // setTrack pushes the result into the panel and overlays itself
           currentSyncController.coachPanel = currentCoachPanel;
           currentSyncController.overlayManager = currentOverlayManager;
           currentSyncController.setTrack(cachedNormalized, cachedResult);
           currentSyncController.start();
+        } else {
+          if (currentCoachPanel) currentCoachPanel.updateData(cachedResult);
+          if (currentOverlayManager) currentOverlayManager.setFingeringResult(cachedResult);
         }
         return { fingeringResult: cachedResult };
       }
@@ -460,11 +577,21 @@
         partData = await response.json();
       } catch (fetchErr) {
         console.error('[Songsterr Fingering Coach] Failed to fetch part JSON from CDN:', fetchErr);
-        if (currentCoachPanel) {
-          currentCoachPanel.showUnsupported(prelimTrack, `無法載入音軌資料 (${fetchErr.message})`);
+        recordLoadFailure(targetPartId);
+        lastProcessedKey = '';
+        // No track is displayed now, so returning to the previous track must count as a change
+        currentActivePartId = null;
+        // Hide the previous track's fingerings instead of leaving them on the new track's score
+        if (currentSyncController) currentSyncController.stop();
+        if (currentOverlayManager) currentOverlayManager.clearAll();
+        if (!isStaleExtraction(urlSongId)) {
+          ensureCoachPanel(title)?.showUnsupported(prelimTrack, `無法載入音軌資料 (${fetchErr.message})`);
         }
         return null;
       }
+
+      // The user may have navigated to another song while the part was downloading
+      if (isStaleExtraction(urlSongId)) return null;
 
       if (!partData.measures || !Array.isArray(partData.measures)) {
         console.warn('[Songsterr Fingering Coach] No measures array in retrieved part JSON.');
@@ -478,7 +605,8 @@
         console.warn(`%c⚠️ [Songsterr Fingering Coach] Unsupported track selected: ${supportedCheck.reason}`, 'color: #f59e0b; font-weight: bold;');
         if (currentSyncController) currentSyncController.stop();
         if (currentOverlayManager) currentOverlayManager.clearAll();
-        if (currentCoachPanel) currentCoachPanel.showUnsupported(track, supportedCheck.reason);
+        ensureCoachPanel(title)?.showUnsupported(track, supportedCheck.reason);
+        lastProcessedKey = ''; // panel no longer shows this track's fingerings
         currentActivePartId = targetPartId;
         return { unsupported: true, reason: supportedCheck.reason };
       }
@@ -513,19 +641,30 @@
       if (typeof TabNormalizer !== 'undefined' && typeof FingeringEngine !== 'undefined') {
         const startTime = performance.now();
 
-        // Strict normalization (guards against fractional strings, invalid frets, non-6 strings)
-        normalizedTrack = TabNormalizer.normalizeSongsterrPart(partData, {
-          title,
-          artist,
-          songId,
-          partId: targetPartId,
-          trackName: track?.name || partData.name,
-          instrument: track?.instrument || partData.instrument,
-          tuning
-        });
+        try {
+          // Strict normalization (guards against fractional strings, invalid frets, non-6 strings)
+          normalizedTrack = TabNormalizer.normalizeSongsterrPart(partData, {
+            title,
+            artist,
+            songId,
+            partId: targetPartId,
+            trackName: track?.name || partData.name,
+            instrument: track?.instrument || partData.instrument,
+            tuning
+          });
 
-        // Run Left-Hand Fingering Engine
-        fingeringResult = FingeringEngine.analyzeTab(normalizedTrack);
+          // Run Left-Hand Fingering Engine
+          fingeringResult = FingeringEngine.analyzeTab(normalizedTrack);
+        } catch (analysisErr) {
+          // Deterministic for this part: mark it active so the track poll does not re-download it
+          console.error('[Songsterr Fingering Coach] Failed to analyze track:', analysisErr);
+          if (currentSyncController) currentSyncController.stop();
+          if (currentOverlayManager) currentOverlayManager.clearAll();
+          ensureCoachPanel(title)?.showUnsupported(track, `無法分析此音軌 (${analysisErr.message})`);
+          lastProcessedKey = ''; // panel no longer shows this track's fingerings
+          currentActivePartId = targetPartId;
+          return null;
+        }
 
         const durationMs = (performance.now() - startTime).toFixed(2);
         console.log(
@@ -534,9 +673,9 @@
         );
 
         // Store in session cache
-        fingeringCache.set(cacheKey, fingeringResult);
-        normalizedCache.set(cacheKey, normalizedTrack);
+        cacheTrack(cacheKey, fingeringResult, normalizedTrack);
       }
+      resetLoadBackoff();
 
       lastProcessedKey = cacheKey;
       lastFingeringResult = fingeringResult;
@@ -547,9 +686,10 @@
       if (fingeringResult && typeof CoachPanel !== 'undefined') {
         try {
           if (!currentCoachPanel) {
-            currentCoachPanel = new CoachPanel(fingeringResult, { initialMeasure: 1 });
+            currentCoachPanel = new CoachPanel(fingeringResult, coachPanelOptions());
             console.log('%c🎨 [Songsterr Fingering Coach] Coach Panel UI successfully mounted to page', 'color: #8b5cf6; font-weight: bold;');
-          } else {
+          } else if (!currentSyncController) {
+            // With a sync controller, setTrack (step 13) pushes the new result instead
             currentCoachPanel.updateData(fingeringResult);
           }
         } catch (uiErr) {
@@ -564,12 +704,13 @@
             currentOverlayManager = new OverlayManager({
               fingeringResult,
               initialMeasure: 1,
-              density: 'small'
+              density: 'small',
+              displayMode: loadOverlayMode()
             });
             window.__sfc_overlay_manager = currentOverlayManager;
             console.log('%c📐 [Songsterr Fingering Coach] Inline Overlay Manager initialized (Density: Compact Hand Map)', 'color: #3b82f6; font-weight: bold;');
           } else {
-            currentOverlayManager.setFingeringResult(fingeringResult);
+            if (!currentSyncController) currentOverlayManager.setFingeringResult(fingeringResult);
             window.__sfc_overlay_manager = currentOverlayManager;
           }
         } catch (overlayErr) {
@@ -672,6 +813,10 @@
     const detectedPartId = explicitPartId !== null ? Number(explicitPartId) : detectCurrentPartId();
     if (detectedPartId === null || isNaN(detectedPartId)) return;
 
+    // A previous load failed: wait out the backoff instead of retrying on every poll
+    // (switching to a different track still loads immediately)
+    if (Date.now() < nextLoadRetryAt && (failedLoadPartId === null || failedLoadPartId === detectedPartId)) return;
+
     if (currentActivePartId === null || detectedPartId !== currentActivePartId) {
       console.log(
         `%c🔄 [Songsterr Fingering Coach] Active track change detected in DOM: Part ${currentActivePartId} -> Part ${detectedPartId}`,
@@ -692,25 +837,25 @@
 
   // Observe URL / SPA navigation changes
   let lastUrl = location.href;
-  const urlObserver = new MutationObserver(() => {
-    if (location.href !== lastUrl) {
-      lastUrl = location.href;
-      if (location.pathname.includes('/a/wsa/')) {
-        setTimeout(() => {
-          extractTabNotes().catch(console.error);
-        }, 300);
-      }
-    }
-  });
-  urlObserver.observe(document, { subtree: true, childList: true });
-
-  window.addEventListener('popstate', () => {
-    if (location.pathname.includes('/a/wsa/')) {
+  function handleUrlChange() {
+    if (!extractSongIdentityFromUrl()) {
+      deactivateForNonSongPage();
+    } else if (location.pathname.includes('/a/wsa/')) {
       setTimeout(() => {
         extractTabNotes().catch(console.error);
       }, 300);
     }
+  }
+
+  const urlObserver = new MutationObserver(() => {
+    if (location.href !== lastUrl) {
+      lastUrl = location.href;
+      handleUrlChange();
+    }
   });
+  urlObserver.observe(document, { subtree: true, childList: true });
+
+  window.addEventListener('popstate', handleUrlChange);
 
   // Track switch polling and event listeners
   setInterval(checkTrackChange, 400);

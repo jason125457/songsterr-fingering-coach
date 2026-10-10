@@ -355,36 +355,58 @@
   }
 
   /**
+   * Pair each fretted note of a beat with the finger a candidate assigns to it
+   */
+  function pairFrettedFingers(notes, fingerAssignments) {
+    const fretted = [];
+    for (let i = 0; i < notes.length; i++) {
+      const n = notes[i];
+      if (!n.isRest && n.fret > 0) fretted.push({ note: n, finger: fingerAssignments[i] });
+    }
+    return fretted;
+  }
+
+  /**
+   * Whether a position shift between two beats lands on a natural phrase boundary
+   */
+  function isNaturalShiftBoundary(prevFlatBeat, currFlatBeat, prevHasFretted) {
+    const isMeasureBoundary = (currFlatBeat.measureNumber !== prevFlatBeat.measureNumber) || (currFlatBeat.beat.beatNumber === 1);
+    const prevIsLongNote = prevFlatBeat.beat.timing === '1/2' || prevFlatBeat.beat.timing === '1/1' || prevFlatBeat.beat.timing === '3/4';
+    return isMeasureBoundary || !prevHasFretted || prevIsLongNote;
+  }
+
+  /**
    * Detailed Transition Calculation with Cost Breakdown
    */
   function calculateTransition(prevCand, currCand, prevFlatBeat, currFlatBeat) {
-    const breakdown = {
-      movementCost: 0,
-      anchorCost: 0,
-      openWindowBonus: 0,
-      phraseBoundaryBonus: 0,
-      midPhrasePenalty: 0,
-      noteConsistencyBonus: 0,
-      invertedMotionPenalty: 0,
-      total: 0
-    };
+    const prevFretted = pairFrettedFingers(prevFlatBeat.beat?.notes || [], prevCand.fingerAssignments);
+    const currFretted = pairFrettedFingers(currFlatBeat.beat?.notes || [], currCand.fingerAssignments);
+    const naturalBoundary = isNaturalShiftBoundary(prevFlatBeat, currFlatBeat, prevFretted.length > 0);
+    return transitionFromFretted(prevCand, currCand, prevFretted, currFretted, naturalBoundary);
+  }
 
-    const prevNotes = prevFlatBeat.beat?.notes || [];
-    const currNotes = currFlatBeat.beat?.notes || [];
-
-    const prevFretted = prevNotes.map((n, i) => ({ note: n, finger: prevCand.fingerAssignments[i] })).filter(x => !x.note.isRest && x.note.fret > 0);
-    const currFretted = currNotes.map((n, i) => ({ note: n, finger: currCand.fingerAssignments[i] })).filter(x => !x.note.isRest && x.note.fret > 0);
+  /**
+   * Transition cost core, operating on pre-paired fretted notes so the DP loop
+   * can reuse them across every candidate pair
+   */
+  function transitionFromFretted(prevCand, currCand, prevFretted, currFretted, isNaturalBoundary, scratch = null) {
+    // The DP loop passes a reusable scratch object (it copies what it keeps) to avoid
+    // allocating one breakdown per candidate pair
+    const breakdown = scratch || {};
+    breakdown.movementCost = 0;
+    breakdown.anchorCost = 0;
+    breakdown.openWindowBonus = 0;
+    breakdown.phraseBoundaryBonus = 0;
+    breakdown.midPhrasePenalty = 0;
+    breakdown.noteConsistencyBonus = 0;
+    breakdown.invertedMotionPenalty = 0;
+    breakdown.total = 0;
 
     // 1. Position Shift Cost
     if (currCand.position !== prevCand.position) {
       const shiftDistance = Math.abs(currCand.position - prevCand.position);
       const prevHasFretted = prevFretted.length > 0;
       const currHasFretted = currFretted.length > 0;
-
-      const isMeasureBoundary = (currFlatBeat.measureNumber !== prevFlatBeat.measureNumber) || (currFlatBeat.beat.beatNumber === 1);
-      const prevIsRestOrOpen = !prevHasFretted;
-      const prevIsLongNote = prevFlatBeat.beat.timing === '1/2' || prevFlatBeat.beat.timing === '1/1' || prevFlatBeat.beat.timing === '3/4';
-      const isNaturalBoundary = isMeasureBoundary || prevIsRestOrOpen || prevIsLongNote;
 
       if (prevHasFretted && currHasFretted) {
         // Direct fretted shift
@@ -497,14 +519,25 @@
     const initialPos = allFrettedNotes.length > 0 ? allFrettedNotes[0].fret : 1;
 
     const motifCanonicalPos = detectMelodicMotifs(flatBeats);
-    const isOpenShapeMeasure = flatBeats.map((_, k) => detectOpenPositionShape(flatBeats, k));
+
+    // Open-position shape is a per-measure property: evaluate once per measure, not once per beat
+    const openShapeByMeasure = new Map();
+    const isOpenShapeMeasure = flatBeats.map((fb, k) => {
+      if (!openShapeByMeasure.has(fb.measureNumber)) {
+        openShapeByMeasure.set(fb.measureNumber, detectOpenPositionShape(flatBeats, k));
+      }
+      return openShapeByMeasure.get(fb.measureNumber);
+    });
 
     const beatCandidates = [];
+    const candidateFretted = []; // [k][cIdx] -> fretted notes paired with that candidate's fingers
     let lastPos = initialPos;
 
     for (let k = 0; k < flatBeats.length; k++) {
-      const cands = generateBeatCandidates(flatBeats[k].beat.notes, lastPos, allFrettedFrets);
+      const notes = flatBeats[k].beat.notes;
+      const cands = generateBeatCandidates(notes, lastPos, allFrettedFrets);
       beatCandidates.push(cands);
+      candidateFretted.push(cands.map(c => pairFrettedFingers(notes, c.fingerAssignments)));
       if (cands.length > 0) {
         lastPos = cands[0].position;
       }
@@ -512,6 +545,7 @@
 
     // Step 2: Viterbi / Dynamic Programming Forward Pass
     const dp = [];
+    const transitionScratch = {};
 
     // Initialize beat 0
     dp[0] = beatCandidates[0].map(c => {
@@ -550,8 +584,10 @@
     for (let k = 1; k < flatBeats.length; k++) {
       const prevCands = beatCandidates[k - 1];
       const currCands = beatCandidates[k];
-      const prevFlat = flatBeats[k - 1];
-      const currFlat = flatBeats[k];
+      const prevFrettedByCand = candidateFretted[k - 1];
+      const currFrettedByCand = candidateFretted[k];
+      // Every candidate of a beat frets the same notes, so the boundary test is per beat pair
+      const naturalBoundary = isNaturalShiftBoundary(flatBeats[k - 1], flatBeats[k], prevFrettedByCand[0].length > 0);
 
       dp[k] = [];
 
@@ -574,7 +610,7 @@
 
         for (let pIdx = 0; pIdx < prevCands.length; pIdx++) {
           const prevCand = prevCands[pIdx];
-          const trans = calculateTransition(prevCand, currCand, prevFlat, currFlat);
+          const trans = transitionFromFretted(prevCand, currCand, prevFrettedByCand[pIdx], currFrettedByCand[cIdx], naturalBoundary, transitionScratch);
           const totalTransitionAndCand = trans.total + currCand.intraCost + shapeCost + repeatedPatternBonus;
           const totalCost = dp[k - 1][pIdx].cost + totalTransitionAndCand;
 
