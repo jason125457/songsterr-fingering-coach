@@ -121,9 +121,45 @@
     return lines.join('\n');
   }
 
+  /**
+   * Format a concise one-line summary of a measure's fingering state
+   */
+  function formatMeasureSummary(measure) {
+    if (!measure || typeof measure !== 'object') {
+      return '';
+    }
+
+    const markerPart = measure.marker ? ` (${measure.marker})` : '';
+    let noteCount = 0;
+    if (Array.isArray(measure.beats)) {
+      measure.beats.forEach((b) => {
+        if (b && Array.isArray(b.notes)) {
+          noteCount += b.notes.filter(n => n && !n.isRest).length;
+        }
+      });
+    }
+
+    const pos = measure.recommendedPosition ?? 0;
+    const shift = measure.isPositionShift ? 'true' : 'false';
+    return `Measure ${measure.measureNumber}${markerPart}: Position ${pos}, Shift: ${shift}, Notes: ${noteCount}`;
+  }
+
+  /**
+   * Format position number as badge text (e.g. 7 -> "Pos 7", 0 -> "Open")
+   */
+  function formatPositionBadge(position) {
+    if (position === null || position === undefined || typeof position !== 'number') {
+      return '';
+    }
+    return position === 0 ? 'Open' : `Pos ${position}`;
+  }
+
   return {
     formatConsoleDebug,
     formatTableRows,
-    formatCostBreakdown
+    formatCostBreakdown,
+    formatMeasureSummary,
+    formatPositionBadge
   };
 });
+
