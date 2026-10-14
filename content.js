@@ -653,8 +653,9 @@
             tuning
           });
 
-          // Run Left-Hand Fingering Engine
+          // Run Left-Hand Fingering Engine, then name the chords (power chords, triads, 7ths...)
           fingeringResult = FingeringEngine.analyzeTab(normalizedTrack);
+          if (typeof ChordTools !== 'undefined') ChordTools.annotateChordNames(fingeringResult);
         } catch (analysisErr) {
           // Deterministic for this part: mark it active so the track poll does not re-download it
           console.error('[Songsterr Fingering Coach] Failed to analyze track:', analysisErr);

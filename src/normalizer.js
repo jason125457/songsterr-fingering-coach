@@ -33,6 +33,7 @@
  *               isRest: boolean,
  *               isTie?: boolean,
  *               isSlide?: boolean,
+ *               isDead?: boolean,   // muted / dead strum: no pitch, never an open string
  *               source: { voiceIndex: number, beatIndex: number }
  *             }
  *           ]
@@ -133,11 +134,20 @@
     const maxFrets = (typeof declaredFrets === 'number' && declaredFrets > 0) ? declaredFrets : 24;
 
     let currentSignature = '4/4';
+    let currentKey = null; // { accidentals: signed count (sharps +, flats -), mode }
 
     const measures = rawPartData.measures.map((measure, mIdx) => {
       const measureNumber = mIdx + 1;
       if (measure.signature && Array.isArray(measure.signature)) {
         currentSignature = `${measure.signature[0]}/${measure.signature[1]}`;
+      }
+
+      if (measure.keySignature && typeof measure.keySignature.accidentalCount === 'number') {
+        const ks = measure.keySignature;
+        currentKey = {
+          accidentals: ks.transposeAs === 'b' ? -ks.accidentalCount : ks.accidentalCount,
+          mode: ks.mode === 'minor' ? 'minor' : 'major'
+        };
       }
 
       // Group beats across all voices by rational timeOffset
@@ -205,6 +215,8 @@
                   };
                   if (n.tie) noteObj.isTie = true;
                   if (n.slide || n.slideType) noteObj.isSlide = true;
+                  // Dead/muted strum (Songsterr stores it as fret 0): a rhythmic hit, not an open string
+                  if (n.dead || n.muted) noteObj.isDead = true;
                   bucket.notes.push(noteObj);
                 }
               });
@@ -252,6 +264,7 @@
       return {
         measureNumber,
         timeSignature: currentSignature,
+        keySignature: currentKey,
         marker: measure.marker?.text || null,
         beats
       };
@@ -313,6 +326,7 @@
           };
           if (n.isTie) noteObj.isTie = true;
           if (n.isSlide) noteObj.isSlide = true;
+          if (n.isDead) noteObj.isDead = true;
           beatObj.notes.push(noteObj);
         }
       });

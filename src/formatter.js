@@ -51,12 +51,12 @@
 
         if (activeNotes.length === 1) {
           const n = activeNotes[0];
-          const fingerStr = n.fret === 0 ? '0 (Open)' : `${n.recommendedFinger}`;
-          noteLines.push(`${n.stringName}${n.fret} → ${fingerStr}`);
+          const fingerStr = n.isDead ? 'X (Muted)' : n.fret === 0 ? '0 (Open)' : `${n.recommendedFinger}`;
+          noteLines.push(`${n.stringName}${n.isDead ? 'x' : n.fret} → ${fingerStr}`);
         } else {
           // Simultaneous notes in the same beat (chord / double stop)
-          const notesStr = activeNotes.map(n => `${n.stringName}${n.fret}`).join(' + ');
-          const fingersStr = activeNotes.map(n => n.fret === 0 ? '0' : `${n.recommendedFinger}`).join(' + ');
+          const notesStr = activeNotes.map(n => `${n.stringName}${n.isDead ? 'x' : n.fret}`).join(' + ');
+          const fingersStr = activeNotes.map(n => n.isDead ? 'x' : n.fret === 0 ? '0' : `${n.recommendedFinger}`).join(' + ');
           noteLines.push(`${notesStr} → [${fingersStr}]`);
         }
       });

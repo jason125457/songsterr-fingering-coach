@@ -174,7 +174,7 @@
     if (measureNotes.length === 0) return false;
 
     const frettedNotes = measureNotes.filter(n => n.fret > 0);
-    const hasOpenStrings = measureNotes.some(n => n.fret === 0);
+    const hasOpenStrings = measureNotes.some(n => n.fret === 0 && !n.isDead);
 
     // If fretted notes are in low frets (1..3) and open strings are present
     if (frettedNotes.length > 0 && frettedNotes.every(n => n.fret <= 3) && hasOpenStrings) {
@@ -186,7 +186,21 @@
   /**
    * For fretted notes within a beat, generate physically playable fingerings for position P
    */
-  function generateFrettedAssignments(frettedNotes, pos) {
+  /**
+   * Whether one finger can really lie across notes `a` and `b` (same fret) as a barre.
+   * - Nothing fretted lower may sit on a string the finger crosses (it would be pressed dead).
+   * - No open string may sit inside the barre (it would be muted).
+   * - Only the index finger may span more than two adjacent strings.
+   */
+  function isFeasibleBarre(a, b, frettedNotes, openStrings, finger) {
+    const lo = Math.min(a.string, b.string);
+    const hi = Math.max(a.string, b.string);
+    if (finger !== 1 && hi - lo > 1) return false;
+    if (openStrings.some(s => s > lo && s < hi)) return false;
+    return !frettedNotes.some(z => z.string > lo && z.string < hi && z.fret < a.fret);
+  }
+
+  function generateFrettedAssignments(frettedNotes, pos, openStrings = []) {
     if (frettedNotes.length === 1) {
       const fret = frettedNotes[0].fret;
       const naturalFinger = fret - pos + 1;
@@ -249,6 +263,7 @@
             const finger_j = currentFingers[j];
             if (f_i !== f_j && finger_i === finger_j) return; // impossible
             if (f_i === f_j && finger_i === finger_j) {
+              if (!isFeasibleBarre(frettedNotes[i], frettedNotes[j], frettedNotes, openStrings, finger_i)) return;
               cost += (finger_i === 1 || finger_i === 3) ? WEIGHTS.BARRE_COST : WEIGHTS.BARRE_COST * 3;
             }
             if (f_i < f_j && finger_i > finger_j) return;
@@ -303,6 +318,7 @@
       }));
     }
 
+    const openStrings = beatNotes.filter(n => !n.isRest && n.fret === 0 && !n.isDead && n.string >= 0).map(n => n.string);
     const frets = frettedNotes.map(n => n.fret);
     const minFret = Math.min(...frets);
     const maxFret = Math.max(...frets);
@@ -322,7 +338,7 @@
       }
       if (!canReach) continue;
 
-      const validAssignments = generateFrettedAssignments(frettedNotes, pos);
+      const validAssignments = generateFrettedAssignments(frettedNotes, pos, openStrings);
 
       for (const assignment of validAssignments) {
         let frettedIdx = 0;
@@ -704,6 +720,7 @@
             isRest: !!n.isRest,
             isTie: !!n.isTie,
             isSlide: !!n.isSlide,
+            isDead: !!n.isDead,
             source: n.source || null
           };
         });
