@@ -18,6 +18,7 @@
       "js": [
         "src/normalizer.js",
         "src/fingering_engine.js",
+        "src/chord_tools.js",
         "src/formatter.js",
         "src/ui/shape_diagram.js",
         "src/ui/measure_overlay.js",

@@ -20,11 +20,11 @@
 
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) {
-    module.exports = factory(require('./shape_diagram'));
+    module.exports = factory(require('./shape_diagram'), require('../chord_tools'));
   } else {
-    root.MeasureOverlay = factory(root.ShapeDiagram);
+    root.MeasureOverlay = factory(root.ShapeDiagram, root.ChordTools);
   }
-})(typeof self !== 'undefined' ? self : this, function (ShapeDiagram) {
+})(typeof self !== 'undefined' ? self : this, function (ShapeDiagram, ChordTools) {
   'use strict';
 
   class MeasureOverlay {
@@ -194,7 +194,8 @@
         const svg = isSequence
           ? ShapeDiagram.renderHandFrameSVG(seg, this.activeEventIndex, baseRenderOptions)
           : ShapeDiagram.renderSVG(seg, this.activeEventIndex, baseRenderOptions);
-        return `<div class="sfc-overlay-diagram">${svg}</div>`;
+        const nameHTML = this.chordNameHTML(this.segmentChordName(seg), maxAllowedW, this.svgWidth + 8);
+        return `<div class="sfc-overlay-diagram">${svg}${nameHTML}</div>`;
       }
 
       // Generalized Multi-Segment (N >= 2)
@@ -215,7 +216,7 @@
             : ShapeDiagram.renderSVG(seg, segActiveEv, baseRenderOptions);
 
           html += `<div class="sfc-overlay-segment${isSegActive ? ' sfc-segment-active' : ''}" data-segment-index="${sIdx}">`;
-          html += `<span class="sfc-segment-badge">P${seg.position}</span>`;
+          html += `<span class="sfc-segment-badge">${this.segmentChordName(seg) || 'P' + seg.position}</span>`;
           html += svg;
           html += `</div>`;
         });
@@ -249,6 +250,24 @@
     }
 
     /**
+     * Chord name for a segment (most frequent named beat), or null when unknown / not annotated
+     */
+    segmentChordName(segment) {
+      return ChordTools && segment ? ChordTools.dominantChordName(segment.beats) : null;
+    }
+
+    /**
+     * Chord name label placed beside a diagram, only when it fits inside the measure width
+     * (it never adds height, so the no-overlap guarantee above the staff still holds)
+     */
+    chordNameHTML(name, availableWidth, usedWidth) {
+      if (!name) return '';
+      const estimated = name.length * 7 + 8;
+      if (typeof availableWidth === 'number' && usedWidth + estimated > availableWidth) return '';
+      return `<span class="sfc-chord-name">${name}</span>`;
+    }
+
+    /**
      * One-line label: hand position, then fret span, or the shift path for multi-position measures.
      * Narrow measures drop the span so the chip never spills into the next measure.
      */
@@ -262,7 +281,9 @@
       const classification = ShapeDiagram.classifyMeasure ? ShapeDiagram.classifyMeasure(this.measureData) : {};
       const span = classification.handSpan ? `${classification.handSpan.minFret}–${classification.handSpan.maxFret}` : '';
       const pos = `<span class="sfc-chip-pos">P${positions[0] || this.segments[0].position}</span>`;
-      return narrow || !span ? pos : `${pos}<span class="sfc-chip-span">${span}</span>`;
+      const name = this.segmentChordName(this.segments[0]);
+      const chord = name && !narrow ? `<span class="sfc-chip-chord">${name}</span>` : '';
+      return chord + (narrow || !span ? pos : `${pos}<span class="sfc-chip-span">${span}</span>`);
     }
 
     /**
@@ -295,6 +316,8 @@
       }
 
       let headerHTML = `<div class="sfc-overlay-header">`;
+      const headerChord = this.segmentChordName(currentSegment);
+      if (headerChord) headerHTML += `<span class="sfc-chord-name">${headerChord}</span>`;
       headerHTML += `<span class="sfc-overlay-pos-badge">${headerPosText}</span>`;
       
       if (hasShift) {

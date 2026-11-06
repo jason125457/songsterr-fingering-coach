@@ -17,11 +17,11 @@
 
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) {
-    module.exports = factory(require('./shape_diagram'));
+    module.exports = factory(require('./shape_diagram'), require('../chord_tools'));
   } else {
-    root.CoachPanel = factory(root.ShapeDiagram);
+    root.CoachPanel = factory(root.ShapeDiagram, root.ChordTools);
   }
-})(typeof self !== 'undefined' ? self : this, function (ShapeDiagram) {
+})(typeof self !== 'undefined' ? self : this, function (ShapeDiagram, ChordTools) {
   'use strict';
 
   const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -40,6 +40,11 @@
     return String(value ?? '').replace(/[&<>"']/g, ch => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     })[ch]);
+  }
+
+  function timeSignatureParts(measure) {
+    const parts = String(measure?.timeSignature || '4/4').split('/').map(Number);
+    return parts.length === 2 && parts[0] > 0 && parts[1] > 0 ? parts : [4, 4];
   }
 
   const OVERLAY_MODES = [
@@ -423,6 +428,62 @@
       this.updateView();
     }
 
+    /**
+     * "Next" card: the next hand shape to prepare, its chord name and how many beats away it is.
+     * Turns amber with a "準備換" prompt (text, not colour alone) within two beats.
+     */
+    renderNextShapeHtml(tuningNames, trackTuning) {
+      if (!ChordTools) return '';
+      const next = ChordTools.findNextShapeChange(this.measures, this.currentMeasureIndex, this.currentEventIndex);
+      if (!next) {
+        return `<div class="sfc-next-card sfc-next-none"><span class="sfc-card-tag sfc-tag-next">接下來</span><span class="sfc-next-where">後面沒有新的指型</span></div>`;
+      }
+
+      let beatsAway = next.beatsAway;
+      const isLive = this.mode === 'follow' && this.lastPlaybackState === 'playing' && typeof this.lastPositionInMeasure === 'number';
+      if (isLive) {
+        const measure = this.measures[this.currentMeasureIndex];
+        const [beatsPerMeasure, beatValue] = timeSignatureParts(measure);
+        const currentBeat = measure.beats.find(b => (b.eventIndex || b.beatNumber) === this.currentEventIndex);
+        const eventStartBeats = (currentBeat?.timeOffset?.value || 0) * beatValue;
+        const elapsedSinceEvent = this.lastPositionInMeasure * beatsPerMeasure - eventStartBeats;
+        beatsAway = Math.max(0, beatsAway - Math.max(0, elapsedSinceEvent));
+      }
+      // While playing, count whole beats left (like counting in); otherwise show the exact gap
+      const shown = isLive ? Math.max(1, Math.ceil(beatsAway - 0.1)) : Math.round(beatsAway * 2) / 2;
+      const soon = beatsAway <= 2;
+      const countdown = beatsAway < 0.25 ? '現在' : `再 ${shown % 1 ? shown.toFixed(1) : shown} 拍`;
+      const where = next.measuresAway === 0 ? '本小節' : `第 ${next.measureNumber} 小節`;
+      const position = next.beat.recommendedPosition || next.measure.recommendedPosition || 1;
+      const segment = {
+        segmentIndex: 0,
+        position,
+        beats: [next.beat],
+        startEvent: next.eventIndex,
+        endEvent: next.eventIndex,
+        startBeat: next.beat.beatNumber,
+        endBeat: next.beat.beatNumber
+      };
+      // Compact renderer: the full-size panel style is laid out for ~190px and collapses at 84px
+      const svg = ShapeDiagram.renderSVG(segment, null, { compact: true, density: 'large', showFretLabel: true, width: 84, height: 72, tuningNames, tuning: trackTuning, singleEventOnly: false });
+
+      return `
+        <div class="sfc-next-card${soon ? ' sfc-next-soon' : ''}">
+          <div class="sfc-next-head">
+            <span class="sfc-card-tag sfc-tag-next">接下來</span>
+            <span class="sfc-next-countdown">${soon ? '準備換 · ' : ''}${countdown}</span>
+          </div>
+          <div class="sfc-next-body">
+            <div class="sfc-next-diagram">${svg}</div>
+            <div class="sfc-next-info">
+              <div class="sfc-next-chord">${next.chordName || 'P' + position}</div>
+              <div class="sfc-next-where">${where} · P${position}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     renderOverlayModeHtml() {
       const buttons = OVERLAY_MODES.map(m => {
         const active = m.id === this.overlayMode;
@@ -487,6 +548,8 @@
      * Manual Navigation Methods
      */
     goToMeasure(measureIndex, isManual = true) {
+      this.lastPositionInMeasure = null;
+      this.lastBeatTick = null;
       if (measureIndex < 0 || measureIndex >= this.totalMeasures) return;
       if (isManual) this.handleManualInteraction();
       this.currentMeasureIndex = measureIndex;
@@ -506,6 +569,8 @@
     }
 
     selectEvent(eventIndex, isManual = true) {
+      this.lastPositionInMeasure = null;
+      this.lastBeatTick = null;
       if (isManual) this.handleManualInteraction();
       this.currentEventIndex = eventIndex;
       this.currentBeatNumber = eventIndex;
@@ -530,6 +595,8 @@
     }
 
     selectSegment(segmentIndex, isManual = true) {
+      this.lastPositionInMeasure = null;
+      this.lastBeatTick = null;
       if (isManual) this.handleManualInteraction();
       this.activeSegmentIndex = segmentIndex;
       const measure = this.measures[this.currentMeasureIndex];
@@ -565,15 +632,27 @@
       const playState = playbackEvent?.state || 'playing';
       const source = canonicalResult?.source || playbackEvent?.source || this.lastPlaybackSource || 'sync';
 
+      // Playhead position inside the measure (0..1). A chord held for a whole bar produces no new
+      // events, so the "next shape" countdown is driven by the beat the playhead is on instead.
+      const positionInMeasure = typeof playbackEvent?.positionInMeasure === 'number' && playState === 'playing'
+        ? playbackEvent.positionInMeasure
+        : null;
+      const beatTick = positionInMeasure !== null
+        ? Math.floor(positionInMeasure * timeSignatureParts(this.measures[targetMIdx])[0])
+        : null;
+
       // Performance dirty-checking: skip identical renders to prevent flicker
       if (targetMIdx === this.currentMeasureIndex && 
           targetEvIdx === this.currentEventIndex && 
           confidence === this.lastPlaybackConfidence &&
           playState === this.lastPlaybackState &&
-          source === this.lastPlaybackSource) {
+          source === this.lastPlaybackSource &&
+          beatTick === this.lastBeatTick) {
         return;
       }
 
+      this.lastPositionInMeasure = positionInMeasure;
+      this.lastBeatTick = beatTick;
       this.lastPlaybackConfidence = confidence;
       this.lastPlaybackState = playState;
       this.lastPlaybackSource = source;
@@ -617,6 +696,8 @@
       // Find current canonical event
       const currentEvent = measure.beats.find(b => (b.eventIndex || b.beatNumber) === this.currentEventIndex) || measure.beats[0];
       const hasShiftInMeasure = measure.isPositionShift || segments.length > 1;
+      const segmentChord = ChordTools ? ChordTools.dominantChordName(activeSegment.beats) : null;
+      const overviewChordHtml = segmentChord ? `<span class="sfc-chord-badge" title="和弦名稱">${segmentChord}</span>` : '';
       const isShiftOnCurrentEvent = currentEvent?.isPositionShift;
       const isMeasureOnly = this.lastPlaybackConfidence === 'measure-only';
 
@@ -795,7 +876,7 @@
           <div class="sfc-overview-card">
             <div class="sfc-card-header">
               <div class="sfc-card-title-group">
-                <span class="sfc-card-tag">OVERVIEW</span>
+                <span class="sfc-card-tag">OVERVIEW</span>${overviewChordHtml}
                 <span class="sfc-card-title">Measure ${mNum} Hand Frame</span>
               </div>
               <span class="sfc-card-sub">${posLabel}${handSpanText ? ' · ' + handSpanText : ''}</span>
@@ -826,7 +907,7 @@
           <div class="sfc-overview-card">
             <div class="sfc-card-header">
               <div class="sfc-card-title-group">
-                <span class="sfc-card-tag">OVERVIEW</span>
+                <span class="sfc-card-tag">OVERVIEW</span>${overviewChordHtml}
                 <span class="sfc-card-title">Measure ${mNum} Chord Grip</span>
               </div>
               <span class="sfc-card-sub">${posLabel}</span>
@@ -852,7 +933,7 @@
           <div class="sfc-overview-card">
             <div class="sfc-card-header">
               <div class="sfc-card-title-group">
-                <span class="sfc-card-tag">OVERVIEW</span>
+                <span class="sfc-card-tag">OVERVIEW</span>${overviewChordHtml}
                 <span class="sfc-card-title">Measure ${mNum} (${classLabels[classType] || 'Mixed'})</span>
               </div>
               <span class="sfc-card-sub">${posLabel}</span>
@@ -977,6 +1058,7 @@
             <div class="sfc-card-header sfc-now-playing-header">
               <div class="sfc-card-title-group">
                 <span class="sfc-card-tag sfc-tag-now-playing">NOW PLAYING</span>
+                ${currentEvent.chordName ? `<span class="sfc-chord-badge" title="和弦名稱">${currentEvent.chordName}</span>` : ''}
                 <span class="sfc-card-title">Ev ${this.currentEventIndex} Details (${currentEvent.timing || '1/4'})</span>
               </div>
               <span class="sfc-card-sub">${currentEvent.recommendedPosition ? 'Pos ' + currentEvent.recommendedPosition : posLabel}</span>
@@ -988,7 +1070,7 @@
       }
 
       // Assemble into body
-      body.innerHTML = navHtml + statusHtml + segmentsHtml + overviewCardHtml + (isCompactMode ? '' : eventsHtml) + nowPlayingCardHtml + this.renderOverlayModeHtml();
+      body.innerHTML = navHtml + statusHtml + segmentsHtml + overviewCardHtml + this.renderNextShapeHtml(tuningNames, trackTuning) + (isCompactMode ? '' : eventsHtml) + nowPlayingCardHtml + this.renderOverlayModeHtml();
 
       // Attach DOM handlers
       body.querySelector('#sfc-btn-prev')?.addEventListener('click', () => this.prevMeasure());

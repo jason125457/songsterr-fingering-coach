@@ -4,7 +4,7 @@
   "description": "Songsterr Fingering Coach - Chrome Extension Manifest V3 & Decoupled Left-Hand Fingering Recommendation Engine with Viewport-Driven Every Visible Measure Shapes, Playback Observer, Floating Coach Panel and Tuned Visual Density",
   "main": "src/fingering_engine.js",
   "scripts": {
-    "test": "node tests/run_all_tests.js && node tests/ui_acceptance.test.js && node tests/playback_observer.test.js && node tests/multi_voice_acceptance.test.js && node tests/playback_sync_acceptance.test.js && node tests/inline_overlay_acceptance.test.js && node tests/spa_navigation.test.js && node tests/barre_and_presentation.test.js && node tests/coach_panel_rebalance.test.js && node tests/inline_hand_map_redesign.test.js && node tests/compact_ui_non_occlusion.test.js && node tests/formatter.test.js && node tests/content_runtime.test.js && node tests/overlay_render_loop.test.js && node tests/smart_cues.test.js",
+    "test": "node tests/run_all_tests.js && node tests/ui_acceptance.test.js && node tests/playback_observer.test.js && node tests/multi_voice_acceptance.test.js && node tests/playback_sync_acceptance.test.js && node tests/inline_overlay_acceptance.test.js && node tests/spa_navigation.test.js && node tests/barre_and_presentation.test.js && node tests/coach_panel_rebalance.test.js && node tests/inline_hand_map_redesign.test.js && node tests/compact_ui_non_occlusion.test.js && node tests/formatter.test.js && node tests/content_runtime.test.js && node tests/overlay_render_loop.test.js && node tests/smart_cues.test.js && node tests/chord_tools.test.js",
     "test:overlay": "node tests/inline_overlay_acceptance.test.js",
     "test:engine": "node tests/run_all_tests.js",
     "test:ui": "node tests/ui_acceptance.test.js",
@@ -18,7 +18,8 @@
     "build:preview": "node scripts/build_ui_preview.js",
     "test:runtime": "node tests/content_runtime.test.js",
     "test:overlay-loop": "node tests/overlay_render_loop.test.js",
-    "test:smart-cues": "node tests/smart_cues.test.js"
+    "test:smart-cues": "node tests/smart_cues.test.js",
+    "test:chords": "node tests/chord_tools.test.js"
   },
   "keywords": [
     "guitar",

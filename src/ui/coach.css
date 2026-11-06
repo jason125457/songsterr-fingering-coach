@@ -623,6 +623,95 @@
   box-shadow: 0 12px 35px rgba(0, 210, 106, 0.5);
 }
 
+/* Chord name badge in panel card headers */
+.sfc-chord-badge {
+  font-size: 12px;
+  font-weight: 800;
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: 5px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+/* "Next shape" card: what to prepare and how many beats away */
+.sfc-next-card {
+  background: #1f1f23;
+  border: 1px solid #27272a;
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.15s ease;
+}
+
+.sfc-next-card.sfc-next-none {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.sfc-next-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sfc-tag-next {
+  background: rgba(96, 165, 250, 0.14);
+  color: #93c5fd;
+}
+
+.sfc-next-countdown {
+  font-size: 12px;
+  font-weight: 700;
+  color: #d4d4d8;
+  font-variant-numeric: tabular-nums;
+}
+
+.sfc-next-body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sfc-next-diagram {
+  flex-shrink: 0;
+  width: 84px;
+  height: 72px;
+}
+
+.sfc-next-chord {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fafafa;
+  line-height: 1.1;
+}
+
+.sfc-next-where {
+  font-size: 11px;
+  color: #a1a1aa;
+  margin-top: 2px;
+}
+
+/* Within two beats: amber border + "準備換" text (never colour alone) */
+.sfc-next-card.sfc-next-soon {
+  border-color: #fbbf24;
+}
+
+.sfc-next-card.sfc-next-soon .sfc-next-countdown {
+  color: #fbbf24;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sfc-next-card {
+    transition: none;
+  }
+}
+
 /* Inline cue mode switch (精簡 / 全部 / 關閉) */
 .sfc-overlay-mode {
   display: flex;
@@ -773,6 +862,21 @@
 .sfc-chip-span {
   color: var(--sfc-ov-muted);
   font-weight: 600;
+}
+
+/* Chord name on inline cues (beside the diagram, so it never adds height) */
+.sfc-chord-name,
+.sfc-chip-chord {
+  color: var(--sfc-ov-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.sfc-overlay-diagram .sfc-chord-name {
+  padding: 0 3px 0 5px;
 }
 
 /* Shift measure too narrow for two side-by-side diagrams: one-line label inside the frame */
