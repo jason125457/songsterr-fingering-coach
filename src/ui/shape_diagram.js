@@ -153,7 +153,14 @@
       const minNoteFret = Math.min(...frets);
       const maxNoteFret = Math.max(...frets);
 
-      if (pos === 1 || minNoteFret <= 3) {
+      // Open-position (nut) window starts at fret 1, so it only works when every note fits in the
+      // rows we can draw (compact: 4, full: 6); otherwise notes past the last row were silently
+      // dropped (Cmaj7 at 3-5 lost its fret-5 notes). Fall back to a floating window with a "Nfr" label.
+      const maxRows = isCompact ? 4 : 6;
+      // A floating shape high on the neck (frets 3-5, no open strings) must carry its "Nfr" label,
+      // otherwise a nut-style diagram reads as an open-position chord.
+      const nutStyle = pos === 1 || minNoteFret <= 2 || (minNoteFret === 3 && openStrings.size > 0);
+      if (nutStyle && maxNoteFret <= maxRows) {
         minFret = 1;
         maxFret = isCompact ? Math.max(3, maxNoteFret) : Math.max(4, maxNoteFret);
       } else {
